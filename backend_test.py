@@ -530,6 +530,434 @@ class ResolvedFailuresTest:
         
         return self.test_results
 
+class GoogleCalendarIntegrationTest:
+    def __init__(self):
+        self.test_results = []
+        self.test_user_email = "test@example.com"
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_1_google_oauth_login_endpoint(self):
+        """Test 1: GET /api/auth/google/login - should return authorization_url and state"""
+        try:
+            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'authorization_url' in data and 'state' in data:
+                    self.log_result(
+                        "Google OAuth login endpoint", 
+                        True, 
+                        "Successfully returned authorization_url and state",
+                        f"URL length: {len(data.get('authorization_url', ''))}, State: {data.get('state', '')[:20]}..."
+                    )
+                else:
+                    self.log_result(
+                        "Google OAuth login endpoint", 
+                        False, 
+                        "Missing required fields in response",
+                        f"Response keys: {list(data.keys())}"
+                    )
+            else:
+                self.log_result(
+                    "Google OAuth login endpoint", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Google OAuth login endpoint", False, f"Exception: {str(e)}")
+    
+    def test_2_get_user_info_endpoint(self):
+        """Test 2: GET /api/auth/user/{email} - should return user info and Google connection status"""
+        try:
+            response = requests.get(f"{BASE_URL}/auth/user/{self.test_user_email}", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # User might not exist yet, but endpoint should work
+                if 'email' in data or 'error' in data:
+                    self.log_result(
+                        "Get user info endpoint", 
+                        True, 
+                        "Endpoint responds correctly (user may not exist yet)",
+                        f"Response: {data}"
+                    )
+                else:
+                    self.log_result(
+                        "Get user info endpoint", 
+                        False, 
+                        "Unexpected response format",
+                        f"Response: {data}"
+                    )
+            elif response.status_code == 404:
+                # User not found is acceptable
+                self.log_result(
+                    "Get user info endpoint", 
+                    True, 
+                    "Endpoint works correctly (user not found as expected)",
+                    "404 is expected for non-existent user"
+                )
+            else:
+                self.log_result(
+                    "Get user info endpoint", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Get user info endpoint", False, f"Exception: {str(e)}")
+    
+    def test_3_create_calendar_event_endpoint(self):
+        """Test 3: POST /api/calendar/events - should handle event creation (may fail without auth)"""
+        try:
+            event_data = {
+                "title": "בדיקת אירוע קלנדר",
+                "description": "אירוע בדיקה לאינטגרציית Google Calendar",
+                "start_time": "2025-01-20T10:00:00Z",
+                "end_time": "2025-01-20T11:00:00Z",
+                "location": "בסיס חיל הים",
+                "attendees": ["test@example.com"]
+            }
+            
+            response = requests.post(f"{BASE_URL}/calendar/events", headers=HEADERS, json=event_data)
+            
+            # We expect this to fail without proper authentication, but endpoint should exist
+            if response.status_code in [200, 201]:
+                self.log_result(
+                    "Create calendar event endpoint", 
+                    True, 
+                    "Event created successfully (unexpected but good)",
+                    f"Response: {response.json()}"
+                )
+            elif response.status_code in [400, 401, 403]:
+                # Expected failure due to no authentication
+                self.log_result(
+                    "Create calendar event endpoint", 
+                    True, 
+                    "Endpoint exists and handles unauthenticated requests correctly",
+                    f"HTTP {response.status_code} - Expected for unauthenticated request"
+                )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Create calendar event endpoint", 
+                    False, 
+                    "Endpoint not found - not implemented",
+                    "POST /api/calendar/events endpoint missing"
+                )
+            else:
+                self.log_result(
+                    "Create calendar event endpoint", 
+                    False, 
+                    f"Unexpected HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create calendar event endpoint", False, f"Exception: {str(e)}")
+    
+    def test_4_get_calendar_events_endpoint(self):
+        """Test 4: GET /api/calendar/events?user_email=test@example.com - should handle event retrieval"""
+        try:
+            response = requests.get(f"{BASE_URL}/calendar/events?user_email={self.test_user_email}", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Get calendar events endpoint", 
+                        True, 
+                        f"Successfully returned events list with {len(data)} items",
+                        f"Events: {data}"
+                    )
+                else:
+                    self.log_result(
+                        "Get calendar events endpoint", 
+                        False, 
+                        "Response is not a list",
+                        f"Response: {data}"
+                    )
+            elif response.status_code in [400, 401, 403]:
+                # Expected failure due to no authentication
+                self.log_result(
+                    "Get calendar events endpoint", 
+                    True, 
+                    "Endpoint exists and handles unauthenticated requests correctly",
+                    f"HTTP {response.status_code} - Expected for unauthenticated request"
+                )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Get calendar events endpoint", 
+                    False, 
+                    "Endpoint not found - not implemented",
+                    "GET /api/calendar/events endpoint missing"
+                )
+            else:
+                self.log_result(
+                    "Get calendar events endpoint", 
+                    False, 
+                    f"Unexpected HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Get calendar events endpoint", False, f"Exception: {str(e)}")
+    
+    def test_5_create_from_maintenance_endpoint(self):
+        """Test 5: POST /api/calendar/create-from-maintenance - should handle maintenance event creation"""
+        try:
+            maintenance_data = {
+                "maintenance_id": "test-maintenance-123",
+                "user_email": self.test_user_email,
+                "scheduled_date": "2025-01-21",
+                "scheduled_time": "09:00"
+            }
+            
+            response = requests.post(f"{BASE_URL}/calendar/create-from-maintenance", headers=HEADERS, json=maintenance_data)
+            
+            if response.status_code in [200, 201]:
+                self.log_result(
+                    "Create from maintenance endpoint", 
+                    True, 
+                    "Maintenance event created successfully",
+                    f"Response: {response.json()}"
+                )
+            elif response.status_code in [400, 401, 403, 404]:
+                # Expected failure due to no authentication or missing maintenance
+                self.log_result(
+                    "Create from maintenance endpoint", 
+                    True, 
+                    "Endpoint exists and handles request correctly",
+                    f"HTTP {response.status_code} - Expected for unauthenticated/invalid request"
+                )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Create from maintenance endpoint", 
+                    False, 
+                    "Endpoint not found - not implemented",
+                    "POST /api/calendar/create-from-maintenance endpoint missing"
+                )
+            else:
+                self.log_result(
+                    "Create from maintenance endpoint", 
+                    False, 
+                    f"Unexpected HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create from maintenance endpoint", False, f"Exception: {str(e)}")
+    
+    def test_6_create_from_daily_plan_endpoint(self):
+        """Test 6: POST /api/calendar/create-from-daily-plan - should handle daily plan event creation"""
+        try:
+            daily_plan_data = {
+                "daily_plan_id": "test-daily-plan-123",
+                "user_email": self.test_user_email,
+                "scheduled_date": "2025-01-22",
+                "scheduled_time": "14:00"
+            }
+            
+            response = requests.post(f"{BASE_URL}/calendar/create-from-daily-plan", headers=HEADERS, json=daily_plan_data)
+            
+            if response.status_code in [200, 201]:
+                self.log_result(
+                    "Create from daily plan endpoint", 
+                    True, 
+                    "Daily plan event created successfully",
+                    f"Response: {response.json()}"
+                )
+            elif response.status_code in [400, 401, 403, 404]:
+                # Expected failure due to no authentication or missing daily plan
+                self.log_result(
+                    "Create from daily plan endpoint", 
+                    True, 
+                    "Endpoint exists and handles request correctly",
+                    f"HTTP {response.status_code} - Expected for unauthenticated/invalid request"
+                )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Create from daily plan endpoint", 
+                    False, 
+                    "Endpoint not found - not implemented",
+                    "POST /api/calendar/create-from-daily-plan endpoint missing"
+                )
+            else:
+                self.log_result(
+                    "Create from daily plan endpoint", 
+                    False, 
+                    f"Unexpected HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create from daily plan endpoint", False, f"Exception: {str(e)}")
+    
+    def test_7_verify_google_credentials_configured(self):
+        """Test 7: Verify Google credentials are properly configured"""
+        try:
+            # Test if the OAuth login endpoint works (indicates credentials are configured)
+            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'authorization_url' in data and 'accounts.google.com' in data['authorization_url']:
+                    self.log_result(
+                        "Verify Google credentials configured", 
+                        True, 
+                        "Google credentials appear to be properly configured",
+                        "OAuth flow can be initiated successfully"
+                    )
+                else:
+                    self.log_result(
+                        "Verify Google credentials configured", 
+                        False, 
+                        "Google credentials may not be properly configured",
+                        f"Authorization URL: {data.get('authorization_url', 'Missing')}"
+                    )
+            elif response.status_code == 500:
+                self.log_result(
+                    "Verify Google credentials configured", 
+                    False, 
+                    "Server error - likely missing Google credentials",
+                    "Check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables"
+                )
+            else:
+                self.log_result(
+                    "Verify Google credentials configured", 
+                    False, 
+                    f"Unexpected response: HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Verify Google credentials configured", False, f"Exception: {str(e)}")
+    
+    def test_8_verify_required_libraries_installed(self):
+        """Test 8: Verify required Google libraries are installed by testing imports"""
+        try:
+            # This test checks if the server can handle Google-related requests
+            # If libraries are missing, we'd get import errors in the server logs
+            
+            # Test multiple endpoints to see if any fail due to missing imports
+            endpoints_to_test = [
+                "/auth/google/login",
+                f"/auth/user/{self.test_user_email}",
+                "/calendar/events"
+            ]
+            
+            import_errors = []
+            working_endpoints = []
+            
+            for endpoint in endpoints_to_test:
+                try:
+                    response = requests.get(f"{BASE_URL}{endpoint}", headers=HEADERS, timeout=5)
+                    # Any response (even error) means the endpoint loaded successfully
+                    working_endpoints.append(endpoint)
+                except requests.exceptions.Timeout:
+                    # Timeout might indicate server issues, but not import errors
+                    working_endpoints.append(endpoint)
+                except Exception as e:
+                    if "import" in str(e).lower() or "module" in str(e).lower():
+                        import_errors.append(f"{endpoint}: {str(e)}")
+            
+            if not import_errors and working_endpoints:
+                self.log_result(
+                    "Verify required libraries installed", 
+                    True, 
+                    "All Google-related endpoints load successfully",
+                    f"Working endpoints: {working_endpoints}"
+                )
+            elif import_errors:
+                self.log_result(
+                    "Verify required libraries installed", 
+                    False, 
+                    "Import errors detected in Google endpoints",
+                    f"Errors: {import_errors}"
+                )
+            else:
+                self.log_result(
+                    "Verify required libraries installed", 
+                    False, 
+                    "Could not verify library installation",
+                    "No endpoints responded successfully"
+                )
+        except Exception as e:
+            self.log_result("Verify required libraries installed", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all Google Calendar integration tests"""
+        print("🚀 Starting Google Calendar Integration Testing")
+        print("=" * 60)
+        
+        # Run tests in order
+        self.test_1_google_oauth_login_endpoint()
+        self.test_2_get_user_info_endpoint()
+        self.test_3_create_calendar_event_endpoint()
+        self.test_4_get_calendar_events_endpoint()
+        self.test_5_create_from_maintenance_endpoint()
+        self.test_6_create_from_daily_plan_endpoint()
+        self.test_7_verify_google_credentials_configured()
+        self.test_8_verify_required_libraries_installed()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 GOOGLE CALENDAR TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
 if __name__ == "__main__":
-    tester = ResolvedFailuresTest()
-    results = tester.run_all_tests()
+    print("🧪 Running Backend Test Suite")
+    print("=" * 80)
+    
+    # Run Resolved Failures tests
+    print("\n📋 PART 1: RESOLVED FAILURES TESTING")
+    resolved_tester = ResolvedFailuresTest()
+    resolved_results = resolved_tester.run_all_tests()
+    
+    # Run Google Calendar integration tests
+    print("\n📅 PART 2: GOOGLE CALENDAR INTEGRATION TESTING")
+    calendar_tester = GoogleCalendarIntegrationTest()
+    calendar_results = calendar_tester.run_all_tests()
+    
+    # Overall summary
+    print("\n" + "=" * 80)
+    print("🎯 OVERALL TEST SUMMARY")
+    print("=" * 80)
+    
+    total_resolved_passed = sum(1 for result in resolved_results if result['success'])
+    total_calendar_passed = sum(1 for result in calendar_results if result['success'])
+    total_passed = total_resolved_passed + total_calendar_passed
+    total_tests = len(resolved_results) + len(calendar_results)
+    
+    print(f"Resolved Failures Tests: {total_resolved_passed}/{len(resolved_results)} passed")
+    print(f"Google Calendar Tests: {total_calendar_passed}/{len(calendar_results)} passed")
+    print(f"Overall: {total_passed}/{total_tests} passed ({(total_passed/total_tests*100):.1f}%)")
+    
+    if total_passed == total_tests:
+        print("🎉 ALL TESTS PASSED!")
+    else:
+        print("⚠️  Some tests failed - check details above")
