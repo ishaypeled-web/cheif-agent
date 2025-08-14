@@ -276,9 +276,9 @@
 
 ## metadata:
   created_by: "main_agent"
-  version: "3.0"
-  test_sequence: 3
-  run_ui: false
+  version: "4.0"
+  test_sequence: 4
+  run_ui: true
 
 ## test_plan:
   current_focus: []
