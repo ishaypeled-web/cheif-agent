@@ -438,19 +438,26 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-12 bg-white shadow-md">
-            <TabsTrigger value="dashboard">לוח בקרה</TabsTrigger>
-            <TabsTrigger value="ai-agent">האייג'נט AI</TabsTrigger>
-            <TabsTrigger value="failures">תקלות פעילות</TabsTrigger>
-            <TabsTrigger value="resolved">תקלות שטופלו</TabsTrigger>
-            <TabsTrigger value="maintenance">אחזקות ממתינות</TabsTrigger>
-            <TabsTrigger value="equipment">שעות מכלולים</TabsTrigger>
-            <TabsTrigger value="daily-work">תכנון יומי</TabsTrigger>
-            <TabsTrigger value="notifications">התראות דחף</TabsTrigger>
-            <TabsTrigger value="calendar">קלנדר Google</TabsTrigger>
-            <TabsTrigger value="conversations">מעקב שיחות</TabsTrigger>
-            <TabsTrigger value="dna-tracker">DNA מנהיגותי</TabsTrigger>
-            <TabsTrigger value="ninety-day">תכנית 90 יום</TabsTrigger>
+          <TabsList className="w-full bg-white shadow-md overflow-x-auto flex scrollbar-hide" style={{
+            display: 'flex',
+            overflowX: 'auto',
+            gap: '0.25rem',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitScrollbar: { display: 'none' }
+          }}>
+            <TabsTrigger value="dashboard" className="flex-shrink-0 whitespace-nowrap">לוח בקרה</TabsTrigger>
+            <TabsTrigger value="ai-agent" className="flex-shrink-0 whitespace-nowrap">האייג'נט AI</TabsTrigger>
+            <TabsTrigger value="failures" className="flex-shrink-0 whitespace-nowrap">תקלות פעילות</TabsTrigger>
+            <TabsTrigger value="resolved" className="flex-shrink-0 whitespace-nowrap">תקלות שטופלו</TabsTrigger>
+            <TabsTrigger value="maintenance" className="flex-shrink-0 whitespace-nowrap">אחזקות ממתינות</TabsTrigger>
+            <TabsTrigger value="equipment" className="flex-shrink-0 whitespace-nowrap">שעות מכלולים</TabsTrigger>
+            <TabsTrigger value="daily-work" className="flex-shrink-0 whitespace-nowrap">תכנון יומי</TabsTrigger>
+            <TabsTrigger value="notifications" className="flex-shrink-0 whitespace-nowrap">התראות דחף</TabsTrigger>
+            <TabsTrigger value="calendar" className="flex-shrink-0 whitespace-nowrap">קלנדר Google</TabsTrigger>
+            <TabsTrigger value="conversations" className="flex-shrink-0 whitespace-nowrap">מעקב שיחות</TabsTrigger>
+            <TabsTrigger value="dna-tracker" className="flex-shrink-0 whitespace-nowrap">DNA מנהיגותי</TabsTrigger>
+            <TabsTrigger value="ninety-day" className="flex-shrink-0 whitespace-nowrap">תכנית 90 יום</TabsTrigger>
           </TabsList>
 
           {/* Dashboard Tab */}
