@@ -215,6 +215,113 @@ class CalendarEventRequest(BaseModel):
 
 # Helper functions
 
+# Google Calendar Helper Functions
+def create_google_oauth_flow():
+    """Create Google OAuth flow"""
+    flow = Flow.from_client_config(
+        {
+            "web": {
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [GOOGLE_REDIRECT_URI]
+            }
+        },
+        scopes=GOOGLE_SCOPES
+    )
+    flow.redirect_uri = GOOGLE_REDIRECT_URI
+    return flow
+
+def get_user_by_email(email: str):
+    """Get user from database by email"""
+    return users_collection.find_one({"email": email})
+
+def save_user_tokens(email: str, name: str, access_token: str, refresh_token: str = None, expires_at: datetime = None):
+    """Save or update user Google tokens"""
+    user_data = {
+        "email": email,
+        "name": name,
+        "google_access_token": access_token,
+        "google_refresh_token": refresh_token,
+        "google_token_expires_at": expires_at,
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    users_collection.update_one(
+        {"email": email},
+        {"$set": user_data, "$setOnInsert": {"id": str(uuid.uuid4()), "created_at": datetime.now().isoformat()}},
+        upsert=True
+    )
+
+def refresh_google_token(user_email: str):
+    """Refresh Google access token using refresh token"""
+    user = get_user_by_email(user_email)
+    if not user or not user.get('google_refresh_token'):
+        return False
+    
+    try:
+        # Create credentials from stored tokens
+        from google.oauth2.credentials import Credentials
+        
+        credentials = Credentials(
+            token=user['google_access_token'],
+            refresh_token=user['google_refresh_token'],
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=GOOGLE_CLIENT_ID,
+            client_secret=GOOGLE_CLIENT_SECRET
+        )
+        
+        # Refresh the token
+        credentials.refresh(GoogleRequest())
+        
+        # Save new tokens
+        save_user_tokens(
+            user['email'], 
+            user['name'], 
+            credentials.token,
+            credentials.refresh_token,
+            credentials.expiry
+        )
+        return True
+    except Exception as e:
+        print(f"Error refreshing token for {user_email}: {e}")
+        return False
+
+def get_google_calendar_service(user_email: str):
+    """Get Google Calendar service for user"""
+    user = get_user_by_email(user_email)
+    if not user or not user.get('google_access_token'):
+        return None
+    
+    try:
+        from google.oauth2.credentials import Credentials
+        
+        credentials = Credentials(
+            token=user['google_access_token'],
+            refresh_token=user.get('google_refresh_token'),
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=GOOGLE_CLIENT_ID,
+            client_secret=GOOGLE_CLIENT_SECRET
+        )
+        
+        # Check if token needs refresh
+        if credentials.expired and credentials.refresh_token:
+            credentials.refresh(GoogleRequest())
+            save_user_tokens(
+                user['email'],
+                user['name'],
+                credentials.token,
+                credentials.refresh_token,
+                credentials.expiry
+            )
+        
+        service = build('calendar', 'v3', credentials=credentials)
+        return service
+    except Exception as e:
+        print(f"Error creating calendar service for {user_email}: {e}")
+        return None
+
 def calculate_maintenance_dates(maintenance: dict):
     """Calculate next due date and days until due"""
     if maintenance.get('last_performed'):
