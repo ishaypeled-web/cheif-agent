@@ -756,14 +756,8 @@ class GoogleCalendarIntegrationTest:
     def test_6_create_from_daily_plan_endpoint(self):
         """Test 6: POST /api/calendar/create-from-daily-plan - should handle daily plan event creation"""
         try:
-            daily_plan_data = {
-                "daily_plan_id": "test-daily-plan-123",
-                "user_email": self.test_user_email,
-                "scheduled_date": "2025-01-22",
-                "scheduled_time": "14:00"
-            }
-            
-            response = requests.post(f"{BASE_URL}/calendar/create-from-daily-plan", headers=HEADERS, json=daily_plan_data)
+            # The endpoint expects work_id and user_email as query parameters
+            response = requests.post(f"{BASE_URL}/calendar/create-from-daily-plan?work_id=test-daily-plan-123&user_email={self.test_user_email}", headers=HEADERS)
             
             if response.status_code in [200, 201]:
                 self.log_result(
