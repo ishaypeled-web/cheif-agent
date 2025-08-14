@@ -341,6 +341,30 @@ function App() {
     }
   };
 
+  // Export functions
+  const handleExportTable = async (tableName, customTitle = null) => {
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/export/${tableName}`, {
+        table_name: tableName,
+        sheet_title: customTitle || `${tableName} Export - ${new Date().toLocaleString('he-IL')}`
+      });
+
+      if (response.data.success) {
+        alert(`✅ הייצוא הושלם בהצלחה!\n${response.data.message}`);
+        
+        // Open the Google Sheet in a new tab
+        if (response.data.spreadsheet_url) {
+          window.open(response.data.spreadsheet_url, '_blank');
+        }
+      } else {
+        alert(`❌ שגיאה בייצוא: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('Error exporting table:', error);
+      alert(`❌ שגיאה בייצוא: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
   const handleAddMaintenance = async () => {
     try {
       if (editingItem) {
