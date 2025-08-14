@@ -1418,6 +1418,16 @@ function App() {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
+                            {googleConnected && (
+                              <Button 
+                                size="sm" 
+                                variant="secondary"
+                                onClick={() => createEventFromDailyPlan(work.id, googleUser?.email)}
+                                title="הוסף לקלנדר Google"
+                              >
+                                <CalendarPlus className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
