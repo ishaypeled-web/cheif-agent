@@ -131,39 +131,48 @@
 
   - task: "Push Notifications API endpoints"
     implemented: true
-    working: "needs_testing"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "needs_testing"
           agent: "main"
           comment: "הוספתי Push Notifications endpoints: /api/notifications/vapid-key, /api/notifications/subscribe, /api/notifications/send, /api/notifications/preferences/{user_id}, /api/notifications/test. צריך בדיקה מקיפה."
+        - working: true
+          agent: "testing"
+          comment: "✅ בדקתי את כל ה-Push Notifications API endpoints בהצלחה: GET /api/notifications/vapid-key מחזיר public_key ו-subject תקינים, POST /api/notifications/subscribe עובד עם subscription data, GET/PUT /api/notifications/preferences עובד עם תמיכה מלאה בעברית RTL, GET /api/notifications/categories מחזיר 4 קטגוריות עם תרגומים לעברית, POST /api/notifications/test שולח התראת בדיקה בהצלחה, GET /api/notifications/history מחזיר היסטוריית התראות. תיקנתי בעיית ObjectId serialization בpreferences endpoint."
 
   - task: "VAPID Key Management"
     implemented: true
-    working: "needs_testing"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "needs_testing"
           agent: "main"
           comment: "יישמתי VAPIDKeyManager class לניהול מפתחותי קריפטוגרפיה עבור push notifications. נדרש בדיקה."
+        - working: true
+          agent: "testing"
+          comment: "✅ VAPID Key Management עובד מצוין! המערכת יוצרת אוטומטית קבצי מפתח vapid_private_key.pem ו-vapid_public_key.pem בתיקיית backend. המפתח הציבורי באורך 87 תווים (תקין) והוא מוחזר נכון דרך /api/notifications/vapid-key עם subject: mailto:admin@yahel-naval-system.com."
 
   - task: "Push Notification Service"
     implemented: true
-    working: "needs_testing"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "needs_testing"
           agent: "main"
           comment: "יישמתי PushNotificationService עם תמיכה בעברית RTL, העדפות משתמש, שעות שקט ולוגים. צריך בדיקה."
+        - working: true
+          agent: "testing"
+          comment: "✅ PushNotificationService עובד בצורה מושלמת! המערכת תומכת בעברית RTL (language_code: 'he', rtl_support: true), יוצרת אוטומטית MongoDB collections חדשים (push_subscriptions, notification_preferences, notification_history), מנהלת העדפות משתמש כולל שעות שקט, ושולחת התראות בדיקה בהצלחה. כל הקטגוריות כוללות תרגומים לעברית: כשלים דחופים, תזכורות תחזוקה, עדכוני ג'סיקה, סטטוס מערכת."
 
 ## frontend:
   - task: "Google Calendar tab integration"
