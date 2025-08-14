@@ -1751,6 +1751,7 @@ function App() {
           <DialogHeader>
             <DialogTitle>
               {dialogType === 'failure' && (editingItem ? 'עריכת תקלה' : 'הוסף תקלה חדשה')}
+              {dialogType === 'resolved-failure' && 'עריכת פרטי פתרון'}
               {dialogType === 'maintenance' && (editingItem ? 'עריכת אחזקה' : 'הוסף אחזקה')}
               {dialogType === 'equipment' && (editingItem ? 'עריכת ציוד' : 'הוסף ציוד')}
               {dialogType === 'work' && (editingItem ? 'עריכת משימה' : 'הוסף משימה')}
