@@ -101,3 +101,86 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: להשלים תכונת "תקלות שטופלו" - כאשר תקלה מסומנת כ"הושלמה", היא צריכה לעבור לטבלה של תקלות שטופלו עם שדה "איך טופל?". ג'סיקה צריכה לשאול באופן פרואקטיבי על פרטי הפתרון.
+
+## backend:
+  - task: "Resolved Failures API endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "API endpoints קיימים ועובדים - GET /api/resolved-failures, POST /api/resolved-failures, PUT /api/resolved-failures/{id}"
+
+  - task: "Move failure to resolved when status changes to completed"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "פונקציה move_failure_to_resolved מיושמת ב-execute_ai_actions כאשר סטטוס משתנה להושלם/נסגר/טופל"
+
+  - task: "AI agent can ask about resolution details"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "ג'סיקה מתוכנתת לשאול על איך טופל כאשר תקלה נסגרת ויכולה לעדכן באמצעות UPDATE_RESOLVED_FAILURE"
+
+## frontend:
+  - task: "Add Resolved Failures Tab content"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "הוספתי TabsContent עבור resolved עם טבלה מלאה של תקלות שטופלו כולל עמודות: מספר תקלה, מכלול, תיאור, דחיפות, מבצע, זמן משוער/בפועל, איך טופל, נפתר ע\"י, תאריך פתירה, לקחים"
+
+  - task: "Edit resolution details functionality"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "הוספתי כפתור עריכה שפותח את ג'סיקה עם הודעה מוכנה לעדכון פרטי פתרון"
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Test resolved failures display"
+    - "Test failure status change and auto-move to resolved"
+    - "Test AI agent interaction with resolved failures"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: "השלמתי את תכונת תקלות שטופלו - הוספתי את ה-TabsContent החסר ב-App.js. הבקאנד כבר תמך בזה. עכשיו צריך לבדוק שהכל עובד נכון."
