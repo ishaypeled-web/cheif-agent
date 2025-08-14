@@ -184,3 +184,5 @@
 ## agent_communication:
     - agent: "main"
       message: "השלמתי את תכונת תקלות שטופלו - הוספתי את ה-TabsContent החסר ב-App.js. הבקאנד כבר תמך בזה. עכשיו צריך לבדוק שהכל עובד נכון."
+    - agent: "testing"
+      message: "בדקתי את תכונת תקלות שטופלו בצורה מקיפה. מצאתי באג קריטי: העברה אוטומטית לא עובדת כי PUT /api/failures/{id} לא מפעיל את הלוגיקה של move_failure_to_resolved. הלוגיקה קיימת רק ב-AI agent אבל לא ב-API הרגיל. צריך לתקן את update_failure endpoint."
