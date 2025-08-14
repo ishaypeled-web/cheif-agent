@@ -58,12 +58,26 @@ function App() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [failuresRes, maintenanceRes, equipmentRes, dailyWorkRes, summaryRes] = await Promise.all([
+      const [
+        failuresRes, 
+        maintenanceRes, 
+        equipmentRes, 
+        dailyWorkRes, 
+        summaryRes,
+        conversationsRes,
+        dnaRes,
+        planRes,
+        leadershipRes
+      ] = await Promise.all([
         axios.get(`${BACKEND_URL}/api/failures`),
         axios.get(`${BACKEND_URL}/api/maintenance`),
         axios.get(`${BACKEND_URL}/api/equipment`),
         axios.get(`${BACKEND_URL}/api/daily-work/today`),
-        axios.get(`${BACKEND_URL}/api/dashboard/summary`)
+        axios.get(`${BACKEND_URL}/api/dashboard/summary`),
+        axios.get(`${BACKEND_URL}/api/conversations`),
+        axios.get(`${BACKEND_URL}/api/dna-tracker`),
+        axios.get(`${BACKEND_URL}/api/ninety-day-plan`),
+        axios.get(`${BACKEND_URL}/api/leadership-summary`)
       ]);
       
       setActiveFailures(failuresRes.data);
@@ -71,6 +85,10 @@ function App() {
       setEquipmentHours(equipmentRes.data);
       setDailyWork(dailyWorkRes.data);
       setDashboardSummary(summaryRes.data);
+      setConversations(conversationsRes.data);
+      setDnaTracker(dnaRes.data);
+      setNinetyDayPlan(planRes.data);
+      setLeadershipSummary(leadershipRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
