@@ -735,7 +735,13 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
             import re
             clean_response = re.sub(r'\[ADD_\w+:.*?\]', '', response, flags=re.DOTALL)
             clean_response = re.sub(r'\[UPDATE_\w+:.*?\]', '', clean_response, flags=re.DOTALL)
+            clean_response = re.sub(r'\[DELETE_\w+:.*?\]', '', clean_response, flags=re.DOTALL)
             response = clean_response.strip()
+            
+            # Add confirmation of actions taken
+            if updated_tables:
+                action_summary = f"\n\n✅ עדכנתי: {', '.join(updated_tables)}"
+                response += action_summary
         
         # Store chat history in database
         chat_record = {
