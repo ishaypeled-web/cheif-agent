@@ -1749,7 +1749,9 @@ function App() {
                   value={maintenanceForm.last_performed}
                   onChange={(e) => setMaintenanceForm({...maintenanceForm, last_performed: e.target.value})}
                 />
-                <Button onClick={handleAddMaintenance} className="w-full bg-orange-600 hover:bg-orange-700">הוסף אחזקה</Button>
+                <Button onClick={handleAddMaintenance} className="w-full bg-orange-600 hover:bg-orange-700">
+                  {editingItem ? 'עדכן אחזקה' : 'הוסף אחזקה'}
+                </Button>
               </>
             )}
 
