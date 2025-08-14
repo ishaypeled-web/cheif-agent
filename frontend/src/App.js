@@ -1158,7 +1158,15 @@ function App() {
                         <TableCell>{equipment.last_service_date || 'לא ידוע'}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setEditingItem(equipment);
+                                setDialogType('equipment');
+                                setShowDialog(true);
+                              }}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
