@@ -38,6 +38,12 @@ function App() {
   const [showAiChat, setShowAiChat] = useState(false);
   const [sessionId, setSessionId] = useState(null);
 
+  // Google Calendar states
+  const [googleUser, setGoogleUser] = useState(null);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [showCalendarDialog, setShowCalendarDialog] = useState(false);
+
   // Initialize chat session
   useEffect(() => {
     if (!sessionId) {
