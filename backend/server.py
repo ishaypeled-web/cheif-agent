@@ -602,7 +602,11 @@ async def root():
 # AI Chat Route
 @app.post("/api/ai-chat")
 async def ai_chat(message: ChatMessage):
-    response = await create_yahel_ai_agent(message.user_message)
+    response = await create_yahel_ai_agent(
+        message.user_message, 
+        message.session_id, 
+        message.chat_history
+    )
     return response
 
 # Active Failures Routes
