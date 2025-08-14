@@ -102,105 +102,97 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: להשלים תכונת "תקלות שטופלו" - כאשר תקלה מסומנת כ"הושלמה", היא צריכה לעבור לטבלה של תקלות שטופלו עם שדה "איך טופל?". ג'סיקה צריכה לשאול באופן פרואקטיבי על פרטי הפתרון.
+## user_problem_statement: הוספת אינטגרציית Google Calendar - המשתמשים יכולים להיכנס עם Google OAuth ולאחר מכן ליצור אירועים בקלנדר שלהם מנתוני המערכת (אחזקות, תכנון יומי וכו').
 
 ## backend:
-  - task: "Resolved Failures API endpoints"
+  - task: "Google OAuth endpoints"
     implemented: true
-    working: true
+    working: "needs_testing"
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        - working: true
+        - working: "needs_testing"
           agent: "main"
-          comment: "API endpoints קיימים ועובדים - GET /api/resolved-failures, POST /api/resolved-failures, PUT /api/resolved-failures/{id}"
-        - working: true
-          agent: "testing"
-          comment: "✅ נבדק בהצלחה: GET /api/resolved-failures מחזיר רשימה ריקה, POST יוצר תקלה שטופלה, PUT מעדכן פרטי פתרון. כל ה-API endpoints עובדים תקין. מודל הנתונים כולל את כל השדות הנדרשים."
+          comment: "הוספתי Google OAuth endpoints: /api/auth/google/login, /api/auth/google/callback, /api/auth/user/{email}. נדרש בדיקה."
 
-  - task: "Move failure to resolved when status changes to completed"
+  - task: "Google Calendar API integration"
     implemented: true
-    working: true
+    working: "needs_testing"
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        - working: false
-          agent: "testing"
-          comment: "זוהתה בעיה - העברה אוטומטית לא עבדה דרך PUT endpoint רגיל"
-        - working: true
+        - working: "needs_testing"
           agent: "main"
-          comment: "תוקן! הוספתי לוגיקה לPUT /api/failures/{id} לזהות מתי סטטוס משתנה להושלם/נסגר/טופל ולהעביר אוטומטית לresolved-failures"
-        - working: true
-          agent: "testing"
-          comment: "בדקתי מחדש - התיקון עובד מושלם! כל הסטטוסים (הושלם/נסגר/טופל) מפעילים העברה אוטומטית"
+          comment: "הוספתי Calendar API endpoints: POST /api/calendar/events, GET /api/calendar/events, /api/calendar/create-from-maintenance, /api/calendar/create-from-daily-plan. צריך בדיקה."
 
-  - task: "AI agent can ask about resolution details"
+  - task: "User profile and tokens management"
     implemented: true
-    working: true
+    working: "needs_testing"
     file: "backend/server.py"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: false
+    priority: "medium"
+    needs_retesting: true
     status_history:
-        - working: true
+        - working: "needs_testing"
           agent: "main"
-          comment: "ג'סיקה מתוכנתת לשאול על איך טופל כאשר תקלה נסגרת ויכולה לעדכן באמצעות UPDATE_RESOLVED_FAILURE"
-        - working: true
-          agent: "testing"
-          comment: "✅ ג'סיקה יכולה לעדכן פרטי פתרון באמצעות UPDATE_RESOLVED_FAILURE. נבדק שהיא מעדכנת את טבלת תקלות שטופלו. אבל השאלה הפרואקטיבית על פרטי פתרון צריכה שיפור - היא לא שואלת באופן אוטומטי כשתקלה נסגרת."
+          comment: "הוספתי מודלים עבור UserProfile, CalendarEvent וניהול אסימוני Google. נדרש בדיקה."
 
 ## frontend:
-  - task: "Add Resolved Failures Tab content"
+  - task: "Google Calendar tab integration"
     implemented: true
     working: true
     file: "frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "main"
-          comment: "הוספתי TabsContent עבור resolved עם טבלה מלאה של תקלות שטופלו כולל עמודות: מספר תקלה, מכלול, תיאור, דחיפות, מבצע, זמן משוער/בפועל, איך טופל, נפתר ע\"י, תאריך פתירה, לקחים"
+          comment: "הוספתי לשונית 'קלנדר Google' עם כפתור התחברות, ממשק ניהול, והצגת אירועים. נבדק בצילום מסך ועובד."
 
-  - task: "Edit resolution details functionality"
+  - task: "Add to calendar buttons"
     implemented: true
-    working: true
+    working: "needs_testing"
     file: "frontend/src/App.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: true
     status_history:
-        - working: true
+        - working: "needs_testing"
           agent: "main"
-          comment: "הוספתי כפתור עריכה שפותח את ג'סיקה עם הודעה מוכנה לעדכון פרטי פתרון"
+          comment: "הוספתי כפתורי 'הוסף לקלנדר' בטבלאות האחזקות והתכנון היומי. צריך בדיקה מקיפה."
+
+  - task: "Google OAuth flow frontend"
+    implemented: true
+    working: "needs_testing"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "יושמו פונקציות OAuth: initiateGoogleLogin, checkGoogleAuthStatus, fetchCalendarEvents וטיפול בcallback. נדרש בדיקה."
 
 ## metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "2.0"
+  test_sequence: 2
   run_ui: false
 
 ## test_plan:
   current_focus:
-    - "All backend tasks completed and working"
+    - "Google OAuth endpoints"
+    - "Google Calendar API integration"
+    - "Google OAuth flow frontend"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 ## agent_communication:
     - agent: "main"
-      message: "השלמתי את תכונת תקלות שטופלו - הוספתי את ה-TabsContent החסר ב-App.js. הבקאנד כבר תמך בזה. עכשיו צריך לבדוק שהכל עובד נכון."
-    - agent: "testing"
-      message: "זוהתה בעיה קריטית בהעברה האוטומטית - לא עבדה דרך PUT endpoint הרגיל"
-    - agent: "main" 
-      message: "תיקנתי את הבעיה - הוספתי לוגיקה ל-PUT /api/failures/{id} לזהות סטטוס השלמה ולהעביר אוטומטית"
-    - agent: "testing"
-      message: "כל הבדיקות עברו בהצלחה! תכונת תקלות שטופלו עובדת מושלם - ממשק המשתמש מציג נכון, העברה אוטומטית עובדת, ג'סיקה יכולה לעדכן פרטי פתרון"
-    - agent: "testing"
-      message: "בדקתי את תכונת תקלות שטופלו בצורה מקיפה. מצאתי באג קריטי: העברה אוטומטית לא עובדת כי PUT /api/failures/{id} לא מפעיל את הלוגיקה של move_failure_to_resolved. הלוגיקה קיימת רק ב-AI agent אבל לא ב-API הרגיל. צריך לתקן את update_failure endpoint."
-    - agent: "testing"
-      message: "🎉 התיקון עובד מושלם! בדקתי בפירוט את הזרימה שביקשת: יצירת תקלה פעילה → עדכון סטטוס ל'הושלם' → תקלה נמחקה מ-active failures → תקלה הועברה ל-resolved failures עם כל הפרטים → API מחזיר אישור על ההעברה. בדקתי גם 'נסגר' ו'טופל' - הכל עובד. הבאג תוקן לחלוטין! כל ה-backend APIs עובדים תקין."
+      message: "השלמתי את אינטגרציית Google Calendar: הוספתי OAuth endpoints בבקאנד, Calendar API לניצור אירועים, לשונית קלנדר בפרונטאנד עם כפתור התחברות וכפתורי 'הוסף לקלנדר'. הכל מוכן לבדיקה מקיפה."
