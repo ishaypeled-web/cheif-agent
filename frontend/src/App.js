@@ -1079,7 +1079,15 @@ function App() {
                         <TableCell>{maintenance.status}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setEditingItem(maintenance);
+                                setDialogType('maintenance');
+                                setShowDialog(true);
+                              }}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
