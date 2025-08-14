@@ -312,6 +312,23 @@ function App() {
     }
   };
 
+  const handleUpdateResolvedFailure = async () => {
+    try {
+      if (editingItem) {
+        // עדכון תקלה שטופלה
+        await axios.put(`${BACKEND_URL}/api/resolved-failures/${editingItem.id}`, resolvedFailureForm);
+        setResolvedFailureForm({
+          resolution_method: '', resolved_by: '', actual_hours: 0, lessons_learned: ''
+        });
+        setShowDialog(false);
+        setEditingItem(null);
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error updating resolved failure:', error);
+    }
+  };
+
   const handleAddMaintenance = async () => {
     try {
       if (editingItem) {
