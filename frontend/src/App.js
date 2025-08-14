@@ -1603,10 +1603,21 @@ function App() {
           <TabsContent value="daily-work" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">תכנון עבודה יומי</h2>
-              <Button onClick={() => openDialog('work')} className="bg-green-600 hover:bg-green-700">
-                <Plus className="h-4 w-4 mr-2" />
-                הוסף משימה
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('daily-work', 'תכנון עבודה יומי - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                  disabled={dailyWork.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('work')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף משימה
+                </Button>
+              </div>
             </div>
 
             <Card>
