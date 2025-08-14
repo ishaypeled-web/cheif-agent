@@ -1061,9 +1061,20 @@ function App() {
           <TabsContent value="resolved" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">תקלות שטופלו</h2>
-              <Badge variant="outline" className="px-4 py-2">
-                {resolvedFailures.length} תקלות נפתרו
-              </Badge>
+              <div className="flex gap-2 items-center">
+                <Button 
+                  onClick={() => handleExportTable('resolved-failures', 'תקלות שטופלו - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                  disabled={resolvedFailures.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Badge variant="outline" className="px-4 py-2">
+                  {resolvedFailures.length} תקלות נפתרו
+                </Badge>
+              </div>
             </div>
 
             <Card>
