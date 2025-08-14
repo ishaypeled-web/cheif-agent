@@ -424,7 +424,7 @@ function App() {
 
   const clearChat = async () => {
     try {
-      await axios.delete(`${BACKEND_URL}/api/chat/history/${sessionId}`);
+      await axios.delete(`${BACKEND_URL}/api/ai-chat/history/${sessionId}`);
       setChatHistory([]);
     } catch (error) {
       console.error('Error clearing chat:', error);
