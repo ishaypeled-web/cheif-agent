@@ -1710,14 +1710,19 @@ function App() {
       )}
 
       {/* Add Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+      <Dialog open={showDialog} onOpenChange={(open) => {
+        setShowDialog(open);
+        if (!open) {
+          setEditingItem(null);
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {dialogType === 'failure' && 'הוסף תקלה חדשה'}
-              {dialogType === 'maintenance' && 'הוסף אחזקה'}
-              {dialogType === 'equipment' && 'הוסף ציוד'}
-              {dialogType === 'work' && 'הוסף משימה'}
+              {dialogType === 'failure' && (editingItem ? 'עריכת תקלה' : 'הוסף תקלה חדשה')}
+              {dialogType === 'maintenance' && (editingItem ? 'עריכת אחזקה' : 'הוסף אחזקה')}
+              {dialogType === 'equipment' && (editingItem ? 'עריכת ציוד' : 'הוסף ציוד')}
+              {dialogType === 'work' && (editingItem ? 'עריכת משימה' : 'הוסף משימה')}
             </DialogTitle>
           </DialogHeader>
           
