@@ -1409,7 +1409,7 @@ async def clear_session_chat_history(session_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing chat history: {str(e)}")
 
-@app.get("/api/ai-chat")
+@app.post("/api/ai-chat")
 async def ai_chat(message: ChatMessage):
     response = await create_yahel_ai_agent(
         message.user_message, 
