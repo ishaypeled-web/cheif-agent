@@ -1986,6 +1986,214 @@ async def create_event_from_daily_plan(work_id: str, user_email: str):
         print(f"Error creating event from daily plan: {e}")
         raise HTTPException(status_code=500, detail=f"Error creating event: {str(e)}")
 
+# Push Notifications API Endpoints
+@app.get("/api/notifications/vapid-key")
+async def get_vapid_public_key():
+    """Get VAPID public key for client subscription"""
+    try:
+        return {
+            "public_key": push_service.vapid_manager.get_application_server_key(),
+            "subject": "mailto:admin@yahel-naval-system.com"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting VAPID key: {str(e)}")
+
+@app.post("/api/notifications/subscribe")
+async def subscribe_user(request: SubscribeRequest):
+    """Subscribe user to push notifications"""
+    try:
+        # Store subscription in MongoDB
+        subscription_data = {
+            "id": str(uuid.uuid4()),
+            "user_id": request.user_id,
+            "subscription_json": json.dumps(request.subscription.dict()),
+            "endpoint": request.subscription.endpoint,
+            "p256dh_key": request.subscription.keys.get('p256dh'),
+            "auth_key": request.subscription.keys.get('auth'),
+            "created_at": datetime.now().isoformat(),
+            "is_active": True
+        }
+        
+        # Update if exists, insert if new
+        push_subscriptions_collection.update_one(
+            {"user_id": request.user_id, "endpoint": request.subscription.endpoint},
+            {"$set": subscription_data},
+            upsert=True
+        )
+        
+        return {"status": "subscribed", "message": "User successfully subscribed to notifications"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Subscription failed: {str(e)}")
+
+@app.post("/api/notifications/unsubscribe")
+async def unsubscribe_user(user_id: str, endpoint: str):
+    """Unsubscribe user from push notifications"""
+    try:
+        result = push_subscriptions_collection.update_one(
+            {"user_id": user_id, "endpoint": endpoint},
+            {"$set": {"is_active": False, "updated_at": datetime.now().isoformat()}}
+        )
+        
+        if result.modified_count > 0:
+            return {"status": "unsubscribed", "message": "User successfully unsubscribed"}
+        else:
+            return {"status": "not_found", "message": "Subscription not found"}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unsubscription failed: {str(e)}")
+
+@app.post("/api/notifications/send")
+async def send_notification(request: NotificationRequest, background_tasks: BackgroundTasks):
+    """Send push notification to user"""
+    try:
+        if request.urgent:
+            # Send immediately for urgent notifications
+            result = await push_service.send_notification(
+                user_id=request.user_id,
+                title=request.title,
+                body=request.body,
+                category=request.category,
+                data=request.data,
+                icon=request.icon,
+                badge=request.badge
+            )
+            return result
+        else:
+            # Use background task for non-urgent notifications
+            background_tasks.add_task(
+                push_service.send_notification,
+                request.user_id,
+                request.title,
+                request.body,
+                request.category,
+                request.data,
+                request.icon,
+                request.badge
+            )
+            return {"status": "queued", "message": "Notification queued for delivery"}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send notification: {str(e)}")
+
+@app.get("/api/notifications/preferences/{user_id}")
+async def get_user_preferences(user_id: str):
+    """Get user notification preferences"""
+    try:
+        preferences = push_service.get_user_preferences(user_id)
+        return preferences
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve preferences: {str(e)}")
+
+@app.put("/api/notifications/preferences/{user_id}")
+async def update_user_preferences(user_id: str, preferences: NotificationPreferences):
+    """Update user notification preferences"""
+    try:
+        # Validate user_id matches
+        if preferences.user_id != user_id:
+            raise HTTPException(status_code=400, detail="User ID mismatch")
+        
+        # Update preferences in MongoDB
+        update_data = preferences.dict()
+        update_data["updated_at"] = datetime.now().isoformat()
+        
+        notification_preferences_collection.update_one(
+            {"user_id": user_id},
+            {"$set": update_data},
+            upsert=True
+        )
+        
+        return {
+            "status": "updated",
+            "preferences": push_service.get_user_preferences(user_id),
+            "message": "Preferences updated successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
+
+@app.get("/api/notifications/categories")
+async def get_notification_categories():
+    """Get available notification categories with descriptions"""
+    return {
+        "categories": {
+            "urgent_failures": {
+                "label": "Urgent Failures",
+                "label_he": "כשלים דחופים",
+                "description": "Critical system failures requiring immediate attention",
+                "description_he": "כשלי מערכת קריטיים הדורשים טיפול מיידי",
+                "default_enabled": True,
+                "priority": "high"
+            },
+            "maintenance_reminders": {
+                "label": "Maintenance Reminders", 
+                "label_he": "תזכורות תחזוקה",
+                "description": "Scheduled maintenance and update notifications",
+                "description_he": "התראות על תחזוקה מתוכננת ועדכונים",
+                "default_enabled": True,
+                "priority": "medium"
+            },
+            "jessica_updates": {
+                "label": "Jessica Updates",
+                "label_he": "עדכוני ג'סיקה",
+                "description": "Important messages and updates from Jessica AI assistant",
+                "description_he": "הודעות חשובות ועדכונים מהעוזרת הדיגיטלית ג'סיקה",
+                "default_enabled": True,
+                "priority": "medium"
+            },
+            "system_status": {
+                "label": "System Status",
+                "label_he": "סטטוס מערכת", 
+                "description": "General system status and performance updates",
+                "description_he": "עדכוני סטטוס מערכת וביצועים כלליים",
+                "default_enabled": False,
+                "priority": "low"
+            }
+        }
+    }
+
+@app.get("/api/notifications/history/{user_id}")
+async def get_notification_history(user_id: str, limit: int = 50):
+    """Get user's notification history"""
+    try:
+        history = list(notification_history_collection.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).sort("delivery_timestamp", -1).limit(limit))
+        
+        return {"history": history}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve history: {str(e)}")
+
+@app.post("/api/notifications/test")
+async def send_test_notification(user_id: str, background_tasks: BackgroundTasks):
+    """Send a test notification to user"""
+    try:
+        test_request = NotificationRequest(
+            user_id=user_id,
+            title="🧪 התראת בדיקה",
+            body="זוהי התראת בדיקה ממערכת יהל. אם אתה רואה הודעה זו, ההתראות פועלות כראוי!",
+            category="test",
+            urgent=False,
+            data={
+                "url": "/",
+                "type": "test_notification",
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+        
+        result = await push_service.send_notification(
+            user_id=test_request.user_id,
+            title=test_request.title,
+            body=test_request.body,
+            category=test_request.category,
+            data=test_request.data
+        )
+        
+        return {"status": "sent", "result": result, "message": "Test notification sent"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send test notification: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
