@@ -446,14 +446,24 @@ async def execute_ai_actions(actions):
     
     return updated_tables
 
-async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
+async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_history: List[dict] = None) -> ChatResponse:
     """Create AI agent for Yahel with department and leadership context"""
     try:
         # Get all context
         dept_data = get_department_summary()
         leadership_data = get_leadership_context()
         
-        # Create system message
+        # Build conversation history context
+        conversation_context = ""
+        if chat_history and len(chat_history) > 1:
+            conversation_context = "\n\n📝 **היסטוריית השיחה הנוכחית:**\n"
+            for msg in chat_history[-6:]:  # Last 6 messages for context
+                if msg.get('type') == 'user':
+                    conversation_context += f"יהל: {msg.get('content', '')}\n"
+                elif msg.get('type') == 'ai':
+                    conversation_context += f"ג'סיקה: {msg.get('content', '')[:200]}...\n"
+        
+        # Create system message with memory
         system_message = f"""
 אתה ג'סיקה - האייג'נט AI של יהל, צ'יף באח"י יפו (חיל הים הישראלי). 
 אתה משלב שלושה תפקידים מרכזיים:
@@ -473,6 +483,8 @@ async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
 
 🎯 **נתוני הליווי המנהיגותי:**
 {json.dumps(leadership_data, ensure_ascii=False, indent=2)}
+
+{conversation_context}
 
 💪 **יכולות עדכון טבלאות:**
 אתה יכול לעדכן ולהוסיף פריטים לכל הטבלאות. השתמש בפורמט הזה:
@@ -499,11 +511,11 @@ async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
 4. הוסף/עדכן פריטים בטבלאות כשצריך
 
 **כמלווה מנהיגותית:**
-1. **תמיד קרא את טבלת השיחות לפני תגובה** - מה קרה בפעם הקודמת?
+1. **השתמש בהיסטוריית השיחה** לרצף טבעי - זכור מה דיברנו קודם
 2. שאל שאלות זיקוק אינטרסים מותאמות למצב של יהל
 3. אתגר את יהל לחשוב אקספוננציאלית
 4. עזור לו לבנות DNA מנהיגותי חדש
-5. **תמיד עדכן את טבלת השיחות אחרי אינטראקציה!**
+5. **תמיד עדכן את טבלת השיחות אחרי אינטראקציה משמעותית!**
 
 🔥 **שאלות זיקוק אינטרסים מומלצות:**
 - "יהל, מה באמת מניע אותך במעבר לאח"י יפו?"
@@ -522,11 +534,14 @@ async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
 יהל יהיה לא רק צ'יף טוב, אלא יחולל מהפכה באופן ניהול מחלקות בחיל הים.
 תמיד חשוב אקספוננציאלית - איך להגיע לפי 10 שיפור במקום פלוס 10%.
 
-השב בעברית, בצורה ישירה ומעשית, כמי שמכיר את יהל באופן אישי.
+**חשוב: השתמש בהיסטוריית השיחה כדי לתת תגובות רצופות וטבעיות. אל תחזור על מידע שכבר נאמר.**
+
+השב בעברית, בצורה ישירה ומעשית, כמי שמכיר את יהל באופן אישי ויודע את ההיסטוריה שלנו.
         """
         
-        # Create unique session ID based on current time
-        session_id = f"yahel_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Create session ID if not provided
+        if not session_id:
+            session_id = f"yahel_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
         # Initialize chat with OpenAI
         if not OPENAI_API_KEY:
@@ -563,7 +578,8 @@ async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
             "timestamp": datetime.now().isoformat(),
             "department_context": dept_data["summary"],
             "leadership_context": len(leadership_data.get("recent_conversations", [])),
-            "updated_tables": updated_tables
+            "updated_tables": updated_tables,
+            "chat_history_length": len(chat_history) if chat_history else 0
         }
         ai_chat_history_collection.insert_one(chat_record)
         
