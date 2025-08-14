@@ -980,10 +980,20 @@ function App() {
           <TabsContent value="failures" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">תקלות פעילות</h2>
-              <Button onClick={() => openDialog('failure')} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                הוסף תקלה
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('failures', 'תקלות פעילות - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('failure')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף תקלה
+                </Button>
+              </div>
             </div>
 
             <Card>
