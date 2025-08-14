@@ -105,6 +105,10 @@ push_subscriptions_collection = db.push_subscriptions  # Store push notification
 notification_preferences_collection = db.notification_preferences  # Store user notification preferences
 notification_history_collection = db.notification_history  # Store notification delivery history
 
+# Collections - User Authentication & Sessions
+authenticated_users_collection = db.authenticated_users  # Store user authentication data
+user_sessions_collection = db.user_sessions  # Store active user sessions
+
 # Pydantic Models - Department Management
 
 class ActiveFailure(BaseModel):
