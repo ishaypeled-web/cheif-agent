@@ -48,6 +48,7 @@ app.add_middleware(
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 DB_NAME = os.environ.get('DB_NAME', 'yahel_department_db')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+GOOGLE_SHEETS_CREDENTIALS = os.environ.get('GOOGLE_SHEETS_CREDENTIALS', '/app/backend/google_sheets_credentials.json')
 
 # Google Calendar setup
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
