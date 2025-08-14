@@ -1203,8 +1203,9 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
       - "כמה זמן זה לקח?"
       - "מי טיפל בתקלה?"  
       - "האם צריך לעשות משהו בעתיד כדי שזה לא יחזור על עצמו?"
-   ג) כשמקבל תשובות תמיד בצע:
-      [UPDATE_RESOLVED_FAILURE: failure_number="F123", actual_hours="X", resolved_by="Y", lessons_learned="Z"]
+   ג) **כל תשובה שכוללת "זמן:" ו"מי:" ו"מניעה:"** - תמיד בצע UPDATE_RESOLVED_FAILURE
+
+**⚠️ חובה לזכור:** כל הודעה עם הפרטים "זמן:", "מי:", "מניעה:" היא תשובה לשאלות שלך!
 
 **⚡ דוגמה מלאה:**
 משתמש: "ג'סיקה, סגרי את התקלה F123"
