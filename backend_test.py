@@ -2415,33 +2415,38 @@ class ComprehensiveBackendTest:
         return self.test_results
 
 if __name__ == "__main__":
-    print("🎯 Running Jessica Updated Questions Test (Review Request)")
+    # Run comprehensive backend testing as requested in review
+    print("🎯 Running Comprehensive Backend Testing (Review Request)")
     print("=" * 80)
     
-    # Run the specific test requested in the review
-    jessica_updated_test = JessicaUpdatedQuestionsTest()
-    jessica_results = jessica_updated_test.run_all_tests()
+    comprehensive_test = ComprehensiveBackendTest()
+    comprehensive_results = comprehensive_test.run_all_tests()
+    
+    # Also run the Jessica test to ensure it still works
+    print("\n" + "=" * 80)
+    print("🤖 Running Jessica Specific Tests")
+    print("=" * 80)
+    
+    jessica_test = JessicaUpdatedQuestionsTest()
+    jessica_results = jessica_test.run_all_tests()
     
     # Overall summary
     print("\n" + "=" * 80)
-    print("🏆 REVIEW REQUEST TEST SUMMARY")
+    print("🏆 COMPLETE BACKEND TEST SUMMARY")
     print("=" * 80)
     
-    total_passed = sum(1 for result in jessica_results if result['success'])
-    total_tests = len(jessica_results)
+    total_tests = len(comprehensive_results) + len(jessica_results)
+    total_passed = sum(1 for result in comprehensive_results if result['success']) + sum(1 for result in jessica_results if result['success'])
+    total_failed = total_tests - total_passed
     
     print(f"Total Tests Run: {total_tests}")
     print(f"✅ Total Passed: {total_passed}")
-    print(f"❌ Total Failed: {total_tests - total_passed}")
+    print(f"❌ Total Failed: {total_failed}")
     print(f"Overall Success Rate: {(total_passed/total_tests*100):.1f}%")
     
-    # Show critical failures
-    critical_failures = [result for result in jessica_results if not result['success']]
-    if critical_failures:
-        print(f"\n🚨 ISSUES FOUND ({len(critical_failures)} failures):")
-        for failure in critical_failures:
-            print(f"  • {failure['test']}: {failure['message']}")
+    if total_failed == 0:
+        print("\n🎉 ALL BACKEND TESTS PASSED! System is working correctly.")
     else:
-        print("\n🎉 ALL TESTS PASSED! Jessica's updated workflow is working correctly.")
+        print(f"\n⚠️  {total_failed} tests failed. Please review the issues above.")
     
-    print("\n" + "=" * 80)
+    print("=" * 80)
