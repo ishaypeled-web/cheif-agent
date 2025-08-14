@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 import time
 
-BASE_URL = "https://marine-leadership.preview.emergentagent.com/api"
+BASE_URL = "https://jessica-agent.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def debug_auto_transfer():

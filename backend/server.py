@@ -52,7 +52,7 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 # Google Calendar setup
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
-GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'https://marine-leadership.preview.emergentagent.com/api/auth/google/callback')
+GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'https://jessica-agent.preview.emergentagent.com/api/auth/google/callback')
 
 # Google OAuth 2.0 scopes for Calendar API
 GOOGLE_SCOPES = [
@@ -1818,7 +1818,7 @@ async def google_callback(request: Request):
         }
         
         # Redirect to frontend with success message
-        frontend_url = os.environ.get('FRONTEND_URL', 'https://marine-leadership.preview.emergentagent.com')
+        frontend_url = os.environ.get('FRONTEND_URL', 'https://jessica-agent.preview.emergentagent.com')
         redirect_url = f"{frontend_url}?google_auth=success&email={user_info['email']}"
         
         return RedirectResponse(url=redirect_url)
@@ -1826,7 +1826,7 @@ async def google_callback(request: Request):
     except Exception as e:
         print(f"OAuth callback error: {e}")
         # Redirect to frontend with error
-        frontend_url = os.environ.get('FRONTEND_URL', 'https://marine-leadership.preview.emergentagent.com')
+        frontend_url = os.environ.get('FRONTEND_URL', 'https://jessica-agent.preview.emergentagent.com')
         redirect_url = f"{frontend_url}?google_auth=error&message={str(e)}"
         return RedirectResponse(url=redirect_url)
 

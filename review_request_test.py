@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BASE_URL = "https://22c70d5c-67fd-4150-9b2e-94e1cc9b4876.preview.emergentagent.com/api"
+BASE_URL = "https://jessica-agent.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class ReviewRequestTest:
