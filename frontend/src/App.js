@@ -72,6 +72,55 @@ function App() {
     }
   };
 
+  // AI Chat functions
+  const sendAiMessage = async () => {
+    if (!currentMessage.trim()) return;
+    
+    setAiLoading(true);
+    const userMessage = currentMessage;
+    setCurrentMessage('');
+    
+    // Add user message to chat
+    const newUserMessage = {
+      type: 'user',
+      content: userMessage,
+      timestamp: new Date().toISOString()
+    };
+    setChatMessages(prev => [...prev, newUserMessage]);
+    
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/ai-chat`, {
+        user_message: userMessage
+      });
+      
+      // Add AI response to chat
+      const aiMessage = {
+        type: 'ai',
+        content: response.data.response,
+        recommendations: response.data.recommendations || [],
+        updated_tables: response.data.updated_tables || [],
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages(prev => [...prev, aiMessage]);
+      
+      // Refresh data if tables were updated
+      if (response.data.updated_tables && response.data.updated_tables.length > 0) {
+        fetchData();
+      }
+      
+    } catch (error) {
+      console.error('Error sending AI message:', error);
+      const errorMessage = {
+        type: 'ai',
+        content: 'מצטער, הייתה בעיה בחיבור לאייג\'נט AI. נסה שוב.',
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
