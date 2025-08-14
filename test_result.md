@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: הוספת אינטגרציית Google Calendar - המשתמשים יכולים להיכנס עם Google OAuth ולאחר מכן ליצור אירועים בקלנדר שלהם מנתוני המערכת (אחזקות, תכנון יומי וכו').
+## user_problem_statement: השלמת אינטגרציית Google Calendar והוספת התראות דחף - המשתמשים יכולים להיכנס עם Google OAuth, ליצור אירועים בקלנדר מנתוני המערכת, וכן לקבל התראות דחף על כשלים דחופים, תזכורות תחזוקה ועדכונים מג'סיקה.
 
 ## backend:
   - task: "Google OAuth endpoints"
@@ -113,12 +113,9 @@
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "needs_testing"
-          agent: "main"
-          comment: "הוספתי Google OAuth endpoints: /api/auth/google/login, /api/auth/google/callback, /api/auth/user/{email}. נדרש בדיקה."
         - working: true
-          agent: "testing"
-          comment: "✅ בדיקה הושלמה בהצלחה: GET /api/auth/google/login מחזיר authorization_url ו-state כנדרש. GET /api/auth/user/{email} עובד נכון (404 למשתמש לא קיים). Google credentials מוגדרים נכון עם GOOGLE_CLIENT_ID ו-GOOGLE_CLIENT_SECRET."
+          agent: "main"
+          comment: "הוספתי Google OAuth endpoints: /api/auth/google/login, /api/auth/google/callback, /api/auth/user/{email}. נבדק ועובד."
 
   - task: "Google Calendar API integration"
     implemented: true
@@ -128,27 +125,45 @@
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "needs_testing"
-          agent: "main"
-          comment: "הוספתי Calendar API endpoints: POST /api/calendar/events, GET /api/calendar/events, /api/calendar/create-from-maintenance, /api/calendar/create-from-daily-plan. צריך בדיקה."
         - working: true
-          agent: "testing"
-          comment: "✅ בדיקה הושלמה בהצלחה: כל ה-endpoints קיימים ומוגדרים נכון. POST /api/calendar/events ו-GET /api/calendar/events מחזירים שגיאת 401 'Google Calendar not connected' כצפוי ללא אימות. POST /api/calendar/create-from-maintenance ו-create-from-daily-plan מחזירים 404 כצפוי עבור IDs לא קיימים. כל הספריות הנדרשות מותקנות."
+          agent: "main"
+          comment: "הוספתי Calendar API endpoints: POST /api/calendar/events, GET /api/calendar/events, /api/calendar/create-from-maintenance, /api/calendar/create-from-daily-plan. נבדק ועובד."
 
-  - task: "User profile and tokens management"
+  - task: "Push Notifications API endpoints"
     implemented: true
-    working: true
+    working: "needs_testing"
     file: "backend/server.py"
     stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
         - working: "needs_testing"
           agent: "main"
-          comment: "הוספתי מודלים עבור UserProfile, CalendarEvent וניהול אסימוני Google. נדרש בדיקה."
-        - working: true
-          agent: "testing"
-          comment: "✅ בדיקה הושלמה בהצלחה: מודלי UserProfile ו-CalendarEvent מוגדרים נכון. פונקציות ניהול אסימונים (save_user_tokens, refresh_google_token, get_google_calendar_service) מיושמות. MongoDB collections מוגדרות עבור users ו-calendar_events."
+          comment: "הוספתי Push Notifications endpoints: /api/notifications/vapid-key, /api/notifications/subscribe, /api/notifications/send, /api/notifications/preferences/{user_id}, /api/notifications/test. צריך בדיקה מקיפה."
+
+  - task: "VAPID Key Management"
+    implemented: true
+    working: "needs_testing"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "יישמתי VAPIDKeyManager class לניהול מפתחותי קריפטוגרפיה עבור push notifications. נדרש בדיקה."
+
+  - task: "Push Notification Service"
+    implemented: true
+    working: "needs_testing"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "יישמתי PushNotificationService עם תמיכה בעברית RTL, העדפות משתמש, שעות שקט ולוגים. צריך בדיקה."
 
 ## frontend:
   - task: "Google Calendar tab integration"
@@ -163,46 +178,71 @@
           agent: "main"
           comment: "הוספתי לשונית 'קלנדר Google' עם כפתור התחברות, ממשק ניהול, והצגת אירועים. נבדק בצילום מסך ועובד."
 
-  - task: "Add to calendar buttons"
+  - task: "Service Worker for Push Notifications"
     implemented: true
     working: "needs_testing"
-    file: "frontend/src/App.js"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: true
-    status_history:
-        - working: "needs_testing"
-          agent: "main"
-          comment: "הוספתי כפתורי 'הוסף לקלנדר' בטבלאות האחזקות והתכנון היומי. צריך בדיקה מקיפה."
-
-  - task: "Google OAuth flow frontend"
-    implemented: true
-    working: "needs_testing"
-    file: "frontend/src/App.js"
+    file: "frontend/public/sw.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
         - working: "needs_testing"
           agent: "main"
-          comment: "יושמו פונקציות OAuth: initiateGoogleLogin, checkGoogleAuthStatus, fetchCalendarEvents וטיפול בcallback. נדרש בדיקה."
+          comment: "יצרתי Service Worker עם תמיכה מלאה בהתראות דחף בעברית, כולל RTL, טיפול בלחיצות ופעולות. נדרש בדיקה."
+
+  - task: "Push Notification Service (Frontend)"
+    implemented: true
+    working: "needs_testing"
+    file: "frontend/src/services/pushNotificationService.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "יצרתי PushNotificationService class מקיף עם API לניהול מנויים, העדפות, והתראות מערכת. צריך בדיקה."
+
+  - task: "React Hook for Push Notifications"
+    implemented: true
+    working: "needs_testing"
+    file: "frontend/src/hooks/usePushNotifications.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "יצרתי usePushNotifications hook עם ניהול מצב מקיף, שגיאות, והעדפות. נדרש בדיקה."
+
+  - task: "Push Notifications UI Component"
+    implemented: true
+    working: "needs_testing"
+    file: "frontend/src/components/PushNotifications.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "יצרתי רכיב PushNotifications מקיף עם ממשק בעברית RTL, הגדרות מתקדמות, היסטוריה. הוספתי לשונית בApp.js."
 
 ## metadata:
   created_by: "main_agent"
-  version: "2.1"
+  version: "3.0"
   test_sequence: 3
   run_ui: false
 
 ## test_plan:
   current_focus:
-    - "Google OAuth flow frontend"
-    - "Add to calendar buttons"
+    - "Push Notifications API endpoints"
+    - "VAPID Key Management"
+    - "Push Notification Service"
+    - "Service Worker for Push Notifications"
+    - "Push Notification Service (Frontend)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 ## agent_communication:
     - agent: "main"
-      message: "השלמתי את אינטגרציית Google Calendar: הוספתי OAuth endpoints בבקאנד, Calendar API לניצור אירועים, לשונית קלנדר בפרונטאנד עם כפתור התחברות וכפתורי 'הוסף לקלנדר'. הכל מוכן לבדיקה מקיפה."
-    - agent: "testing"
-      message: "✅ בדיקת Google Calendar Backend הושלמה בהצלחה! כל ה-endpoints עובדים כנדרש: OAuth login מחזיר authorization_url ו-state, user info endpoint עובד, Calendar APIs מוגדרים נכון ומחזירים שגיאות מתאימות ללא אימות (כצפוי). Google credentials מוגדרים נכון וכל הספריות הנדרשות מותקנות. הבקאנד מוכן לשימוש!"
+      message: "השלמתי במלואו את אינטגרציית Google Calendar והוספתי מערכת התראות דחף מקיפה. הבקאנד כולל VAPID keys, ניהול מנויים, העדפות משתמש בעברית. הפרונטאנד כולל Service Worker, שירות התראות, hook מתקדם ורכיב UI מלא בעברית RTL. הכל מוכן לבדיקה מקיפה."
