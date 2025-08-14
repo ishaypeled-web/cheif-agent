@@ -175,6 +175,18 @@
           comment: "✅ PushNotificationService עובד בצורה מושלמת! המערכת תומכת בעברית RTL (language_code: 'he', rtl_support: true), יוצרת אוטומטית MongoDB collections חדשים (push_subscriptions, notification_preferences, notification_history), מנהלת העדפות משתמש כולל שעות שקט, ושולחת התראות בדיקה בהצלחה. כל הקטגוריות כוללות תרגומים לעברית: כשלים דחופים, תזכורות תחזוקה, עדכוני ג'סיקה, סטטוס מערכת."
 
 ## frontend:
+  - task: "Fix white screen error - editingItem initialization"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "תיקנתי שגיאה קריטית בסדר אתחול המשתנים ב-App.js. הבעיה הייתה ש-useEffect hook ניסה לגשת למשתנה editingItem לפני האתחול שלו עם useState. העברתי את הצהרות ה-state (editingItem, showDialog, dialogType ו-form states) להיות לפני ה-useEffect hooks. האפליקציה כעת נטענת בהצלחה ללא מסך לבן."
+
   - task: "Google Calendar tab integration"
     implemented: true
     working: true
