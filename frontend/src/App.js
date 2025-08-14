@@ -608,6 +608,116 @@ function App() {
                 <Button onClick={handleAddFailure} className="w-full">הוסף תקלה</Button>
               </>
             )}
+
+            {dialogType === 'maintenance' && (
+              <>
+                <Input
+                  placeholder="סוג אחזקה"
+                  value={maintenanceForm.maintenance_type}
+                  onChange={(e) => setMaintenanceForm({...maintenanceForm, maintenance_type: e.target.value})}
+                />
+                <Input
+                  placeholder="מכלול"
+                  value={maintenanceForm.system}
+                  onChange={(e) => setMaintenanceForm({...maintenanceForm, system: e.target.value})}
+                />
+                <Input
+                  type="number"
+                  placeholder="תדירות (ימים)"
+                  value={maintenanceForm.frequency_days}
+                  onChange={(e) => setMaintenanceForm({...maintenanceForm, frequency_days: parseInt(e.target.value)})}
+                />
+                <Input
+                  type="date"
+                  placeholder="ביצוע אחרון"
+                  value={maintenanceForm.last_performed}
+                  onChange={(e) => setMaintenanceForm({...maintenanceForm, last_performed: e.target.value})}
+                />
+                <Button onClick={handleAddMaintenance} className="w-full bg-orange-600 hover:bg-orange-700">הוסף אחזקה</Button>
+              </>
+            )}
+
+            {dialogType === 'equipment' && (
+              <>
+                <Input
+                  placeholder="שם המכלול"
+                  value={equipmentForm.system}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, system: e.target.value})}
+                />
+                <Select value={equipmentForm.system_type} onValueChange={(v) => setEquipmentForm({...equipmentForm, system_type: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="סוג מערכת" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="מנועים">מנועים</SelectItem>
+                    <SelectItem value="תשלובות">תשלובות</SelectItem>
+                    <SelectItem value="גנרטורים">גנרטורים</SelectItem>
+                    <SelectItem value="מדחסים">מדחסים</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  placeholder="שעות נוכחיות"
+                  value={equipmentForm.current_hours}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, current_hours: parseFloat(e.target.value)})}
+                />
+                <Input
+                  type="date"
+                  placeholder="תאריך טיפול אחרון"
+                  value={equipmentForm.last_service_date}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, last_service_date: e.target.value})}
+                />
+                <Button onClick={handleAddEquipment} className="w-full">הוסף ציוד</Button>
+              </>
+            )}
+
+            {dialogType === 'work' && (
+              <>
+                <Input
+                  type="date"
+                  value={workForm.date}
+                  onChange={(e) => setWorkForm({...workForm, date: e.target.value})}
+                />
+                <Input
+                  placeholder="תיאור המשימה"
+                  value={workForm.task}
+                  onChange={(e) => setWorkForm({...workForm, task: e.target.value})}
+                />
+                <Select value={workForm.source} onValueChange={(v) => setWorkForm({...workForm, source: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="מקור המשימה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="תקלה">תקלה</SelectItem>
+                    <SelectItem value="אחזקה">אחזקה</SelectItem>
+                    <SelectItem value="טיפול">טיפול</SelectItem>
+                    <SelectItem value="אחר">אחר</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder="מזהה מקור (אופציונלי)"
+                  value={workForm.source_id}
+                  onChange={(e) => setWorkForm({...workForm, source_id: e.target.value})}
+                />
+                <Input
+                  placeholder="מבצע"
+                  value={workForm.assignee}
+                  onChange={(e) => setWorkForm({...workForm, assignee: e.target.value})}
+                />
+                <Input
+                  type="number"
+                  placeholder="זמן משוער (שעות)"
+                  value={workForm.estimated_hours}
+                  onChange={(e) => setWorkForm({...workForm, estimated_hours: parseFloat(e.target.value)})}
+                />
+                <Input
+                  placeholder="הערות"
+                  value={workForm.notes}
+                  onChange={(e) => setWorkForm({...workForm, notes: e.target.value})}
+                />
+                <Button onClick={handleAddWork} className="w-full bg-green-600 hover:bg-green-700">הוסף משימה</Button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
