@@ -239,6 +239,159 @@ def get_leadership_context():
 
 # AI Agent Functions
 
+# AI Agent Functions with Database Operations
+
+def parse_ai_actions(ai_response: str):
+    """Parse AI response for database actions"""
+    actions = []
+    
+    # Look for action patterns in AI response
+    import re
+    
+    # Pattern: [ADD_FAILURE: failure_number="F002", system="מנוע משני", ...]
+    add_failure_pattern = r'\[ADD_FAILURE:(.*?)\]'
+    add_maintenance_pattern = r'\[ADD_MAINTENANCE:(.*?)\]'
+    add_equipment_pattern = r'\[ADD_EQUIPMENT:(.*?)\]'
+    add_daily_work_pattern = r'\[ADD_DAILY_WORK:(.*?)\]'
+    update_failure_pattern = r'\[UPDATE_FAILURE:(.*?)\]'
+    
+    for match in re.finditer(add_failure_pattern, ai_response, re.DOTALL):
+        try:
+            action_data = match.group(1).strip()
+            # Parse the parameters
+            params = {}
+            for param in action_data.split(','):
+                if '=' in param:
+                    key, value = param.strip().split('=', 1)
+                    key = key.strip()
+                    value = value.strip().strip('"\'')
+                    params[key] = value
+            
+            actions.append(('add_failure', params))
+        except:
+            pass
+    
+    for match in re.finditer(add_maintenance_pattern, ai_response, re.DOTALL):
+        try:
+            action_data = match.group(1).strip()
+            params = {}
+            for param in action_data.split(','):
+                if '=' in param:
+                    key, value = param.strip().split('=', 1)
+                    key = key.strip()
+                    value = value.strip().strip('"\'')
+                    params[key] = value
+            
+            actions.append(('add_maintenance', params))
+        except:
+            pass
+    
+    for match in re.finditer(add_equipment_pattern, ai_response, re.DOTALL):
+        try:
+            action_data = match.group(1).strip()
+            params = {}
+            for param in action_data.split(','):
+                if '=' in param:
+                    key, value = param.strip().split('=', 1)
+                    key = key.strip()
+                    value = value.strip().strip('"\'')
+                    params[key] = value
+            
+            actions.append(('add_equipment', params))
+        except:
+            pass
+            
+    for match in re.finditer(add_daily_work_pattern, ai_response, re.DOTALL):
+        try:
+            action_data = match.group(1).strip()
+            params = {}
+            for param in action_data.split(','):
+                if '=' in param:
+                    key, value = param.strip().split('=', 1)
+                    key = key.strip()
+                    value = value.strip().strip('"\'')
+                    params[key] = value
+            
+            actions.append(('add_daily_work', params))
+        except:
+            pass
+    
+    return actions
+
+async def execute_ai_actions(actions):
+    """Execute database actions from AI"""
+    updated_tables = []
+    
+    for action_type, params in actions:
+        try:
+            if action_type == 'add_failure':
+                # Create failure
+                failure_data = {
+                    'id': str(uuid.uuid4()),
+                    'failure_number': params.get('failure_number', f'F{datetime.now().strftime("%m%d%H%M")}'),
+                    'date': params.get('date', datetime.now().isoformat()[:10]),
+                    'system': params.get('system', ''),
+                    'description': params.get('description', ''),
+                    'urgency': int(params.get('urgency', 3)),
+                    'assignee': params.get('assignee', ''),
+                    'estimated_hours': float(params.get('estimated_hours', 2)),
+                    'status': 'פעיל',
+                    'created_at': datetime.now().isoformat()
+                }
+                active_failures_collection.insert_one(failure_data)
+                updated_tables.append('תקלות פעילות')
+                
+            elif action_type == 'add_maintenance':
+                # Create maintenance
+                maintenance_data = {
+                    'id': str(uuid.uuid4()),
+                    'maintenance_type': params.get('maintenance_type', ''),
+                    'system': params.get('system', ''),
+                    'frequency_days': int(params.get('frequency_days', 30)),
+                    'last_performed': params.get('last_performed', datetime.now().isoformat()[:10]),
+                    'status': 'ממתין',
+                    'created_at': datetime.now().isoformat()
+                }
+                maintenance_data = calculate_maintenance_dates(maintenance_data)
+                pending_maintenance_collection.insert_one(maintenance_data)
+                updated_tables.append('אחזקות ממתינות')
+                
+            elif action_type == 'add_equipment':
+                # Create equipment
+                equipment_data = {
+                    'id': str(uuid.uuid4()),
+                    'system': params.get('system', ''),
+                    'system_type': params.get('system_type', 'מנועים'),
+                    'current_hours': float(params.get('current_hours', 0)),
+                    'last_service_date': params.get('last_service_date', ''),
+                    'created_at': datetime.now().isoformat()
+                }
+                equipment_data = calculate_service_hours(equipment_data)
+                equipment_hours_collection.insert_one(equipment_data)
+                updated_tables.append('שעות מכלולים')
+                
+            elif action_type == 'add_daily_work':
+                # Create daily work
+                work_data = {
+                    'id': str(uuid.uuid4()),
+                    'date': params.get('date', datetime.now().isoformat()[:10]),
+                    'task': params.get('task', ''),
+                    'source': params.get('source', 'אחר'),
+                    'source_id': params.get('source_id', ''),
+                    'assignee': params.get('assignee', ''),
+                    'estimated_hours': float(params.get('estimated_hours', 2)),
+                    'status': 'מתוכנן',
+                    'notes': params.get('notes', ''),
+                    'created_at': datetime.now().isoformat()
+                }
+                daily_work_collection.insert_one(work_data)
+                updated_tables.append('תכנון יומי')
+                
+        except Exception as e:
+            print(f"Error executing action {action_type}: {e}")
+    
+    return updated_tables
+
 async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
     """Create AI agent for Yahel with department and leadership context"""
     try:
