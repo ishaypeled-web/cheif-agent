@@ -1699,7 +1699,7 @@ function App() {
 
       {/* Floating AI Button */}
       {activeTab !== 'ai-agent' && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 left-6 z-50">
           <Button
             onClick={() => setActiveTab('ai-agent')}
             className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
