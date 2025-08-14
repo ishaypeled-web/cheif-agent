@@ -47,7 +47,7 @@ function App() {
 
   // Form states (moved up to fix initialization order)
   const [failureForm, setFailureForm] = useState({
-    failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0
+    failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0, status: 'פתוח'
   });
   const [maintenanceForm, setMaintenanceForm] = useState({
     maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
@@ -57,6 +57,9 @@ function App() {
   });
   const [workForm, setWorkForm] = useState({
     date: '', task: '', source: 'תקלה', source_id: '', assignee: '', estimated_hours: 0, notes: ''
+  });
+  const [resolvedFailureForm, setResolvedFailureForm] = useState({
+    resolution_method: '', resolved_by: '', actual_hours: 0, lessons_learned: ''
   });
 
   const [editingItem, setEditingItem] = useState(null);
