@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse, JSONResponse
 from pydantic import BaseModel
 from pymongo import MongoClient
 from datetime import datetime, timedelta
@@ -10,6 +11,14 @@ from dotenv import load_dotenv
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import asyncio
 import json
+
+# Google Calendar imports
+from google.auth.transport.requests import Request as GoogleRequest
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from google.auth.exceptions import RefreshError
+import google.auth.exceptions
+from urllib.parse import urlencode
 
 # Load environment variables
 load_dotenv()
