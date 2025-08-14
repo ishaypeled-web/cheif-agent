@@ -1933,6 +1933,39 @@ function App() {
                 <Button onClick={handleAddWork} className="w-full bg-green-600 hover:bg-green-700">הוסף משימה</Button>
               </>
             )}
+
+            {dialogType === 'resolved-failure' && (
+              <>
+                <Textarea
+                  placeholder="איך התקלה טופלה?"
+                  value={resolvedFailureForm.resolution_method}
+                  onChange={(e) => setResolvedFailureForm({...resolvedFailureForm, resolution_method: e.target.value})}
+                  className="resize-none"
+                  rows={3}
+                />
+                <Input
+                  placeholder="מי טיפל בתקלה?"
+                  value={resolvedFailureForm.resolved_by}
+                  onChange={(e) => setResolvedFailureForm({...resolvedFailureForm, resolved_by: e.target.value})}
+                />
+                <Input
+                  type="number"
+                  placeholder="זמן בפועל (שעות)"
+                  value={resolvedFailureForm.actual_hours}
+                  onChange={(e) => setResolvedFailureForm({...resolvedFailureForm, actual_hours: parseFloat(e.target.value)})}
+                />
+                <Textarea
+                  placeholder="לקחים להבא"
+                  value={resolvedFailureForm.lessons_learned}
+                  onChange={(e) => setResolvedFailureForm({...resolvedFailureForm, lessons_learned: e.target.value})}
+                  className="resize-none"
+                  rows={3}
+                />
+                <Button onClick={handleUpdateResolvedFailure} className="w-full bg-blue-600 hover:bg-blue-700">
+                  עדכן פרטי פתרון
+                </Button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
