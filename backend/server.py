@@ -327,6 +327,9 @@ def parse_ai_actions(ai_response: str):
     delete_equipment_pattern = r'\[DELETE_EQUIPMENT:(.*?)\]'
     delete_daily_work_pattern = r'\[DELETE_DAILY_WORK:(.*?)\]'
     
+    # RESOLVED FAILURE patterns - NEW!
+    update_resolved_failure_pattern = r'\[UPDATE_RESOLVED_FAILURE:(.*?)\]'
+    
     patterns = [
         # ADD patterns
         (add_failure_pattern, 'add_failure'),
