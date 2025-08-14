@@ -68,6 +68,10 @@ dna_tracker_collection = db.dna_tracker
 ninety_day_plan_collection = db.ninety_day_plan
 ai_chat_history_collection = db.ai_chat_history
 
+# Collections - Google Calendar Integration
+users_collection = db.users  # Store user profiles and Google tokens
+calendar_events_collection = db.calendar_events  # Optional: Store local copies of events
+
 # Pydantic Models - Department Management
 
 class ActiveFailure(BaseModel):
