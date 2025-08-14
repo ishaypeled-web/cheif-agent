@@ -718,14 +718,8 @@ class GoogleCalendarIntegrationTest:
     def test_5_create_from_maintenance_endpoint(self):
         """Test 5: POST /api/calendar/create-from-maintenance - should handle maintenance event creation"""
         try:
-            maintenance_data = {
-                "maintenance_id": "test-maintenance-123",
-                "user_email": self.test_user_email,
-                "scheduled_date": "2025-01-21",
-                "scheduled_time": "09:00"
-            }
-            
-            response = requests.post(f"{BASE_URL}/calendar/create-from-maintenance", headers=HEADERS, json=maintenance_data)
+            # The endpoint expects maintenance_id and user_email as query parameters
+            response = requests.post(f"{BASE_URL}/calendar/create-from-maintenance?maintenance_id=test-maintenance-123&user_email={self.test_user_email}", headers=HEADERS)
             
             if response.status_code in [200, 201]:
                 self.log_result(
