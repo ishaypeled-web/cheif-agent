@@ -1241,7 +1241,15 @@ function App() {
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setEditingItem(conv);
+                                setDialogType('conversation');
+                                setShowDialog(true);
+                              }}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
