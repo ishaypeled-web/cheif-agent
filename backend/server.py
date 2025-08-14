@@ -248,73 +248,54 @@ def parse_ai_actions(ai_response: str):
     # Look for action patterns in AI response
     import re
     
-    # Pattern: [ADD_FAILURE: failure_number="F002", system="מנוע משני", ...]
+    # Existing patterns
     add_failure_pattern = r'\[ADD_FAILURE:(.*?)\]'
     add_maintenance_pattern = r'\[ADD_MAINTENANCE:(.*?)\]'
     add_equipment_pattern = r'\[ADD_EQUIPMENT:(.*?)\]'
     add_daily_work_pattern = r'\[ADD_DAILY_WORK:(.*?)\]'
-    update_failure_pattern = r'\[UPDATE_FAILURE:(.*?)\]'
     
-    for match in re.finditer(add_failure_pattern, ai_response, re.DOTALL):
-        try:
-            action_data = match.group(1).strip()
-            # Parse the parameters
-            params = {}
-            for param in action_data.split(','):
-                if '=' in param:
-                    key, value = param.strip().split('=', 1)
-                    key = key.strip()
-                    value = value.strip().strip('"\'')
-                    params[key] = value
-            
-            actions.append(('add_failure', params))
-        except:
-            pass
+    # New leadership coaching patterns
+    add_conversation_pattern = r'\[ADD_CONVERSATION:(.*?)\]'
+    add_dna_item_pattern = r'\[ADD_DNA_ITEM:(.*?)\]'
+    add_90day_plan_pattern = r'\[ADD_90DAY_PLAN:(.*?)\]'
     
-    for match in re.finditer(add_maintenance_pattern, ai_response, re.DOTALL):
-        try:
-            action_data = match.group(1).strip()
-            params = {}
-            for param in action_data.split(','):
-                if '=' in param:
-                    key, value = param.strip().split('=', 1)
-                    key = key.strip()
-                    value = value.strip().strip('"\'')
-                    params[key] = value
-            
-            actions.append(('add_maintenance', params))
-        except:
-            pass
+    patterns = [
+        (add_failure_pattern, 'add_failure'),
+        (add_maintenance_pattern, 'add_maintenance'),
+        (add_equipment_pattern, 'add_equipment'),
+        (add_daily_work_pattern, 'add_daily_work'),
+        (add_conversation_pattern, 'add_conversation'),
+        (add_dna_item_pattern, 'add_dna_item'),
+        (add_90day_plan_pattern, 'add_90day_plan')
+    ]
     
-    for match in re.finditer(add_equipment_pattern, ai_response, re.DOTALL):
-        try:
-            action_data = match.group(1).strip()
-            params = {}
-            for param in action_data.split(','):
-                if '=' in param:
-                    key, value = param.strip().split('=', 1)
-                    key = key.strip()
-                    value = value.strip().strip('"\'')
-                    params[key] = value
-            
-            actions.append(('add_equipment', params))
-        except:
-            pass
-            
-    for match in re.finditer(add_daily_work_pattern, ai_response, re.DOTALL):
-        try:
-            action_data = match.group(1).strip()
-            params = {}
-            for param in action_data.split(','):
-                if '=' in param:
-                    key, value = param.strip().split('=', 1)
-                    key = key.strip()
-                    value = value.strip().strip('"\'')
-                    params[key] = value
-            
-            actions.append(('add_daily_work', params))
-        except:
-            pass
+    for pattern, action_type in patterns:
+        for match in re.finditer(pattern, ai_response, re.DOTALL):
+            try:
+                action_data = match.group(1).strip()
+                # Parse the parameters
+                params = {}
+                for param in action_data.split(','):
+                    if '=' in param:
+                        key, value = param.strip().split('=', 1)
+                        key = key.strip()
+                        value = value.strip().strip('"\'')
+                        # Handle list parameters
+                        if key in ['main_topics', 'insights', 'decisions', 'gaps_identified', 'goals', 'concrete_actions', 'success_metrics']:
+                            if ',' in value:
+                                params[key] = [item.strip() for item in value.split(',')]
+                            else:
+                                params[key] = [value]
+                        elif key in ['duration_minutes', 'yahel_energy_level', 'clarity_level', 'week_number', 'frequency_days', 'urgency']:
+                            params[key] = int(value) if value.isdigit() else 1
+                        elif key in ['estimated_hours', 'current_hours']:
+                            params[key] = float(value) if value.replace('.', '').isdigit() else 0.0
+                        else:
+                            params[key] = value
+                
+                actions.append((action_type, params))
+            except Exception as e:
+                print(f"Error parsing action {action_type}: {e}")
     
     return actions
 
