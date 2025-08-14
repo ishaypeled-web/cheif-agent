@@ -122,7 +122,7 @@
 
   - task: "Move failure to resolved when status changes to completed"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 1
     priority: "high"
@@ -134,6 +134,9 @@
         - working: false
           agent: "testing"
           comment: "❌ באג קריטי: העברה אוטומטית לא עובדת! PUT /api/failures/{id} מעדכן ישירות את הDB בלי לבדוק שינוי סטטוס. הלוגיקה של move_failure_to_resolved קיימת רק ב-execute_ai_actions (שורה 443-457) אבל לא מופעלת מ-update_failure endpoint (שורה 938). כשמעדכנים תקלה ל'הושלם' דרך API רגיל - היא לא עוברת לטבלת resolved-failures."
+        - working: true
+          agent: "testing"
+          comment: "✅ התיקון עובד מצוין! בדקתי את הזרימה המלאה: 1) יצירת תקלה פעילה עם POST /api/failures ✅ 2) עדכון סטטוס ל'הושלם' עם PUT /api/failures/{id} ✅ 3) תקלה נמחקה מ-active failures ✅ 4) תקלה הועברה ל-resolved failures עם כל הפרטים ✅ 5) API מחזיר 'moved_to_resolved: true' ✅. בדקתי גם את הסטטוסים 'נסגר' ו'טופל' - כולם עובדים. הבאג תוקן לחלוטין!"
 
   - task: "AI agent can ask about resolution details"
     implemented: true
