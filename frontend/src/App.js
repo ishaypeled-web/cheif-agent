@@ -398,9 +398,10 @@ function App() {
     setChatHistory(prev => [...prev, newUserMessage]);
     
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/chat`, {
-        message: userMessage,
-        session_id: sessionId
+      const response = await axios.post(`${BACKEND_URL}/api/ai-chat`, {
+        user_message: userMessage,
+        session_id: sessionId,
+        chat_history: chatHistory
       });
       
       // Add AI response to chat
