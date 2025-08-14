@@ -111,11 +111,14 @@
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "main"
           comment: "API endpoints קיימים ועובדים - GET /api/resolved-failures, POST /api/resolved-failures, PUT /api/resolved-failures/{id}"
+        - working: true
+          agent: "testing"
+          comment: "✅ נבדק בהצלחה: GET /api/resolved-failures מחזיר רשימה ריקה, POST יוצר תקלה שטופלה, PUT מעדכן פרטי פתרון. כל ה-API endpoints עובדים תקין. מודל הנתונים כולל את כל השדות הנדרשים."
 
   - task: "Move failure to resolved when status changes to completed"
     implemented: true
