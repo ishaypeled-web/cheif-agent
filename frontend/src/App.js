@@ -1276,10 +1276,21 @@ function App() {
           <TabsContent value="equipment" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">שעות מכלולים וטיפולים</h2>
-              <Button onClick={() => openDialog('equipment')} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                הוסף ציוד
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('equipment', 'שעות מכלולים וטיפולים - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                  disabled={equipmentHours.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('equipment')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף ציוד
+                </Button>
+              </div>
             </div>
 
             <Card>
