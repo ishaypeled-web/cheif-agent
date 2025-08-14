@@ -35,6 +35,47 @@ function App() {
   const [currentMessage, setCurrentMessage] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+
+  // Initialize chat session
+  useEffect(() => {
+    if (!sessionId) {
+      const newSessionId = `yahel_session_${Date.now()}`;
+      setSessionId(newSessionId);
+      loadChatHistory(newSessionId);
+    }
+  }, [sessionId]);
+
+  // Load chat history from localStorage
+  const loadChatHistory = (session) => {
+    try {
+      const savedMessages = localStorage.getItem(`chat_history_${session}`);
+      if (savedMessages) {
+        setChatMessages(JSON.parse(savedMessages));
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+  };
+
+  // Save chat history to localStorage
+  const saveChatHistory = (messages) => {
+    try {
+      if (sessionId) {
+        localStorage.setItem(`chat_history_${sessionId}`, JSON.stringify(messages));
+      }
+    } catch (error) {
+      console.error('Error saving chat history:', error);
+    }
+  };
+
+  // Handle key press in textarea
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendAiMessage();
+    }
+  };
 
   // Form states
   const [failureForm, setFailureForm] = useState({
