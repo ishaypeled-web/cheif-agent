@@ -204,3 +204,5 @@
 ## agent_communication:
     - agent: "main"
       message: "השלמתי את אינטגרציית Google Calendar: הוספתי OAuth endpoints בבקאנד, Calendar API לניצור אירועים, לשונית קלנדר בפרונטאנד עם כפתור התחברות וכפתורי 'הוסף לקלנדר'. הכל מוכן לבדיקה מקיפה."
+    - agent: "testing"
+      message: "✅ בדיקת Google Calendar Backend הושלמה בהצלחה! כל ה-endpoints עובדים כנדרש: OAuth login מחזיר authorization_url ו-state, user info endpoint עובד, Calendar APIs מוגדרים נכון ומחזירים שגיאות מתאימות ללא אימות (כצפוי). Google credentials מוגדרים נכון וכל הספריות הנדרשות מותקנות. הבקאנד מוכן לשימוש!"
