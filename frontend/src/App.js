@@ -24,6 +24,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  // AI Chat states
+  const [chatMessages, setChatMessages] = useState([]);
+  const [currentMessage, setCurrentMessage] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showAiChat, setShowAiChat] = useState(false);
+
   // Form states
   const [failureForm, setFailureForm] = useState({
     failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0
