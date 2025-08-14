@@ -1535,6 +1535,241 @@ async def get_chat_history(limit: int = 10):
     chat_history = list(ai_chat_history_collection.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit))
     return chat_history
 
+# Google Calendar OAuth Routes
+@app.get("/api/auth/google/login")
+async def google_login():
+    """Initiate Google OAuth flow"""
+    try:
+        flow = create_google_oauth_flow()
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true',
+            prompt='consent'  # Force consent to get refresh token
+        )
+        return {"authorization_url": authorization_url, "state": state}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating OAuth flow: {str(e)}")
+
+@app.get("/api/auth/google/callback")
+async def google_callback(request: Request):
+    """Handle Google OAuth callback"""
+    try:
+        flow = create_google_oauth_flow()
+        
+        # Get the full URL with query parameters
+        authorization_response = str(request.url)
+        
+        # Fetch token
+        flow.fetch_token(authorization_response=authorization_response)
+        
+        # Get user info
+        credentials = flow.credentials
+        service = build('oauth2', 'v2', credentials=credentials)
+        user_info = service.userinfo().get().execute()
+        
+        # Save user tokens
+        save_user_tokens(
+            user_info['email'],
+            user_info.get('name', ''),
+            credentials.token,
+            credentials.refresh_token,
+            credentials.expiry
+        )
+        
+        # Create response data
+        response_data = {
+            "success": True,
+            "user": {
+                "email": user_info['email'],
+                "name": user_info.get('name', ''),
+                "picture": user_info.get('picture', '')
+            }
+        }
+        
+        # Redirect to frontend with success message
+        frontend_url = os.environ.get('FRONTEND_URL', 'https://marine-leadership.preview.emergentagent.com')
+        redirect_url = f"{frontend_url}?google_auth=success&email={user_info['email']}"
+        
+        return RedirectResponse(url=redirect_url)
+        
+    except Exception as e:
+        print(f"OAuth callback error: {e}")
+        # Redirect to frontend with error
+        frontend_url = os.environ.get('FRONTEND_URL', 'https://marine-leadership.preview.emergentagent.com')
+        redirect_url = f"{frontend_url}?google_auth=error&message={str(e)}"
+        return RedirectResponse(url=redirect_url)
+
+@app.get("/api/auth/user/{email}")
+async def get_user_info(email: str):
+    """Get user information and Google auth status"""
+    user = get_user_by_email(email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "email": user['email'],
+        "name": user['name'],
+        "google_connected": bool(user.get('google_access_token')),
+        "created_at": user.get('created_at')
+    }
+
+# Google Calendar API Routes
+@app.post("/api/calendar/events")
+async def create_calendar_event(event_request: CalendarEventRequest, user_email: str):
+    """Create a new calendar event"""
+    try:
+        service = get_google_calendar_service(user_email)
+        if not service:
+            raise HTTPException(status_code=401, detail="Google Calendar not connected")
+        
+        # Convert string datetimes to datetime objects
+        start_dt = datetime.fromisoformat(event_request.start_time.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(event_request.end_time.replace('Z', '+00:00'))
+        
+        # Create Google Calendar event
+        event_body = {
+            'summary': event_request.title,
+            'description': event_request.description,
+            'start': {
+                'dateTime': start_dt.isoformat(),
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'end': {
+                'dateTime': end_dt.isoformat(),
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'location': event_request.location,
+            'attendees': [{'email': email} for email in event_request.attendees]
+        }
+        
+        created_event = service.events().insert(calendarId='primary', body=event_body).execute()
+        
+        # Save to local database
+        calendar_event = CalendarEvent(
+            id=str(uuid.uuid4()),
+            google_event_id=created_event['id'],
+            title=event_request.title,
+            description=event_request.description,
+            start_time=start_dt,
+            end_time=end_dt,
+            location=event_request.location,
+            attendees=event_request.attendees,
+            source_type="manual",
+            user_email=user_email,
+            created_at=datetime.now().isoformat()
+        )
+        
+        calendar_events_collection.insert_one(calendar_event.dict())
+        
+        return {
+            "success": True,
+            "event_id": created_event['id'],
+            "event_url": created_event.get('htmlLink'),
+            "message": "Event created successfully"
+        }
+        
+    except Exception as e:
+        print(f"Error creating calendar event: {e}")
+        raise HTTPException(status_code=500, detail=f"Error creating event: {str(e)}")
+
+@app.get("/api/calendar/events")
+async def get_calendar_events(user_email: str, limit: int = 50):
+    """Get user's calendar events"""
+    try:
+        service = get_google_calendar_service(user_email)
+        if not service:
+            raise HTTPException(status_code=401, detail="Google Calendar not connected")
+        
+        # Get events from Google Calendar
+        now = datetime.utcnow().isoformat() + 'Z'
+        events_result = service.events().list(
+            calendarId='primary',
+            timeMin=now,
+            maxResults=limit,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        
+        events = events_result.get('items', [])
+        
+        # Also get local events
+        local_events = list(calendar_events_collection.find(
+            {"user_email": user_email},
+            {"_id": 0}
+        ).sort("start_time", 1).limit(limit))
+        
+        return {
+            "google_events": events,
+            "local_events": local_events
+        }
+        
+    except Exception as e:
+        print(f"Error fetching calendar events: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching events: {str(e)}")
+
+@app.post("/api/calendar/create-from-maintenance")
+async def create_event_from_maintenance(maintenance_id: str, user_email: str):
+    """Create calendar event from maintenance schedule"""
+    try:
+        # Get maintenance data
+        maintenance = pending_maintenance_collection.find_one({"id": maintenance_id})
+        if not maintenance:
+            raise HTTPException(status_code=404, detail="Maintenance not found")
+        
+        # Calculate event time (next due date)
+        maintenance_data = calculate_maintenance_dates(maintenance)
+        if maintenance_data['days_until_due'] < 0:
+            raise HTTPException(status_code=400, detail="Maintenance is overdue")
+        
+        # Create event
+        start_time = datetime.fromisoformat(maintenance_data['next_due_date'])
+        end_time = start_time + timedelta(hours=2)  # 2 hour duration
+        
+        event_request = CalendarEventRequest(
+            title=f"אחזקה: {maintenance['component']} - {maintenance['maintenance_type']}",
+            description=f"תיאור: {maintenance['description']}\nדחיפות: {maintenance['priority']}",
+            start_time=start_time.isoformat(),
+            end_time=end_time.isoformat(),
+            location="יחידה ימית"
+        )
+        
+        return await create_calendar_event(event_request, user_email)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating event from maintenance: {e}")
+        raise HTTPException(status_code=500, detail=f"Error creating event: {str(e)}")
+
+@app.post("/api/calendar/create-from-daily-plan")
+async def create_event_from_daily_plan(work_id: str, user_email: str):
+    """Create calendar event from daily work plan"""
+    try:
+        # Get work plan data
+        work_plan = daily_work_collection.find_one({"id": work_id})
+        if not work_plan:
+            raise HTTPException(status_code=404, detail="Work plan not found")
+        
+        # Create event for today
+        today = datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)  # 8 AM
+        end_time = today + timedelta(hours=int(work_plan.get('estimated_hours', 2)))
+        
+        event_request = CalendarEventRequest(
+            title=f"משימה: {work_plan['task']}",
+            description=f"תיאור: {work_plan['description']}\nדחיפות: {work_plan['priority']}\nמבצע: {work_plan['assigned_to']}",
+            start_time=today.isoformat(),
+            end_time=end_time.isoformat(),
+            location="יחידה ימית"
+        )
+        
+        return await create_calendar_event(event_request, user_email)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating event from daily plan: {e}")
+        raise HTTPException(status_code=500, detail=f"Error creating event: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
