@@ -1853,7 +1853,7 @@ async def get_chat_history(limit: int = 10):
 # Google Calendar OAuth Routes
 @app.get("/api/auth/google/login")
 async def google_login():
-    """Initiate Google OAuth flow"""
+    """Initiate Google OAuth flow with proper redirect"""
     try:
         flow = create_google_oauth_flow()
         authorization_url, state = flow.authorization_url(
@@ -1861,7 +1861,9 @@ async def google_login():
             include_granted_scopes='true',
             prompt='consent'  # Force consent to get refresh token
         )
-        return {"authorization_url": authorization_url, "state": state}
+        # Return a redirect response instead of JSON
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=authorization_url, status_code=302)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating OAuth flow: {str(e)}")
 
