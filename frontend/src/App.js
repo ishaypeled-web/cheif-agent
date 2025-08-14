@@ -358,6 +358,199 @@ function App() {
             </div>
           </TabsContent>
 
+          {/* AI Agent Tab */}
+          <TabsContent value="ai-agent" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* AI Chat Interface */}
+              <div className="lg:col-span-2">
+                <Card className="h-[600px] flex flex-col">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center text-blue-800">
+                      <Bot className="h-6 w-6 mr-2" />
+                      האייג'נט AI של יהל - ג'סיקה
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">
+                      מערכת ליווי מנהיגותי וניהול מחלקה מבוססת AI
+                    </p>
+                  </CardHeader>
+                  
+                  <CardContent className="flex-1 flex flex-col p-4">
+                    {/* Chat Messages */}
+                    <div className="flex-1 overflow-y-auto mb-4 space-y-4 bg-gray-50 rounded-lg p-4">
+                      {chatMessages.length === 0 && (
+                        <div className="text-center text-gray-500 mt-8">
+                          <Bot className="h-12 w-12 mx-auto mb-4 text-blue-600" />
+                          <p className="text-lg font-medium">שלום יהל! 👋</p>
+                          <p>אני כאן לעזור לך בניהול המחלקה ובליווי מנהיגותי.</p>
+                          <div className="mt-4 text-sm text-right">
+                            <p>דוגמאות לשאלות:</p>
+                            <ul className="mt-2 space-y-1">
+                              <li>"מה המצב הנוכחי במחלקה?"</li>
+                              <li>"איזה תקלות דחופות יש לי?"</li>
+                              <li>"איך אני מתקדם בתפקיד?"</li>
+                              <li>"מה העדיפויות שלי השבוע?"</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {chatMessages.map((message, index) => (
+                        <div key={index} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[80%] p-3 rounded-lg ${
+                            message.type === 'user' 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-white border border-gray-200'
+                          }`}>
+                            <div className="whitespace-pre-wrap">{message.content}</div>
+                            {message.recommendations && message.recommendations.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-gray-200">
+                                <p className="font-medium text-sm">המלצות:</p>
+                                <ul className="text-sm mt-1">
+                                  {message.recommendations.map((rec, i) => (
+                                    <li key={i}>• {rec}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {message.updated_tables && message.updated_tables.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-gray-200">
+                                <Badge variant="outline" className="text-xs">
+                                  עודכנו: {message.updated_tables.join(', ')}
+                                </Badge>
+                              </div>
+                            )}
+                            <div className="text-xs opacity-70 mt-1">
+                              {new Date(message.timestamp).toLocaleTimeString('he-IL')}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {aiLoading && (
+                        <div className="flex justify-start">
+                          <div className="bg-white border border-gray-200 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                              <span>ג'סיקה חושבת...</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Input Area */}
+                    <div className="flex space-x-2">
+                      <Input
+                        value={currentMessage}
+                        onChange={(e) => setCurrentMessage(e.target.value)}
+                        placeholder="שאל את ג'סיקה על המחלקה או קבל ייעוץ מנהיגותי..."
+                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendAiMessage()}
+                        disabled={aiLoading}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={sendAiMessage}
+                        disabled={aiLoading || !currentMessage.trim()}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Quick Actions & Context */}
+              <div className="space-y-4">
+                {/* Quick Status */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">מצב מחלקה מהיר</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span>תקלות דחופות</span>
+                      <Badge variant={dashboardSummary.urgent_failures > 0 ? 'destructive' : 'default'}>
+                        {dashboardSummary.urgent_failures || 0}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>ציוד קריטי</span>
+                      <Badge variant={dashboardSummary.critical_equipment > 0 ? 'destructive' : 'default'}>
+                        {dashboardSummary.critical_equipment || 0}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>משימות היום</span>
+                      <Badge variant="outline">
+                        {dashboardSummary.today_tasks || 0}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Questions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">שאלות מהירות</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-right justify-start"
+                      onClick={() => {
+                        setCurrentMessage("מה המצב הנוכחי במחלקה? אני רוצה סקירה מהירה.");
+                        sendAiMessage();
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      מצב מחלקה עכשיו
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-right justify-start"
+                      onClick={() => {
+                        setCurrentMessage("איזה עדיפויות יש לי השבוע? מה הדחוף ביותר?");
+                        sendAiMessage();
+                      }}
+                    >
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      עדיפויות שבועיות
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-right justify-start"
+                      onClick={() => {
+                        setCurrentMessage("איך אני מתקדם כמנהיג? יש לי נקודות לשיפור?");
+                        sendAiMessage();
+                      }}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      התקדמות מנהיגותית
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                {/* AI Status */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">סטטוס האייג'נט</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                      <span className="text-sm">מחובר ופעיל</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      מודל: GPT-4o-mini<br/>
+                      עדכון אחרון: {new Date().toLocaleTimeString('he-IL')}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
           {/* Active Failures Tab */}
           <TabsContent value="failures" className="space-y-6">
             <div className="flex justify-between items-center">
