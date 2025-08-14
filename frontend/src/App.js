@@ -1803,6 +1803,19 @@ function App() {
                   value={failureForm.estimated_hours}
                   onChange={(e) => setFailureForm({...failureForm, estimated_hours: parseFloat(e.target.value)})}
                 />
+                <Select value={failureForm.status} onValueChange={(v) => setFailureForm({...failureForm, status: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="סטטוס התקלה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="פתוח">פתוח</SelectItem>
+                    <SelectItem value="בטיפול">בטיפול</SelectItem>
+                    <SelectItem value="ממתין לחלקים">ממתין לחלקים</SelectItem>
+                    <SelectItem value="בבדיקה">בבדיקה</SelectItem>
+                    <SelectItem value="הושלם">הושלם</SelectItem>
+                    <SelectItem value="סגור">סגור</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button onClick={handleAddFailure} className="w-full">
                   {editingItem ? 'עדכן תקלה' : 'הוסף תקלה'}
                 </Button>
