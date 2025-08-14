@@ -413,6 +413,14 @@ async def execute_ai_actions(actions):
                     print("Error: No ID provided for failure update")
                     continue
                     
+                # Get current failure data before update
+                query = {'id': failure_id} if failure_id.startswith('F') == False else {'failure_number': failure_id}
+                current_failure = active_failures_collection.find_one(query)
+                
+                if not current_failure:
+                    print(f"Failure {failure_id} not found for update")
+                    continue
+                
                 update_data = {}
                 if 'status' in params:
                     update_data['status'] = params['status']
@@ -425,15 +433,44 @@ async def execute_ai_actions(actions):
                 if 'estimated_hours' in params:
                     update_data['estimated_hours'] = float(params['estimated_hours'])
                 
-                # Try to find by ID first, then by failure_number
-                query = {'id': failure_id} if failure_id.startswith('F') == False else {'failure_number': failure_id}
-                result = active_failures_collection.update_one(query, {'$set': update_data})
-                
-                if result.matched_count > 0:
-                    updated_tables.append('תקלות פעילות')
-                    print(f"Updated failure {failure_id}: {update_data}")
+                # Check if failure is being resolved
+                if update_data.get('status') in ['הושלם', 'נסגר', 'טופל']:
+                    # Get resolution details if provided
+                    resolution_info = {
+                        'actual_hours': params.get('actual_hours'),
+                        'resolution_method': params.get('resolution_method', ''),
+                        'resolved_by': params.get('resolved_by', current_failure['assignee']),
+                        'lessons_learned': params.get('lessons_learned', '')
+                    }
+                    
+                    # Move to resolved failures
+                    moved = await move_failure_to_resolved(current_failure, resolution_info)
+                    if moved:
+                        updated_tables.append('תקלות פעילות')
+                        updated_tables.append('תקלות שטופלו')
+                        print(f"Moved resolved failure {failure_id} to resolved table")
+                        
+                        # Store the failure number for Jessica to ask about resolution
+                        # This will trigger Jessica to ask follow-up questions
+                        if not resolution_info.get('resolution_method'):
+                            # Store in session that we need to ask about this failure
+                            resolved_failure_info = {
+                                'failure_number': current_failure['failure_number'],
+                                'system': current_failure['system'],
+                                'description': current_failure['description'],
+                                'needs_resolution_details': True
+                            }
+                            # Store in a way Jessica can access it
+                            print(f"Need to ask about resolution for {current_failure['failure_number']}")
                 else:
-                    print(f"Failure {failure_id} not found for update")
+                    # Regular update
+                    result = active_failures_collection.update_one(query, {'$set': update_data})
+                    
+                    if result.matched_count > 0:
+                        updated_tables.append('תקלות פעילות')
+                        print(f"Updated failure {failure_id}: {update_data}")
+                    else:
+                        print(f"Failure {failure_id} not found for update")
                     
             elif action_type == 'delete_failure':
                 # Delete failure
