@@ -736,10 +736,13 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
 
 **עדכון פריטים קיימים:**
 [UPDATE_FAILURE: id="F004", status="הושלם"]
-[UPDATE_FAILURE: failure_number="F004", status="נסגר", notes="טופל בהצלחה"]
+[UPDATE_FAILURE: failure_number="F004", status="נסגר", resolution_method="החלפת רכיב פגום", actual_hours="3.5", resolved_by="טכנאי רונן"]
 [UPDATE_MAINTENANCE: id="maintenance_id", status="הושלם", last_performed="2025-08-14"]
 [UPDATE_EQUIPMENT: id="equipment_id", current_hours="250"]
 [UPDATE_DAILY_WORK: id="work_id", status="הושלם", notes="בוצע בהצלחה"]
+
+**עדכון תקלות שטופלו:**
+[UPDATE_RESOLVED_FAILURE: failure_number="F004", resolution_method="החלפת רכיב פגום", actual_hours="3.5", lessons_learned="חשוב לבדוק רכיבים דומים"]
 
 **מחיקת פריטים:**
 [DELETE_FAILURE: failure_number="F004"]
