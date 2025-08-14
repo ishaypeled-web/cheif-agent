@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BASE_URL = "https://jessica-agent.preview.emergentagent.com/api"
+BASE_URL = "https://fleet-mentor.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class FailureStatusManagementTest:
