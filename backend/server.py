@@ -39,6 +39,7 @@ active_failures_collection = db.active_failures
 pending_maintenance_collection = db.pending_maintenance
 equipment_hours_collection = db.equipment_hours
 daily_work_collection = db.daily_work
+resolved_failures_collection = db.resolved_failures  # NEW: Resolved failures
 
 # Collections - Leadership Coaching
 conversations_collection = db.conversations
