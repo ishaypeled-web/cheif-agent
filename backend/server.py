@@ -354,6 +354,9 @@ def parse_ai_actions(ai_response: str):
         (delete_maintenance_pattern, 'delete_maintenance'),
         (delete_equipment_pattern, 'delete_equipment'),
         (delete_daily_work_pattern, 'delete_daily_work'),
+        
+        # RESOLVED FAILURE patterns
+        (update_resolved_failure_pattern, 'update_resolved_failure'),
     ]
     
     for pattern, action_type in patterns:
