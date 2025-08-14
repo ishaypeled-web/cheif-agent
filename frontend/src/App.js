@@ -109,7 +109,15 @@ function App() {
           description: editingItem.description || '',
           urgency: editingItem.urgency || 1,
           assignee: editingItem.assignee || '',
-          estimated_hours: editingItem.estimated_hours || 0
+          estimated_hours: editingItem.estimated_hours || 0,
+          status: editingItem.status || 'פתוח'
+        });
+      } else if (dialogType === 'resolved-failure') {
+        setResolvedFailureForm({
+          resolution_method: editingItem.resolution_method || '',
+          resolved_by: editingItem.resolved_by || '',
+          actual_hours: editingItem.actual_hours || editingItem.estimated_hours || 0,
+          lessons_learned: editingItem.lessons_learned || ''
         });
       } else if (dialogType === 'maintenance') {
         setMaintenanceForm({
