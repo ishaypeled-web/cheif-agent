@@ -257,6 +257,41 @@ def get_leadership_context():
         print(f"Error getting leadership context: {e}")
         return {}
 
+async def move_failure_to_resolved(failure_data: dict, resolution_info: dict = None):
+    """Move completed failure to resolved failures table"""
+    try:
+        # Create resolved failure record
+        resolved_failure = {
+            'id': failure_data['id'],
+            'failure_number': failure_data['failure_number'],
+            'date': failure_data['date'],
+            'system': failure_data['system'],
+            'description': failure_data['description'],
+            'urgency': failure_data['urgency'],
+            'assignee': failure_data['assignee'],
+            'estimated_hours': failure_data['estimated_hours'],
+            'actual_hours': resolution_info.get('actual_hours') if resolution_info else failure_data['estimated_hours'],
+            'resolution_method': resolution_info.get('resolution_method', '') if resolution_info else '',
+            'resolved_date': datetime.now().isoformat()[:10],
+            'resolved_by': resolution_info.get('resolved_by', failure_data['assignee']) if resolution_info else failure_data['assignee'],
+            'lessons_learned': resolution_info.get('lessons_learned', '') if resolution_info else '',
+            'created_at': failure_data['created_at'],
+            'resolved_at': datetime.now().isoformat()
+        }
+        
+        # Insert into resolved failures
+        resolved_failures_collection.insert_one(resolved_failure)
+        
+        # Remove from active failures
+        active_failures_collection.delete_one({'id': failure_data['id']})
+        
+        print(f"Moved failure {failure_data['failure_number']} to resolved failures")
+        return True
+        
+    except Exception as e:
+        print(f"Error moving failure to resolved: {e}")
+        return False
+
 # AI Agent Functions
 
 # AI Agent Functions with Database Operations
