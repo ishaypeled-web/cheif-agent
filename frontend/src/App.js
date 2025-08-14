@@ -1107,6 +1107,14 @@ function App() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              title="מחק תקלה שטופלה"
+                              onClick={() => handleDeleteResolvedFailure(failure.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
