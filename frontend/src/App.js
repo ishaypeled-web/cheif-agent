@@ -329,6 +329,18 @@ function App() {
     }
   };
 
+  const handleDeleteResolvedFailure = async (failureId) => {
+    try {
+      if (window.confirm('האם אתה בטוח שברצונך למחוק תקלה שטופלה זו?')) {
+        await axios.delete(`${BACKEND_URL}/api/resolved-failures/${failureId}`);
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error deleting resolved failure:', error);
+      alert('שגיאה במחיקת התקלה השטופלה');
+    }
+  };
+
   const handleAddMaintenance = async () => {
     try {
       if (editingItem) {
