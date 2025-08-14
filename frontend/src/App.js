@@ -77,6 +77,40 @@ function App() {
     }
   };
 
+  // Fill form when editing
+  useEffect(() => {
+    if (editingItem) {
+      if (dialogType === 'failure') {
+        setFailureForm({
+          failure_number: editingItem.failure_number || '',
+          date: editingItem.date || '',
+          system: editingItem.system || '',
+          description: editingItem.description || '',
+          urgency: editingItem.urgency || 1,
+          assignee: editingItem.assignee || '',
+          estimated_hours: editingItem.estimated_hours || 0
+        });
+      } else if (dialogType === 'maintenance') {
+        setMaintenanceForm({
+          maintenance_type: editingItem.maintenance_type || '',
+          system: editingItem.system || '',
+          frequency_days: editingItem.frequency_days || 30,
+          last_performed: editingItem.last_performed || ''
+        });
+      }
+    } else {
+      // איפוס טפסים כאשר אין עריכה
+      if (!showDialog) {
+        setFailureForm({
+          failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0
+        });
+        setMaintenanceForm({
+          maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
+        });
+      }
+    }
+  }, [editingItem, dialogType, showDialog]);
+
   // Handle key press in textarea
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
