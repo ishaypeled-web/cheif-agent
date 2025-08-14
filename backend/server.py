@@ -1373,7 +1373,43 @@ async def root():
     return {"message": "יהל Naval Department Management System API", "status": "running"}
 
 # AI Chat Route
-@app.post("/api/ai-chat")
+@app.get("/api/ai-chat/history/{session_id}")
+async def get_session_chat_history(session_id: str):
+    """Get chat history for specific session"""
+    try:
+        chat_records = list(ai_chat_history_collection.find(
+            {"session_id": session_id}, 
+            {"_id": 0}
+        ).sort("timestamp", 1))
+        
+        # Convert to chat format
+        history = []
+        for record in chat_records:
+            # Add user message
+            history.append({
+                "role": "user",
+                "content": record["user_message"]
+            })
+            # Add assistant message
+            history.append({
+                "role": "assistant", 
+                "content": record["ai_response"]
+            })
+        
+        return {"history": history}
+    except Exception as e:
+        return {"history": []}
+
+@app.delete("/api/ai-chat/history/{session_id}")
+async def clear_session_chat_history(session_id: str):
+    """Clear chat history for specific session"""
+    try:
+        result = ai_chat_history_collection.delete_many({"session_id": session_id})
+        return {"message": f"Cleared {result.deleted_count} chat records"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error clearing chat history: {str(e)}")
+
+@app.get("/api/ai-chat")
 async def ai_chat(message: ChatMessage):
     response = await create_yahel_ai_agent(
         message.user_message, 
