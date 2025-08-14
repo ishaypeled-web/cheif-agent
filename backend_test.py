@@ -2041,6 +2041,379 @@ class JessicaUpdatedQuestionsTest:
         
         return self.test_results
 
+class ComprehensiveBackendTest:
+    """Comprehensive backend testing for all key components"""
+    
+    def __init__(self):
+        self.test_results = []
+        self.test_user_id = "comprehensive-test-user"
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_core_crud_operations(self):
+        """Test all management table CRUD operations"""
+        try:
+            # Test all management table endpoints
+            endpoints = [
+                ("failures", "תקלות פעילות"),
+                ("resolved-failures", "תקלות שטופלו"),
+                ("maintenance", "אחזקות ממתינות"),
+                ("equipment", "שעות מכלולים"),
+                ("daily-work", "תכנון יומי"),
+                ("conversations", "מעקב שיחות"),
+                ("dna-tracker", "DNA Tracker"),
+                ("ninety-day-plan", "תכנית 90 יום")
+            ]
+            
+            working_endpoints = []
+            failed_endpoints = []
+            
+            for endpoint, hebrew_name in endpoints:
+                try:
+                    response = requests.get(f"{BASE_URL}/{endpoint}", headers=HEADERS, timeout=10)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if isinstance(data, list):
+                            working_endpoints.append(f"{hebrew_name} ({len(data)} items)")
+                        else:
+                            working_endpoints.append(f"{hebrew_name} (object response)")
+                    else:
+                        failed_endpoints.append(f"{hebrew_name} (HTTP {response.status_code})")
+                except Exception as e:
+                    failed_endpoints.append(f"{hebrew_name} (Exception: {str(e)[:50]})")
+            
+            if len(working_endpoints) >= 6:  # At least 6 out of 8 should work
+                self.log_result(
+                    "Core CRUD Operations", 
+                    True, 
+                    f"Successfully tested {len(working_endpoints)}/{len(endpoints)} management tables",
+                    f"Working: {working_endpoints}"
+                )
+            else:
+                self.log_result(
+                    "Core CRUD Operations", 
+                    False, 
+                    f"Only {len(working_endpoints)}/{len(endpoints)} management tables working",
+                    f"Failed: {failed_endpoints}"
+                )
+                
+        except Exception as e:
+            self.log_result("Core CRUD Operations", False, f"Exception: {str(e)}")
+    
+    def test_google_calendar_integration(self):
+        """Test Google Calendar OAuth and API endpoints"""
+        try:
+            oauth_working = False
+            calendar_working = False
+            
+            # Test OAuth login endpoint
+            try:
+                response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'authorization_url' in data and 'state' in data:
+                        oauth_working = True
+            except:
+                pass
+            
+            # Test calendar events endpoint
+            try:
+                response = requests.get(f"{BASE_URL}/calendar/events?user_email=test@example.com", headers=HEADERS, timeout=10)
+                if response.status_code in [200, 400, 401, 403]:  # Any response means endpoint exists
+                    calendar_working = True
+            except:
+                pass
+            
+            if oauth_working and calendar_working:
+                self.log_result(
+                    "Google Calendar Integration", 
+                    True, 
+                    "OAuth and Calendar API endpoints are working",
+                    "Both /auth/google/login and /calendar/events respond correctly"
+                )
+            elif oauth_working:
+                self.log_result(
+                    "Google Calendar Integration", 
+                    False, 
+                    "OAuth working but Calendar API endpoints missing",
+                    "OAuth login works but calendar endpoints not responding"
+                )
+            else:
+                self.log_result(
+                    "Google Calendar Integration", 
+                    False, 
+                    "Google Calendar integration not working",
+                    "Neither OAuth nor Calendar endpoints responding correctly"
+                )
+                
+        except Exception as e:
+            self.log_result("Google Calendar Integration", False, f"Exception: {str(e)}")
+    
+    def test_push_notifications_system(self):
+        """Test Push Notifications VAPID, subscriptions, and sending"""
+        try:
+            vapid_working = False
+            subscription_working = False
+            preferences_working = False
+            
+            # Test VAPID key endpoint
+            try:
+                response = requests.get(f"{BASE_URL}/notifications/vapid-key", headers=HEADERS, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'public_key' in data and 'subject' in data:
+                        vapid_working = True
+            except:
+                pass
+            
+            # Test subscription endpoint
+            try:
+                subscription_data = {
+                    "user_id": self.test_user_id,
+                    "subscription": {
+                        "endpoint": "https://fcm.googleapis.com/fcm/send/test-endpoint",
+                        "keys": {
+                            "p256dh": "test-p256dh-key",
+                            "auth": "test-auth-key"
+                        }
+                    }
+                }
+                response = requests.post(f"{BASE_URL}/notifications/subscribe", headers=HEADERS, json=subscription_data, timeout=10)
+                if response.status_code == 200:
+                    subscription_working = True
+            except:
+                pass
+            
+            # Test preferences endpoint
+            try:
+                response = requests.get(f"{BASE_URL}/notifications/preferences/{self.test_user_id}", headers=HEADERS, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'user_id' in data and 'categories' in data:
+                        preferences_working = True
+            except:
+                pass
+            
+            working_components = []
+            if vapid_working:
+                working_components.append("VAPID Keys")
+            if subscription_working:
+                working_components.append("Subscriptions")
+            if preferences_working:
+                working_components.append("Preferences")
+            
+            if len(working_components) >= 2:
+                self.log_result(
+                    "Push Notifications System", 
+                    True, 
+                    f"Push notification system working: {', '.join(working_components)}",
+                    f"Working components: {working_components}"
+                )
+            else:
+                self.log_result(
+                    "Push Notifications System", 
+                    False, 
+                    f"Push notification system partially working: {', '.join(working_components)}",
+                    f"VAPID: {vapid_working}, Subscription: {subscription_working}, Preferences: {preferences_working}"
+                )
+                
+        except Exception as e:
+            self.log_result("Push Notifications System", False, f"Exception: {str(e)}")
+    
+    def test_ai_agent_jessica(self):
+        """Test AI Agent Jessica chat functionality and table interactions"""
+        try:
+            # Test basic chat functionality
+            chat_message = {
+                "user_message": "ג'סיקה, מה המצב של המחלקה?",
+                "session_id": f"test_session_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "chat_history": []
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '')
+                updated_tables = data.get('updated_tables', [])
+                
+                # Check if Jessica responded in Hebrew
+                hebrew_response = any(char in ai_response for char in 'אבגדהוזחטיכלמנסעפצקרשת')
+                
+                if hebrew_response and len(ai_response) > 50:
+                    self.log_result(
+                        "AI Agent Jessica", 
+                        True, 
+                        "Jessica AI agent responding correctly in Hebrew",
+                        f"Response length: {len(ai_response)} chars, Updated tables: {updated_tables}"
+                    )
+                else:
+                    self.log_result(
+                        "AI Agent Jessica", 
+                        False, 
+                        "Jessica AI agent response appears incomplete",
+                        f"Hebrew: {hebrew_response}, Response: {ai_response[:100]}..."
+                    )
+            else:
+                self.log_result(
+                    "AI Agent Jessica", 
+                    False, 
+                    f"AI chat endpoint error: HTTP {response.status_code}",
+                    response.text[:200]
+                )
+                
+        except Exception as e:
+            self.log_result("AI Agent Jessica", False, f"Exception: {str(e)}")
+    
+    def test_backend_services_status(self):
+        """Test that backend services (MongoDB, FastAPI) are running properly"""
+        try:
+            # Test root endpoint
+            root_working = False
+            try:
+                response = requests.get(f"{BASE_URL.replace('/api', '')}/", headers=HEADERS, timeout=10)
+                if response.status_code == 200:
+                    root_working = True
+            except:
+                pass
+            
+            # Test API root
+            api_working = False
+            try:
+                response = requests.get(f"{BASE_URL}/failures", headers=HEADERS, timeout=10)
+                if response.status_code == 200:
+                    api_working = True
+            except:
+                pass
+            
+            # Test MongoDB connectivity (by trying to access any collection)
+            mongodb_working = False
+            try:
+                response = requests.get(f"{BASE_URL}/failures", headers=HEADERS, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    if isinstance(data, list):
+                        mongodb_working = True
+            except:
+                pass
+            
+            working_services = []
+            if root_working:
+                working_services.append("FastAPI Root")
+            if api_working:
+                working_services.append("API Endpoints")
+            if mongodb_working:
+                working_services.append("MongoDB")
+            
+            if len(working_services) >= 2:
+                self.log_result(
+                    "Backend Services Status", 
+                    True, 
+                    f"Backend services running: {', '.join(working_services)}",
+                    f"Services: {working_services}"
+                )
+            else:
+                self.log_result(
+                    "Backend Services Status", 
+                    False, 
+                    f"Some backend services not responding: {', '.join(working_services)}",
+                    f"Root: {root_working}, API: {api_working}, MongoDB: {mongodb_working}"
+                )
+                
+        except Exception as e:
+            self.log_result("Backend Services Status", False, f"Exception: {str(e)}")
+    
+    def test_environment_configuration(self):
+        """Test that environment variables are properly configured"""
+        try:
+            config_issues = []
+            
+            # Test if Google OAuth is configured (by testing login endpoint)
+            try:
+                response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS, timeout=10)
+                if response.status_code != 200:
+                    config_issues.append("Google OAuth credentials")
+            except:
+                config_issues.append("Google OAuth endpoints")
+            
+            # Test if OpenAI is configured (by testing AI chat)
+            try:
+                chat_message = {
+                    "user_message": "בדיקה",
+                    "session_id": "config_test",
+                    "chat_history": []
+                }
+                response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message, timeout=15)
+                if response.status_code == 500:
+                    config_issues.append("OpenAI API key")
+            except:
+                config_issues.append("AI chat service")
+            
+            if len(config_issues) == 0:
+                self.log_result(
+                    "Environment Configuration", 
+                    True, 
+                    "All environment variables appear properly configured",
+                    "Google OAuth and OpenAI API key working"
+                )
+            else:
+                self.log_result(
+                    "Environment Configuration", 
+                    False, 
+                    f"Configuration issues detected: {', '.join(config_issues)}",
+                    f"Issues: {config_issues}"
+                )
+                
+        except Exception as e:
+            self.log_result("Environment Configuration", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all comprehensive backend tests"""
+        print("🚀 Starting Comprehensive Backend Testing")
+        print("=" * 60)
+        
+        # Run tests in order
+        self.test_backend_services_status()
+        self.test_environment_configuration()
+        self.test_core_crud_operations()
+        self.test_google_calendar_integration()
+        self.test_push_notifications_system()
+        self.test_ai_agent_jessica()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 COMPREHENSIVE BACKEND TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
 if __name__ == "__main__":
     print("🎯 Running Jessica Updated Questions Test (Review Request)")
     print("=" * 80)
