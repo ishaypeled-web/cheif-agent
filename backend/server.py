@@ -686,6 +686,32 @@ async def execute_ai_actions(actions):
                 
                 updated_tables.append('תכנית 90 יום')
                 
+            elif action_type == 'update_resolved_failure':
+                # Update resolved failure details
+                failure_id = params.get('id') or params.get('failure_number')
+                if not failure_id:
+                    print("Error: No ID provided for resolved failure update")
+                    continue
+                
+                update_data = {}
+                if 'resolution_method' in params:
+                    update_data['resolution_method'] = params['resolution_method']
+                if 'actual_hours' in params:
+                    update_data['actual_hours'] = float(params['actual_hours'])
+                if 'lessons_learned' in params:
+                    update_data['lessons_learned'] = params['lessons_learned']
+                if 'resolved_by' in params:
+                    update_data['resolved_by'] = params['resolved_by']
+                
+                query = {'id': failure_id} if failure_id.startswith('F') == False else {'failure_number': failure_id}
+                result = resolved_failures_collection.update_one(query, {'$set': update_data})
+                
+                if result.matched_count > 0:
+                    updated_tables.append('תקלות שטופלו')
+                    print(f"Updated resolved failure {failure_id}: {update_data}")
+                else:
+                    print(f"Resolved failure {failure_id} not found for update")
+                
         except Exception as e:
             print(f"Error executing action {action_type}: {e}")
     
