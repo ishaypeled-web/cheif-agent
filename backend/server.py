@@ -81,6 +81,11 @@ ai_chat_history_collection = db.ai_chat_history
 users_collection = db.users  # Store user profiles and Google tokens
 calendar_events_collection = db.calendar_events  # Optional: Store local copies of events
 
+# Collections - Push Notifications
+push_subscriptions_collection = db.push_subscriptions  # Store push notification subscriptions
+notification_preferences_collection = db.notification_preferences  # Store user notification preferences
+notification_history_collection = db.notification_history  # Store notification delivery history
+
 # Pydantic Models - Department Management
 
 class ActiveFailure(BaseModel):
