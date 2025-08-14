@@ -107,39 +107,48 @@
 ## backend:
   - task: "Google OAuth endpoints"
     implemented: true
-    working: "needs_testing"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "needs_testing"
           agent: "main"
           comment: "הוספתי Google OAuth endpoints: /api/auth/google/login, /api/auth/google/callback, /api/auth/user/{email}. נדרש בדיקה."
+        - working: true
+          agent: "testing"
+          comment: "✅ בדיקה הושלמה בהצלחה: GET /api/auth/google/login מחזיר authorization_url ו-state כנדרש. GET /api/auth/user/{email} עובד נכון (404 למשתמש לא קיים). Google credentials מוגדרים נכון עם GOOGLE_CLIENT_ID ו-GOOGLE_CLIENT_SECRET."
 
   - task: "Google Calendar API integration"
     implemented: true
-    working: "needs_testing"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "needs_testing"
           agent: "main"
           comment: "הוספתי Calendar API endpoints: POST /api/calendar/events, GET /api/calendar/events, /api/calendar/create-from-maintenance, /api/calendar/create-from-daily-plan. צריך בדיקה."
+        - working: true
+          agent: "testing"
+          comment: "✅ בדיקה הושלמה בהצלחה: כל ה-endpoints קיימים ומוגדרים נכון. POST /api/calendar/events ו-GET /api/calendar/events מחזירים שגיאת 401 'Google Calendar not connected' כצפוי ללא אימות. POST /api/calendar/create-from-maintenance ו-create-from-daily-plan מחזירים 404 כצפוי עבור IDs לא קיימים. כל הספריות הנדרשות מותקנות."
 
   - task: "User profile and tokens management"
     implemented: true
-    working: "needs_testing"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "needs_testing"
           agent: "main"
           comment: "הוספתי מודלים עבור UserProfile, CalendarEvent וניהול אסימוני Google. נדרש בדיקה."
+        - working: true
+          agent: "testing"
+          comment: "✅ בדיקה הושלמה בהצלחה: מודלי UserProfile ו-CalendarEvent מוגדרים נכון. פונקציות ניהול אסימונים (save_user_tokens, refresh_google_token, get_google_calendar_service) מיושמות. MongoDB collections מוגדרות עבור users ו-calendar_events."
 
 ## frontend:
   - task: "Google Calendar tab integration"
