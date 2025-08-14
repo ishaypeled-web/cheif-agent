@@ -1,12 +1,12 @@
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 import uuid
 import os
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import asyncio
@@ -19,6 +19,15 @@ from googleapiclient.discovery import build
 from google.auth.exceptions import RefreshError
 import google.auth.exceptions
 from urllib.parse import urlencode
+
+# Push Notifications imports
+from webpush import WebPush, WebPushSubscription
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
+import base64
+from pathlib import Path
+import sqlite3
+import aiohttp
 
 # Load environment variables
 load_dotenv()
