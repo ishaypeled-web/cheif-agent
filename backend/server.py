@@ -769,6 +769,24 @@ async def get_conversations():
     conversations = list(conversations_collection.find({}, {"_id": 0}).sort("meeting_number", -1))
     return conversations
 
+@app.put("/api/conversations/{conversation_id}")
+async def update_conversation(conversation_id: str, conversation: Conversation):
+    conversation_dict = conversation.dict()
+    result = conversations_collection.update_one(
+        {"id": conversation_id}, 
+        {"$set": conversation_dict}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"message": "Conversation updated successfully"}
+
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str):
+    result = conversations_collection.delete_one({"id": conversation_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"message": "Conversation deleted successfully"}
+
 @app.post("/api/dna-tracker")
 async def create_dna_item(dna: DNATracker):
     dna_dict = dna.dict()
@@ -776,13 +794,44 @@ async def create_dna_item(dna: DNATracker):
     dna_dict['created_at'] = datetime.now().isoformat()
     dna_dict['last_updated'] = datetime.now().isoformat()[:10]
     
-    result = dna_tracker_collection.insert_one(dna_dict)
-    return {"id": dna_dict['id'], "message": "DNA item created successfully"}
+    # Check if component already exists
+    existing = dna_tracker_collection.find_one({'component_name': dna_dict['component_name']})
+    if existing:
+        # Update existing
+        result = dna_tracker_collection.update_one(
+            {'component_name': dna_dict['component_name']},
+            {'$set': dna_dict}
+        )
+        return {"id": existing['id'], "message": "DNA component updated successfully"}
+    else:
+        # Create new
+        result = dna_tracker_collection.insert_one(dna_dict)
+        return {"id": dna_dict['id'], "message": "DNA component created successfully"}
 
 @app.get("/api/dna-tracker")
 async def get_dna_tracker():
     dna_items = list(dna_tracker_collection.find({}, {"_id": 0}))
     return dna_items
+
+@app.put("/api/dna-tracker/{dna_id}")
+async def update_dna_item(dna_id: str, dna: DNATracker):
+    dna_dict = dna.dict()
+    dna_dict['last_updated'] = datetime.now().isoformat()[:10]
+    
+    result = dna_tracker_collection.update_one(
+        {"id": dna_id}, 
+        {"$set": dna_dict}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="DNA item not found")
+    return {"message": "DNA item updated successfully"}
+
+@app.delete("/api/dna-tracker/{dna_id}")
+async def delete_dna_item(dna_id: str):
+    result = dna_tracker_collection.delete_one({"id": dna_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="DNA item not found")
+    return {"message": "DNA item deleted successfully"}
 
 @app.post("/api/ninety-day-plan")
 async def create_plan_item(plan: NinetyDayPlan):
@@ -790,13 +839,114 @@ async def create_plan_item(plan: NinetyDayPlan):
     plan_dict['id'] = str(uuid.uuid4())
     plan_dict['created_at'] = datetime.now().isoformat()
     
-    result = ninety_day_plan_collection.insert_one(plan_dict)
-    return {"id": plan_dict['id'], "message": "Plan item created successfully"}
+    # Check if week already exists
+    existing = ninety_day_plan_collection.find_one({'week_number': plan_dict['week_number']})
+    if existing:
+        # Update existing
+        result = ninety_day_plan_collection.update_one(
+            {'week_number': plan_dict['week_number']},
+            {'$set': plan_dict}
+        )
+        return {"id": existing['id'], "message": f"Week {plan_dict['week_number']} plan updated successfully"}
+    else:
+        # Create new
+        result = ninety_day_plan_collection.insert_one(plan_dict)
+        return {"id": plan_dict['id'], "message": f"Week {plan_dict['week_number']} plan created successfully"}
 
 @app.get("/api/ninety-day-plan")
 async def get_ninety_day_plan():
     plan_items = list(ninety_day_plan_collection.find({}, {"_id": 0}).sort("week_number", 1))
     return plan_items
+
+@app.put("/api/ninety-day-plan/{plan_id}")
+async def update_plan_item(plan_id: str, plan: NinetyDayPlan):
+    plan_dict = plan.dict()
+    result = ninety_day_plan_collection.update_one(
+        {"id": plan_id}, 
+        {"$set": plan_dict}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Plan item not found")
+    return {"message": "Plan item updated successfully"}
+
+@app.delete("/api/ninety-day-plan/{plan_id}")
+async def delete_plan_item(plan_id: str):
+    result = ninety_day_plan_collection.delete_one({"id": plan_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Plan item not found")
+    return {"message": "Plan item deleted successfully"}
+
+# Advanced AI Routes for Leadership Coaching
+
+@app.get("/api/leadership-summary")
+async def get_leadership_summary():
+    """Get comprehensive leadership coaching summary"""
+    try:
+        # Get recent conversations
+        recent_conversations = list(conversations_collection.find({}, {"_id": 0}).sort("meeting_number", -1).limit(3))
+        
+        # Get DNA progress
+        dna_items = list(dna_tracker_collection.find({}, {"_id": 0}))
+        avg_clarity = sum(item.get('clarity_level', 0) for item in dna_items) / len(dna_items) if dna_items else 0
+        
+        # Get 90-day plan progress
+        plan_items = list(ninety_day_plan_collection.find({}, {"_id": 0}))
+        completed_weeks = len([item for item in plan_items if item.get('status') == 'הושלם'])
+        total_weeks = len(plan_items)
+        
+        # Calculate energy trend from recent conversations
+        energy_levels = [conv.get('yahel_energy_level', 5) for conv in recent_conversations]
+        avg_energy = sum(energy_levels) / len(energy_levels) if energy_levels else 5
+        
+        return {
+            "recent_conversations_count": len(recent_conversations),
+            "avg_energy_level": round(avg_energy, 1),
+            "dna_clarity_average": round(avg_clarity, 1),
+            "dna_components_defined": len(dna_items),
+            "plan_completion_rate": round((completed_weeks / total_weeks * 100), 1) if total_weeks > 0 else 0,
+            "total_weeks_planned": total_weeks,
+            "weeks_completed": completed_weeks,
+            "last_conversation": recent_conversations[0] if recent_conversations else None,
+            "next_actions_needed": len([item for item in dna_items if item.get('clarity_level', 0) < 7])
+        }
+        
+    except Exception as e:
+        print(f"Error getting leadership summary: {e}")
+        return {"error": "Could not generate leadership summary"}
+
+@app.post("/api/ai-coaching-session")
+async def ai_coaching_session(session_data: dict):
+    """Process AI coaching session and auto-update leadership tables"""
+    try:
+        user_message = session_data.get('message', '')
+        session_type = session_data.get('type', 'general')  # general, reflection, planning
+        
+        # Call the main AI agent
+        response = await create_yahel_ai_agent(user_message)
+        
+        # If this was a coaching session, automatically create conversation record
+        if session_type == 'coaching' and response.updated_tables:
+            conversation_data = {
+                'id': str(uuid.uuid4()),
+                'meeting_number': len(list(conversations_collection.find())) + 1,
+                'date': datetime.now().isoformat()[:10],
+                'duration_minutes': 30,  # Default
+                'main_topics': ['AI coaching session'],
+                'insights': ['Processed via AI agent'],
+                'decisions': [],
+                'next_step': 'Continue regular coaching sessions',
+                'yahel_energy_level': 7,  # Default
+                'created_at': datetime.now().isoformat()
+            }
+            
+            conversations_collection.insert_one(conversation_data)
+            response.updated_tables.append('מעקב שיחות')
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error in coaching session: {e}")
+        raise HTTPException(status_code=500, detail="Error processing coaching session")
 
 # Dashboard/Summary Routes
 @app.get("/api/dashboard/summary")
