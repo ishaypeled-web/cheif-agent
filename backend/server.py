@@ -1269,7 +1269,15 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
 
 **חשוב: השתמש בהיסטוריית השיחה כדי לתת תגובות רצופות וטבעיות. אל תחזור על מידע שכבר נאמר.**
 
-השב בעברית, בצורה ישירה ומעשית, כמי שמכיר את יהל באופן אישי ויודע את ההיסטוריה שלנו.
+השב בעברית, בצורה ישירה ומעשית, כמי שמכיר את המשתמש באופן אישי ויודע את ההיסטוריה שלכם.
+
+📊 **נתוני המחלקה הנוכחיים:**
+{json.dumps(dept_data, ensure_ascii=False, indent=2)}
+
+🎯 **נתוני הליווי המנהיגותי:**
+{json.dumps(leadership_data, ensure_ascii=False, indent=2)}
+
+{conversation_context}
         """
         
         # Create session ID if not provided
