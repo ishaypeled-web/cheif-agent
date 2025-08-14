@@ -40,6 +40,18 @@ MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 DB_NAME = os.environ.get('DB_NAME', 'yahel_department_db')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
+# Google Calendar setup
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'https://marine-leadership.preview.emergentagent.com/api/auth/google/callback')
+
+# Google OAuth 2.0 scopes for Calendar API
+GOOGLE_SCOPES = [
+    'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile'
+]
+
 client = MongoClient(MONGO_URL)
 db = client[DB_NAME]
 
