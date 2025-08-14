@@ -304,6 +304,94 @@ function App() {
     }
   };
 
+  // Google Calendar functions
+  const initiateGoogleLogin = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/auth/google/login`);
+      if (response.data.authorization_url) {
+        window.open(response.data.authorization_url, '_blank', 'width=500,height=600');
+      }
+    } catch (error) {
+      console.error('Error initiating Google login:', error);
+      alert('שגיאה בהתחברות לGoogle Calendar');
+    }
+  };
+
+  const checkGoogleAuthStatus = async (email) => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/auth/user/${email}`);
+      setGoogleUser(response.data);
+      setGoogleConnected(response.data.google_connected);
+      
+      if (response.data.google_connected) {
+        await fetchCalendarEvents(email);
+      }
+    } catch (error) {
+      console.error('Error checking Google auth status:', error);
+    }
+  };
+
+  const fetchCalendarEvents = async (email) => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/calendar/events?user_email=${email}`);
+      setCalendarEvents(response.data);
+    } catch (error) {
+      console.error('Error fetching calendar events:', error);
+    }
+  };
+
+  const createEventFromMaintenance = async (maintenanceId, userEmail) => {
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/api/calendar/create-from-maintenance`, 
+        null,
+        { params: { maintenance_id: maintenanceId, user_email: userEmail } }
+      );
+      
+      if (response.data.success) {
+        alert('אירוע נוצר בהצלחה בקלנדר Google!');
+        await fetchCalendarEvents(userEmail);
+      }
+    } catch (error) {
+      console.error('Error creating event from maintenance:', error);
+      alert('שגיאה ביצירת אירוע מאחזקה');
+    }
+  };
+
+  const createEventFromDailyPlan = async (workId, userEmail) => {
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/api/calendar/create-from-daily-plan`,
+        null, 
+        { params: { work_id: workId, user_email: userEmail } }
+      );
+      
+      if (response.data.success) {
+        alert('אירוע נוצר בהצלחה בקלנדר Google!');
+        await fetchCalendarEvents(userEmail);
+      }
+    } catch (error) {
+      console.error('Error creating event from daily plan:', error);
+      alert('שגיאה ביצירת אירוע מתכנון יומי');
+    }
+  };
+
+  // Check for Google auth callback on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const googleAuth = urlParams.get('google_auth');
+    const email = urlParams.get('email');
+    
+    if (googleAuth === 'success' && email) {
+      checkGoogleAuthStatus(email);
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (googleAuth === 'error') {
+      alert('שגיאה בהתחברות לGoogle Calendar');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const openDialog = (type) => {
     setDialogType(type);
     setEditingItem(null);
