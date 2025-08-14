@@ -195,9 +195,8 @@
 
 ## test_plan:
   current_focus:
-    - "Google OAuth endpoints"
-    - "Google Calendar API integration"
     - "Google OAuth flow frontend"
+    - "Add to calendar buttons"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
