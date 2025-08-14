@@ -813,6 +813,112 @@ function App() {
             </Card>
           </TabsContent>
 
+          {/* Resolved Failures Tab */}
+          <TabsContent value="resolved" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">תקלות שטופלו</h2>
+              <Badge variant="outline" className="px-4 py-2">
+                {resolvedFailures.length} תקלות נפתרו
+              </Badge>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>מס' תקלה</TableHead>
+                      <TableHead>מכלול</TableHead>
+                      <TableHead>תיאור</TableHead>
+                      <TableHead>דחיפות</TableHead>
+                      <TableHead>מבצע</TableHead>
+                      <TableHead>זמן משוער</TableHead>
+                      <TableHead>זמן בפועל</TableHead>
+                      <TableHead>איך טופל?</TableHead>
+                      <TableHead>נפתר ע"י</TableHead>
+                      <TableHead>תאריך פתירה</TableHead>
+                      <TableHead>לקחים</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {resolvedFailures.map(failure => (
+                      <TableRow key={failure.id}>
+                        <TableCell className="font-medium">{failure.failure_number}</TableCell>
+                        <TableCell>{failure.system}</TableCell>
+                        <TableCell className="max-w-xs truncate">{failure.description}</TableCell>
+                        <TableCell>
+                          <Badge variant={getUrgencyColor(failure.urgency)}>
+                            {failure.urgency}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{failure.assignee}</TableCell>
+                        <TableCell>{failure.estimated_hours} שעות</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {failure.actual_hours || failure.estimated_hours} שעות
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          <div className="text-sm">
+                            {failure.resolution_method ? (
+                              <span className="text-green-600">{failure.resolution_method}</span>
+                            ) : (
+                              <Badge variant="warning" className="text-xs">
+                                לא מתועד
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{failure.resolved_by}</TableCell>
+                        <TableCell>{failure.resolved_date}</TableCell>
+                        <TableCell className="max-w-xs">
+                          {failure.lessons_learned ? (
+                            <div className="text-sm text-blue-600 truncate" title={failure.lessons_learned}>
+                              {failure.lessons_learned}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              אין לקחים
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              title="עדכן פרטי פתרון"
+                              onClick={() => {
+                                // Open edit dialog for resolution details
+                                setCurrentMessage(`אני רוצה לעדכן את פרטי הפתרון של תקלה ${failure.failure_number}. איך היא טופלה בדיוק?`);
+                                setActiveTab('ai-agent');
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {resolvedFailures.length === 0 && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <AlertTriangle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-lg text-gray-600">אין תקלות שטופלו עדיין</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    כאשר תסמן תקלה כ"הושלם", היא תועבר לכאן אוטומטית
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* Maintenance Tab */}
           <TabsContent value="maintenance" className="space-y-6">
             <div className="flex justify-between items-center">
