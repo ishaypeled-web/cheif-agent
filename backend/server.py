@@ -1193,11 +1193,9 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
 **🔍 כמנהל תקלות מתקדם:**
 1. **כשתקלה נסגרת** - תמיד שאל כיצד היא טופלה
 2. שאלות חובה לכל תקלה שנסגרת:
-   - "איך בדיוק טופלה התקלה הזו?"
-   - "כמה זמן לקח בפועל?"
-   - "מי טיפל בסוף?"
-   - "מה הלקח שנלמד מהתקלה הזו?"
-   - "יש משהו שצריך לעשות כדי למנוע בעיה דומה?"
+   - "כמה זמן זה לקח?"
+   - "מי טיפל בתקלה?"
+   - "האם צריך לעשות משהו בעתיד כדי שזה לא יחזור על עצמו?"
 3. **תמיד עדכן את הפרטים** ב[UPDATE_RESOLVED_FAILURE] עם התשובות
 
 🔥 **שאלות זיקוק אינטרסים מומלצות:**
