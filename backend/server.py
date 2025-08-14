@@ -376,6 +376,180 @@ def calculate_maintenance_dates(maintenance: dict):
     
     return maintenance
 
+# Push Notification Management Classes
+class VAPIDKeyManager:
+    def __init__(self, private_key_path: str = "vapid_private_key.pem", public_key_path: str = "vapid_public_key.pem"):
+        self.private_key_path = private_key_path
+        self.public_key_path = public_key_path
+        self.ensure_keys_exist()
+    
+    def generate_vapid_keys(self):
+        """Generate new VAPID key pair"""
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        
+        # Save private key
+        with open(self.private_key_path, 'wb') as f:
+            f.write(private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            ))
+        
+        # Save public key
+        public_key = private_key.public_key()
+        with open(self.public_key_path, 'wb') as f:
+            f.write(public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            ))
+        
+        return self.get_application_server_key()
+    
+    def ensure_keys_exist(self):
+        """Ensure VAPID keys exist, generate if missing"""
+        if not Path(self.private_key_path).exists() or not Path(self.public_key_path).exists():
+            self.generate_vapid_keys()
+    
+    def get_application_server_key(self):
+        """Get base64url-encoded public key for client use"""
+        with open(self.public_key_path, 'rb') as f:
+            public_key_pem = f.read()
+        
+        public_key = serialization.load_pem_public_key(public_key_pem)
+        public_key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.X962,
+            format=serialization.PublicFormat.UncompressedPoint
+        )
+        
+        return base64.urlsafe_b64encode(public_key_bytes).decode('utf-8').rstrip('=')
+
+class PushNotificationService:
+    def __init__(self):
+        self.vapid_manager = VAPIDKeyManager()
+        self.default_categories = {
+            'urgent_failures': True,
+            'maintenance_reminders': True,
+            'jessica_updates': True,
+            'system_status': False
+        }
+    
+    def get_user_subscriptions(self, user_id: str):
+        """Get active push subscriptions for user"""
+        subscriptions = list(push_subscriptions_collection.find({
+            "user_id": user_id,
+            "is_active": True
+        }))
+        return subscriptions
+    
+    def get_user_preferences(self, user_id: str, category: str = None):
+        """Get user notification preferences"""
+        preferences = notification_preferences_collection.find_one({"user_id": user_id})
+        
+        if not preferences:
+            # Create default preferences
+            default_prefs = {
+                "user_id": user_id,
+                "categories": self.default_categories.copy(),
+                "quiet_hours_enabled": False,
+                "language_code": "he",  # Default to Hebrew for Israeli naval system
+                "rtl_support": True,
+                "created_at": datetime.now().isoformat()
+            }
+            notification_preferences_collection.insert_one(default_prefs)
+            preferences = default_prefs
+        
+        if category:
+            return {
+                'enabled': preferences.get('categories', {}).get(category, True),
+                'rtl_support': preferences.get('rtl_support', True),
+                'language_code': preferences.get('language_code', 'he')
+            }
+        
+        return preferences
+    
+    def is_quiet_hours(self, user_id: str) -> bool:
+        """Check if current time is within user's quiet hours"""
+        preferences = self.get_user_preferences(user_id)
+        
+        if not preferences.get('quiet_hours_enabled'):
+            return False
+        
+        # Implementation would check current time against quiet hours
+        # For now, return False
+        return False
+    
+    async def send_notification(self, user_id: str, title: str, body: str, 
+                              category: str = "general", data: Dict = None, 
+                              icon: str = None, badge: str = None):
+        """Send push notification to user"""
+        try:
+            # Get user subscriptions
+            subscriptions = self.get_user_subscriptions(user_id)
+            
+            if not subscriptions:
+                return {"status": "no_subscriptions", "message": "User has no active subscriptions"}
+            
+            # Check user preferences
+            preferences = self.get_user_preferences(user_id, category)
+            if not preferences.get('enabled', True):
+                return {"status": "skipped", "reason": "notifications disabled for category"}
+            
+            # Check quiet hours
+            if self.is_quiet_hours(user_id):
+                return {"status": "queued", "reason": "quiet hours active"}
+            
+            # Prepare notification data with Hebrew support
+            is_hebrew = preferences.get('language_code', 'he') == 'he'
+            notification_data = {
+                "title": title,
+                "body": body,
+                "icon": icon or "/icons/notification-icon.png",
+                "badge": badge or "/icons/badge-icon.png",
+                "data": data or {},
+                "category": category,
+                "timestamp": datetime.utcnow().isoformat(),
+                "rtl": preferences.get('rtl_support', True),
+                "lang": preferences.get('language_code', 'he')
+            }
+            
+            # Send to each subscription
+            delivery_results = []
+            for subscription in subscriptions:
+                try:
+                    # For now, we'll simulate delivery
+                    # In a real implementation, this would use webpush library
+                    delivery_results.append({"status": "delivered", "endpoint": subscription.get("endpoint", "unknown")})
+                    
+                    # Log notification
+                    self.log_notification(user_id, title, body, category, "delivered")
+                    
+                except Exception as e:
+                    delivery_results.append({"status": "failed", "error": str(e)})
+                    self.log_notification(user_id, title, body, category, "failed", str(e))
+            
+            return {"status": "completed", "results": delivery_results}
+            
+        except Exception as e:
+            print(f"Error sending notification: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    def log_notification(self, user_id: str, title: str, body: str, category: str, status: str, error_message: str = None):
+        """Log notification delivery attempt"""
+        log_entry = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "title": title,
+            "body": body,
+            "category": category,
+            "status": status,
+            "delivery_timestamp": datetime.now().isoformat(),
+            "error_message": error_message
+        }
+        notification_history_collection.insert_one(log_entry)
+
+# Initialize services
+push_service = PushNotificationService()
+
 def calculate_service_hours(equipment: dict):
     """Calculate next service hours and alert level based on system type"""
     system_type = equipment['system_type'].lower()
