@@ -368,6 +368,77 @@ async def execute_ai_actions(actions):
                 daily_work_collection.insert_one(work_data)
                 updated_tables.append('תכנון יומי')
                 
+            elif action_type == 'add_conversation':
+                # Create leadership conversation
+                conversation_data = {
+                    'id': str(uuid.uuid4()),
+                    'meeting_number': int(params.get('meeting_number', 1)),
+                    'date': params.get('date', datetime.now().isoformat()[:10]),
+                    'duration_minutes': int(params.get('duration_minutes', 30)),
+                    'main_topics': params.get('main_topics', []),
+                    'insights': params.get('insights', []),
+                    'decisions': params.get('decisions', []),
+                    'next_step': params.get('next_step', ''),
+                    'yahel_energy_level': int(params.get('yahel_energy_level', 5)),
+                    'created_at': datetime.now().isoformat()
+                }
+                conversations_collection.insert_one(conversation_data)
+                updated_tables.append('מעקב שיחות')
+                
+            elif action_type == 'add_dna_item':
+                # Create or update DNA tracker item
+                dna_data = {
+                    'id': str(uuid.uuid4()),
+                    'component_name': params.get('component_name', ''),
+                    'current_definition': params.get('current_definition', ''),
+                    'clarity_level': int(params.get('clarity_level', 5)),
+                    'gaps_identified': params.get('gaps_identified', []),
+                    'development_plan': params.get('development_plan', ''),
+                    'last_updated': datetime.now().isoformat()[:10],
+                    'created_at': datetime.now().isoformat()
+                }
+                
+                # Check if DNA component already exists
+                existing = dna_tracker_collection.find_one({'component_name': dna_data['component_name']})
+                if existing:
+                    # Update existing
+                    dna_tracker_collection.update_one(
+                        {'component_name': dna_data['component_name']},
+                        {'$set': dna_data}
+                    )
+                else:
+                    # Create new
+                    dna_tracker_collection.insert_one(dna_data)
+                
+                updated_tables.append('DNA Tracker')
+                
+            elif action_type == 'add_90day_plan':
+                # Create 90-day plan item
+                plan_data = {
+                    'id': str(uuid.uuid4()),
+                    'week_number': int(params.get('week_number', 1)),
+                    'goals': params.get('goals', []),
+                    'concrete_actions': params.get('concrete_actions', []),
+                    'success_metrics': params.get('success_metrics', []),
+                    'status': params.get('status', 'מתוכנן'),
+                    'reflection': params.get('reflection', ''),
+                    'created_at': datetime.now().isoformat()
+                }
+                
+                # Check if week already exists
+                existing = ninety_day_plan_collection.find_one({'week_number': plan_data['week_number']})
+                if existing:
+                    # Update existing
+                    ninety_day_plan_collection.update_one(
+                        {'week_number': plan_data['week_number']},
+                        {'$set': plan_data}
+                    )
+                else:
+                    # Create new
+                    ninety_day_plan_collection.insert_one(plan_data)
+                
+                updated_tables.append('תכנית 90 יום')
+                
         except Exception as e:
             print(f"Error executing action {action_type}: {e}")
     
