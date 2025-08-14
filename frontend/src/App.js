@@ -17,6 +17,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function App() {
   const [activeFailures, setActiveFailures] = useState([]);
+  const [resolvedFailures, setResolvedFailures] = useState([]);
   const [pendingMaintenance, setPendingMaintenance] = useState([]);
   const [equipmentHours, setEquipmentHours] = useState([]);
   const [dailyWork, setDailyWork] = useState([]);
