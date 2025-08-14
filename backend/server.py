@@ -353,6 +353,51 @@ async def execute_ai_actions(actions):
                 active_failures_collection.insert_one(failure_data)
                 updated_tables.append('תקלות פעילות')
                 
+            elif action_type == 'update_failure':
+                # Update existing failure
+                failure_id = params.get('id') or params.get('failure_number')
+                if not failure_id:
+                    print("Error: No ID provided for failure update")
+                    continue
+                    
+                update_data = {}
+                if 'status' in params:
+                    update_data['status'] = params['status']
+                if 'urgency' in params:
+                    update_data['urgency'] = int(params['urgency'])
+                if 'assignee' in params:
+                    update_data['assignee'] = params['assignee']
+                if 'description' in params:
+                    update_data['description'] = params['description']
+                if 'estimated_hours' in params:
+                    update_data['estimated_hours'] = float(params['estimated_hours'])
+                
+                # Try to find by ID first, then by failure_number
+                query = {'id': failure_id} if failure_id.startswith('F') == False else {'failure_number': failure_id}
+                result = active_failures_collection.update_one(query, {'$set': update_data})
+                
+                if result.matched_count > 0:
+                    updated_tables.append('תקלות פעילות')
+                    print(f"Updated failure {failure_id}: {update_data}")
+                else:
+                    print(f"Failure {failure_id} not found for update")
+                    
+            elif action_type == 'delete_failure':
+                # Delete failure
+                failure_id = params.get('id') or params.get('failure_number')
+                if not failure_id:
+                    print("Error: No ID provided for failure deletion")
+                    continue
+                    
+                query = {'id': failure_id} if failure_id.startswith('F') == False else {'failure_number': failure_id}
+                result = active_failures_collection.delete_one(query)
+                
+                if result.deleted_count > 0:
+                    updated_tables.append('תקלות פעילות')
+                    print(f"Deleted failure {failure_id}")
+                else:
+                    print(f"Failure {failure_id} not found for deletion")
+                
             elif action_type == 'add_maintenance':
                 # Create maintenance
                 maintenance_data = {
@@ -368,6 +413,32 @@ async def execute_ai_actions(actions):
                 pending_maintenance_collection.insert_one(maintenance_data)
                 updated_tables.append('אחזקות ממתינות')
                 
+            elif action_type == 'update_maintenance':
+                # Update maintenance
+                maintenance_id = params.get('id')
+                if not maintenance_id:
+                    print("Error: No ID provided for maintenance update")
+                    continue
+                    
+                update_data = {}
+                if 'status' in params:
+                    update_data['status'] = params['status']
+                if 'last_performed' in params:
+                    update_data['last_performed'] = params['last_performed']
+                if 'frequency_days' in params:
+                    update_data['frequency_days'] = int(params['frequency_days'])
+                
+                # Recalculate dates if needed
+                if 'last_performed' in update_data or 'frequency_days' in update_data:
+                    update_data = calculate_maintenance_dates(update_data)
+                
+                result = pending_maintenance_collection.update_one({'id': maintenance_id}, {'$set': update_data})
+                if result.matched_count > 0:
+                    updated_tables.append('אחזקות ממתינות')
+                    print(f"Updated maintenance {maintenance_id}")
+                else:
+                    print(f"Maintenance {maintenance_id} not found for update")
+                
             elif action_type == 'add_equipment':
                 # Create equipment
                 equipment_data = {
@@ -381,6 +452,33 @@ async def execute_ai_actions(actions):
                 equipment_data = calculate_service_hours(equipment_data)
                 equipment_hours_collection.insert_one(equipment_data)
                 updated_tables.append('שעות מכלולים')
+                
+            elif action_type == 'update_equipment':
+                # Update equipment
+                equipment_id = params.get('id')
+                if not equipment_id:
+                    print("Error: No ID provided for equipment update")
+                    continue
+                    
+                update_data = {}
+                if 'current_hours' in params:
+                    update_data['current_hours'] = float(params['current_hours'])
+                if 'last_service_date' in params:
+                    update_data['last_service_date'] = params['last_service_date']
+                
+                # Recalculate service hours
+                if update_data:
+                    existing_equipment = equipment_hours_collection.find_one({'id': equipment_id})
+                    if existing_equipment:
+                        existing_equipment.update(update_data)
+                        update_data = calculate_service_hours(existing_equipment)
+                
+                result = equipment_hours_collection.update_one({'id': equipment_id}, {'$set': update_data})
+                if result.matched_count > 0:
+                    updated_tables.append('שעות מכלולים')
+                    print(f"Updated equipment {equipment_id}")
+                else:
+                    print(f"Equipment {equipment_id} not found for update")
                 
             elif action_type == 'add_daily_work':
                 # Create daily work
@@ -398,6 +496,28 @@ async def execute_ai_actions(actions):
                 }
                 daily_work_collection.insert_one(work_data)
                 updated_tables.append('תכנון יומי')
+                
+            elif action_type == 'update_daily_work':
+                # Update daily work
+                work_id = params.get('id')
+                if not work_id:
+                    print("Error: No ID provided for daily work update")
+                    continue
+                    
+                update_data = {}
+                if 'status' in params:
+                    update_data['status'] = params['status']
+                if 'notes' in params:
+                    update_data['notes'] = params['notes']
+                if 'assignee' in params:
+                    update_data['assignee'] = params['assignee']
+                
+                result = daily_work_collection.update_one({'id': work_id}, {'$set': update_data})
+                if result.matched_count > 0:
+                    updated_tables.append('תכנון יומי')
+                    print(f"Updated daily work {work_id}")
+                else:
+                    print(f"Daily work {work_id} not found for update")
                 
             elif action_type == 'add_conversation':
                 # Create leadership conversation
