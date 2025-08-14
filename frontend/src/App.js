@@ -437,7 +437,7 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10 bg-white shadow-md">
+          <TabsList className="grid w-full grid-cols-11 bg-white shadow-md">
             <TabsTrigger value="dashboard">לוח בקרה</TabsTrigger>
             <TabsTrigger value="ai-agent">האייג'נט AI</TabsTrigger>
             <TabsTrigger value="failures">תקלות פעילות</TabsTrigger>
@@ -445,6 +445,7 @@ function App() {
             <TabsTrigger value="maintenance">אחזקות ממתינות</TabsTrigger>
             <TabsTrigger value="equipment">שעות מכלולים</TabsTrigger>
             <TabsTrigger value="daily-work">תכנון יומי</TabsTrigger>
+            <TabsTrigger value="calendar">קלנדר Google</TabsTrigger>
             <TabsTrigger value="conversations">מעקב שיחות</TabsTrigger>
             <TabsTrigger value="dna-tracker">DNA מנהיגותי</TabsTrigger>
             <TabsTrigger value="ninety-day">תכנית 90 יום</TabsTrigger>
