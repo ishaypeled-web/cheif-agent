@@ -1435,6 +1435,21 @@ async def get_resolved_failure(failure_id: str):
     
     return resolved_failure
 
+@app.delete("/api/resolved-failures/{failure_id}")
+async def delete_resolved_failure(failure_id: str):
+    """Delete specific resolved failure"""
+    try:
+        query = {'id': failure_id} if not failure_id.startswith('F') else {'failure_number': failure_id}
+        result = resolved_failures_collection.delete_one(query)
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Resolved failure not found")
+        
+        return {"message": "Resolved failure deleted successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting resolved failure: {str(e)}")
+
 # Pending Maintenance Routes
 @app.post("/api/maintenance")
 async def create_maintenance(maintenance: PendingMaintenance):
