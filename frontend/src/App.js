@@ -848,6 +848,229 @@ function App() {
             </Card>
           </TabsContent>
 
+          {/* Conversations Tab */}
+          <TabsContent value="conversations" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">מעקב שיחות ליווי מנהיגותי</h2>
+              <Button onClick={() => openDialog('conversation')} className="bg-purple-600 hover:bg-purple-700">
+                <Plus className="h-4 w-4 mr-2" />
+                הוסף שיחה
+              </Button>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>מפגש</TableHead>
+                      <TableHead>תאריך</TableHead>
+                      <TableHead>משך (דקות)</TableHead>
+                      <TableHead>נושאים עיקריים</TableHead>
+                      <TableHead>תובנות</TableHead>
+                      <TableHead>החלטות</TableHead>
+                      <TableHead>צעד הבא</TableHead>
+                      <TableHead>רמת אנרגיה</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {conversations.map(conv => (
+                      <TableRow key={conv.id}>
+                        <TableCell className="font-medium">#{conv.meeting_number}</TableCell>
+                        <TableCell>{conv.date}</TableCell>
+                        <TableCell>{conv.duration_minutes}</TableCell>
+                        <TableCell className="max-w-xs">
+                          <div className="text-sm">
+                            {conv.main_topics?.slice(0, 2).map((topic, i) => (
+                              <Badge key={i} variant="outline" className="mr-1 mb-1">
+                                {topic}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {conv.insights?.[0] || ''}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {conv.decisions?.[0] || ''}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">{conv.next_step}</TableCell>
+                        <TableCell>
+                          <Badge variant={conv.yahel_energy_level >= 7 ? 'default' : 'warning'}>
+                            {conv.yahel_energy_level}/10
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDelete('conversations', conv.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* DNA Tracker Tab */}
+          <TabsContent value="dna-tracker" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">DNA מנהיגותי של יהל</h2>
+              <Button onClick={() => openDialog('dna')} className="bg-indigo-600 hover:bg-indigo-700">
+                <Plus className="h-4 w-4 mr-2" />
+                הוסף רכיב DNA
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {dnaTracker.map(dna => (
+                <Card key={dna.id} className="bg-gradient-to-br from-indigo-50 to-purple-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>{dna.component_name}</span>
+                      <Badge variant={dna.clarity_level >= 7 ? 'default' : 'warning'}>
+                        בהירות {dna.clarity_level}/10
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">הגדרה נוכחית:</p>
+                      <p className="text-sm">{dna.current_definition}</p>
+                    </div>
+                    {dna.gaps_identified && dna.gaps_identified.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">פערים שזוהו:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {dna.gaps_identified.map((gap, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">
+                              {gap}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">תכנית פיתוח:</p>
+                      <p className="text-sm">{dna.development_plan}</p>
+                    </div>
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-xs text-gray-500">
+                        עודכן: {dna.last_updated}
+                      </span>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDelete('dna-tracker', dna.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* 90 Day Plan Tab */}
+          <TabsContent value="ninety-day" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">תכנית 90 יום של יהל</h2>
+              <Button onClick={() => openDialog('plan')} className="bg-teal-600 hover:bg-teal-700">
+                <Plus className="h-4 w-4 mr-2" />
+                הוסף שבוע
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {ninetyDayPlan.map(week => (
+                <Card key={week.id} className={`bg-gradient-to-br ${
+                  week.status === 'הושלם' ? 'from-green-50 to-green-100 border-green-200' :
+                  week.status === 'בביצוע' ? 'from-yellow-50 to-yellow-100 border-yellow-200' :
+                  'from-gray-50 to-gray-100 border-gray-200'
+                }`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>שבוע {week.week_number}</span>
+                      <Badge variant={
+                        week.status === 'הושלם' ? 'default' :
+                        week.status === 'בביצוע' ? 'warning' : 'outline'
+                      }>
+                        {week.status}
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {week.goals && week.goals.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">יעדים:</p>
+                        <ul className="text-sm list-disc list-inside">
+                          {week.goals.map((goal, i) => (
+                            <li key={i}>{goal}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {week.concrete_actions && week.concrete_actions.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">פעולות קונקרטיות:</p>
+                        <ul className="text-sm list-disc list-inside">
+                          {week.concrete_actions.map((action, i) => (
+                            <li key={i}>{action}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {week.success_metrics && week.success_metrics.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">מדדי הצלחה:</p>
+                        <ul className="text-sm list-disc list-inside">
+                          {week.success_metrics.map((metric, i) => (
+                            <li key={i}>{metric}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {week.reflection && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">רפלקציה:</p>
+                        <p className="text-sm">{week.reflection}</p>
+                      </div>
+                    )}
+                    <div className="flex justify-end space-x-2 pt-2">
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleDelete('ninety-day-plan', week.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
           {/* Daily Work Tab */}
           <TabsContent value="daily-work" className="space-y-6">
             <div className="flex justify-between items-center">
