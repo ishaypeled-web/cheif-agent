@@ -24,6 +24,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  // Leadership coaching states
+  const [conversations, setConversations] = useState([]);
+  const [dnaTracker, setDnaTracker] = useState([]);
+  const [ninetyDayPlan, setNinetyDayPlan] = useState([]);
+  const [leadershipSummary, setLeadershipSummary] = useState({});
+
   // AI Chat states
   const [chatMessages, setChatMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState('');
