@@ -45,6 +45,24 @@ function App() {
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [showCalendarDialog, setShowCalendarDialog] = useState(false);
 
+  // Form states (moved up to fix initialization order)
+  const [failureForm, setFailureForm] = useState({
+    failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0
+  });
+  const [maintenanceForm, setMaintenanceForm] = useState({
+    maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
+  });
+  const [equipmentForm, setEquipmentForm] = useState({
+    system: '', system_type: 'מנועים', current_hours: 0, last_service_date: ''
+  });
+  const [workForm, setWorkForm] = useState({
+    date: '', task: '', source: 'תקלה', source_id: '', assignee: '', estimated_hours: 0, notes: ''
+  });
+
+  const [editingItem, setEditingItem] = useState(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogType, setDialogType] = useState('');
+
   // Initialize chat session
   useEffect(() => {
     if (!sessionId) {
