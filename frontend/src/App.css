@@ -176,6 +176,30 @@ body {
   }
 }
 
+/* Hide scrollbar for mobile tabs */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile tabs styling */
+@media screen and (max-width: 768px) {
+  [role="tablist"] {
+    justify-content: flex-start !important;
+    padding: 0.5rem;
+  }
+  
+  [role="tablist"] button {
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.75rem !important;
+    min-width: fit-content !important;
+  }
+}
+
 /* RTL improvements for mobile */
 @media screen and (max-width: 640px) {
   [dir="rtl"] .flex.space-x-2.space-x-reverse {
