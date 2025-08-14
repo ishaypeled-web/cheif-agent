@@ -552,12 +552,12 @@ function App() {
                   
                   <CardContent className="flex-1 flex flex-col p-4">
                     {/* Chat Messages */}
-                    <div className="flex-1 overflow-y-auto mb-4 space-y-4 bg-gray-50 rounded-lg p-4">
+                    <div className="flex-1 overflow-y-auto mb-4 space-y-4 bg-gray-50 rounded-lg p-4 chat-messages">
                       {chatMessages.length === 0 && (
                         <div className="text-center text-gray-500 mt-8">
                           <Bot className="h-12 w-12 mx-auto mb-4 text-blue-600" />
                           <p className="text-lg font-medium">שלום יהל! 👋</p>
-                          <p>אני כאן לעזור לך בניהול המחלקה ובליווי מנהיגותי.</p>
+                          <p>אני ג'סיקה, כאן לעזור לך בניהול המחלקה ובליווי מנהיגותי.</p>
                           <div className="mt-4 text-sm text-right">
                             <p>דוגמאות לשאלות:</p>
                             <ul className="mt-2 space-y-1">
@@ -565,6 +565,7 @@ function App() {
                               <li>"איזה תקלות דחופות יש לי?"</li>
                               <li>"איך אני מתקדם בתפקיד?"</li>
                               <li>"מה העדיפויות שלי השבוע?"</li>
+                              <li>"רוצה לתעד שיחה עם הסגן שלי..."</li>
                             </ul>
                           </div>
                         </div>
@@ -615,22 +616,39 @@ function App() {
                     </div>
                     
                     {/* Input Area */}
-                    <div className="flex space-x-2">
-                      <Input
-                        value={currentMessage}
-                        onChange={(e) => setCurrentMessage(e.target.value)}
-                        placeholder="שאל את ג'סיקה על המחלקה או קבל ייעוץ מנהיגותי..."
-                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendAiMessage()}
-                        disabled={aiLoading}
-                        className="flex-1"
-                      />
-                      <Button 
-                        onClick={sendAiMessage}
-                        disabled={aiLoading || !currentMessage.trim()}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
+                    <div className="space-y-2">
+                      <div className="flex space-x-2">
+                        <Textarea
+                          value={currentMessage}
+                          onChange={(e) => setCurrentMessage(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                          placeholder="שאל את ג'סיקה על המחלקה או קבל ייעוץ מנהיגותי..."
+                          disabled={aiLoading}
+                          className="flex-1 chat-textarea"
+                          rows={1}
+                        />
+                        <div className="flex flex-col space-y-1">
+                          <Button 
+                            onClick={sendAiMessage}
+                            disabled={aiLoading || !currentMessage.trim()}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            onClick={clearChatHistory}
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                            title="נקה היסטוריה"
+                          >
+                            🗑️
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="chat-hint">
+                        Enter = שורה חדשה • Shift+Enter = שליחה • יש לג'סיקה זיכרון של השיחה
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
