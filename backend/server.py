@@ -2282,6 +2282,223 @@ async def send_test_notification(user_id: str, background_tasks: BackgroundTasks
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send test notification: {str(e)}")
 
+# Google Sheets Export Functionality
+def get_sheets_service():
+    """Initialize Google Sheets service with credentials"""
+    try:
+        scopes = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive'
+        ]
+        
+        credentials = Credentials.from_service_account_file(
+            GOOGLE_SHEETS_CREDENTIALS, 
+            scopes=scopes
+        )
+        
+        return gspread.authorize(credentials)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Google Sheets service: {str(e)}")
+
+def export_table_to_sheets(table_name: str, data: List[Dict], sheet_title: str = None):
+    """Export table data to a new Google Sheet"""
+    try:
+        sheets_service = get_sheets_service()
+        
+        # Generate sheet title if not provided
+        if not sheet_title:
+            sheet_title = f"{table_name} Export - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        
+        # Create new spreadsheet
+        spreadsheet = sheets_service.create(sheet_title)
+        worksheet = spreadsheet.sheet1
+        
+        if not data:
+            # Just add headers if no data
+            headers = ["No data available"]
+            worksheet.update('A1', [headers])
+        else:
+            # Extract headers from first row
+            headers = list(data[0].keys()) if data else []
+            
+            # Add headers
+            if headers:
+                worksheet.update('A1', [headers])
+                
+                # Add data rows
+                data_rows = []
+                for row in data:
+                    row_values = [str(row.get(header, '')) for header in headers]
+                    data_rows.append(row_values)
+                
+                if data_rows:
+                    worksheet.update('A2', data_rows)
+        
+        # Make spreadsheet viewable by anyone with link
+        spreadsheet.share('', perm_type='anyone', role='reader')
+        
+        return {
+            "spreadsheet_id": spreadsheet.id,
+            "spreadsheet_url": spreadsheet.url,
+            "title": sheet_title
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to export to Google Sheets: {str(e)}")
+
+# Export Endpoints
+@app.post("/api/export/failures", response_model=ExportResponse)
+async def export_failures(request: ExportRequest):
+    """Export failures data to Google Sheets"""
+    try:
+        failures = list(active_failures_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("failures", failures, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(failures)} failures to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export failures: {str(e)}"
+        )
+
+@app.post("/api/export/resolved-failures", response_model=ExportResponse)
+async def export_resolved_failures(request: ExportRequest):
+    """Export resolved failures data to Google Sheets"""
+    try:
+        resolved_failures = list(resolved_failures_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("resolved-failures", resolved_failures, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(resolved_failures)} resolved failures to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export resolved failures: {str(e)}"
+        )
+
+@app.post("/api/export/maintenance", response_model=ExportResponse)
+async def export_maintenance(request: ExportRequest):
+    """Export maintenance data to Google Sheets"""
+    try:
+        maintenance = list(pending_maintenance_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("maintenance", maintenance, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(maintenance)} maintenance items to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export maintenance: {str(e)}"
+        )
+
+@app.post("/api/export/equipment", response_model=ExportResponse)
+async def export_equipment(request: ExportRequest):
+    """Export equipment data to Google Sheets"""
+    try:
+        equipment = list(equipment_hours_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("equipment", equipment, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(equipment)} equipment items to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export equipment: {str(e)}"
+        )
+
+@app.post("/api/export/daily-work", response_model=ExportResponse)
+async def export_daily_work(request: ExportRequest):
+    """Export daily work data to Google Sheets"""
+    try:
+        daily_work = list(daily_work_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("daily-work", daily_work, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(daily_work)} daily work items to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export daily work: {str(e)}"
+        )
+
+@app.post("/api/export/conversations", response_model=ExportResponse)
+async def export_conversations(request: ExportRequest):
+    """Export conversations data to Google Sheets"""
+    try:
+        conversations = list(conversations_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("conversations", conversations, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(conversations)} conversations to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export conversations: {str(e)}"
+        )
+
+@app.post("/api/export/dna-tracker", response_model=ExportResponse)
+async def export_dna_tracker(request: ExportRequest):
+    """Export DNA tracker data to Google Sheets"""
+    try:
+        dna_tracker = list(dna_tracker_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("dna-tracker", dna_tracker, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(dna_tracker)} DNA tracker items to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export DNA tracker: {str(e)}"
+        )
+
+@app.post("/api/export/ninety-day-plan", response_model=ExportResponse)
+async def export_ninety_day_plan(request: ExportRequest):
+    """Export ninety day plan data to Google Sheets"""
+    try:
+        ninety_day_plan = list(ninety_day_plan_collection.find({}, {"_id": 0}))
+        result = export_table_to_sheets("ninety-day-plan", ninety_day_plan, request.sheet_title)
+        
+        return ExportResponse(
+            success=True,
+            spreadsheet_id=result["spreadsheet_id"],
+            spreadsheet_url=result["spreadsheet_url"],
+            message=f"Successfully exported {len(ninety_day_plan)} ninety day plan items to Google Sheets"
+        )
+    except Exception as e:
+        return ExportResponse(
+            success=False,
+            message=f"Failed to export ninety day plan: {str(e)}"
+        )
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
