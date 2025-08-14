@@ -302,7 +302,7 @@ function App() {
         await axios.post(`${BACKEND_URL}/api/failures`, failureForm);
       }
       setFailureForm({
-        failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0
+        failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0, status: 'פתוח'
       });
       setShowDialog(false);
       setEditingItem(null);
