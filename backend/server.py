@@ -61,6 +61,23 @@ class ActiveFailure(BaseModel):
     status: str = "פעיל"  # פעיל, בטיפול, הושלם
     created_at: str = None
 
+class ResolvedFailure(BaseModel):
+    id: str = None
+    failure_number: str
+    date: str
+    system: str  # מכלול
+    description: str
+    urgency: int  # 1-5 (5 = most urgent)
+    assignee: str  # מבצע
+    estimated_hours: float
+    actual_hours: float = None  # שעות בפועל
+    resolution_method: str = ""  # איך טופל?
+    resolved_date: str = None
+    resolved_by: str = ""
+    lessons_learned: str = ""  # לקחים שנלמדו
+    created_at: str = None
+    resolved_at: str = None
+
 class PendingMaintenance(BaseModel):
     id: str = None
     maintenance_type: str
