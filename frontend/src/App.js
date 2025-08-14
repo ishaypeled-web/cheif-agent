@@ -246,14 +246,21 @@ function App() {
   // Form handlers
   const handleAddFailure = async () => {
     try {
-      await axios.post(`${BACKEND_URL}/api/failures`, failureForm);
+      if (editingItem) {
+        // עריכה - עדכון קיים
+        await axios.put(`${BACKEND_URL}/api/failures/${editingItem.id}`, failureForm);
+      } else {
+        // הוספה חדשה
+        await axios.post(`${BACKEND_URL}/api/failures`, failureForm);
+      }
       setFailureForm({
         failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0
       });
       setShowDialog(false);
+      setEditingItem(null);
       fetchData();
     } catch (error) {
-      console.error('Error adding failure:', error);
+      console.error('Error saving failure:', error);
     }
   };
 
