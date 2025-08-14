@@ -198,6 +198,16 @@ class ChatMessage(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     updated_tables: List[str] = []
+
+class ExportRequest(BaseModel):
+    table_name: str
+    sheet_title: Optional[str] = None
+
+class ExportResponse(BaseModel):
+    success: bool
+    spreadsheet_id: Optional[str] = None
+    spreadsheet_url: Optional[str] = None
+    message: str
     recommendations: List[str] = []
 
 # Google Calendar Integration Models
