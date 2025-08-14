@@ -1088,9 +1088,9 @@ function App() {
                               variant="outline"
                               title="עדכן פרטי פתרון"
                               onClick={() => {
-                                // Open edit dialog for resolution details
-                                setCurrentMessage(`אני רוצה לעדכן את פרטי הפתרון של תקלה ${failure.failure_number}. איך היא טופלה בדיוק?`);
-                                setActiveTab('ai-agent');
+                                setEditingItem(failure);
+                                setDialogType('resolved-failure');
+                                setShowDialog(true);
                               }}
                             >
                               <Edit className="h-4 w-4" />
