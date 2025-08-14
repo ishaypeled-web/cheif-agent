@@ -1719,7 +1719,9 @@ function App() {
                   value={failureForm.estimated_hours}
                   onChange={(e) => setFailureForm({...failureForm, estimated_hours: parseFloat(e.target.value)})}
                 />
-                <Button onClick={handleAddFailure} className="w-full">הוסף תקלה</Button>
+                <Button onClick={handleAddFailure} className="w-full">
+                  {editingItem ? 'עדכן תקלה' : 'הוסף תקלה'}
+                </Button>
               </>
             )}
 
