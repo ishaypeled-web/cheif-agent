@@ -1192,7 +1192,7 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
 [DELETE_DAILY_WORK: id="work_id"]
 
 **טבלאות ליווי מנהיגותי:**
-[ADD_CONVERSATION: meeting_number="5", date="2025-08-14", duration_minutes="45", main_topics="פיתוח מנהיגות,תכנון קריירה", insights="יהל מראה התקדמות בביטחון עצמי", decisions="להתמקד בפיתוח כישורי תקשורת", next_step="תרגול מתן פידבק לצוות", yahel_energy_level="8"]
+[ADD_CONVERSATION: meeting_number="5", date="2025-08-14", duration_minutes="45", main_topics="פיתוח מנהיגות,תכנון קריירה", insights="{display_name} מראה התקדמות בביטחון עצמי", decisions="להתמקד בפיתוח כישורי תקשורת", next_step="תרגול מתן פידבק לצוות", energy_level="8"]
 
 [ADD_DNA_ITEM: component_name="זהות ותפקיד", current_definition="צ'יף מנוסה עם חזון לשיפור המחלקה", clarity_level="7", gaps_identified="צריך להגדיר טוב יותר את הסגנון המנהיגותי הייחודי", development_plan="שיחות עומק על ערכים אישיים ומקצועיים"]
 
