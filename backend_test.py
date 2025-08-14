@@ -1390,22 +1390,377 @@ class PushNotificationsTest:
         
         return self.test_results
 
+class JessicaFailureClosureTest:
+    """Test Jessica's new failure closure workflow with specific questions"""
+    
+    def __init__(self):
+        self.test_results = []
+        self.failure_number = "F999"
+        self.session_id = f"jessica_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.created_failure_id = None
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_1_create_test_failure(self):
+        """Test 1: Create failure F999 for Jessica testing"""
+        try:
+            failure_data = {
+                "failure_number": self.failure_number,
+                "date": datetime.now().strftime('%Y-%m-%d'),
+                "system": "מערכת בדיקה",
+                "description": "תקלה לבדיקת ג'סיקה",
+                "urgency": 3,
+                "assignee": "טכנאי בדיקה",
+                "estimated_hours": 2.0,
+                "status": "פעיל"
+            }
+            
+            response = requests.post(f"{BASE_URL}/failures", headers=HEADERS, json=failure_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.created_failure_id = data.get('id')
+                self.log_result(
+                    "Create test failure F999", 
+                    True, 
+                    f"Successfully created failure {self.failure_number}",
+                    f"ID: {self.created_failure_id}"
+                )
+            else:
+                self.log_result(
+                    "Create test failure F999", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create test failure F999", False, f"Exception: {str(e)}")
+    
+    def test_2_jessica_close_failure_request(self):
+        """Test 2: Send message to Jessica to close failure F999"""
+        try:
+            chat_message = {
+                "user_message": f"ג'סיקה, סגרי את התקלה {self.failure_number} - היא טופלה",
+                "session_id": self.session_id,
+                "chat_history": []
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '')
+                updated_tables = data.get('updated_tables', [])
+                
+                # Check if Jessica closed the failure and asks questions
+                failure_closed = 'תקלות פעילות' in updated_tables or 'תקלות שטופלו' in updated_tables
+                asks_questions = any(question in ai_response for question in [
+                    "כמה זמן", "מי טיפל", "בעתיד", "זמן זה לקח", "טיפל בתקלה", "לא יחזור"
+                ])
+                
+                if failure_closed and asks_questions:
+                    self.log_result(
+                        "Jessica close failure request", 
+                        True, 
+                        "Jessica closed failure and asks follow-up questions",
+                        f"Updated tables: {updated_tables}, Response contains questions: {asks_questions}"
+                    )
+                elif failure_closed:
+                    self.log_result(
+                        "Jessica close failure request", 
+                        True, 
+                        "Jessica closed failure but didn't ask expected questions",
+                        f"Updated tables: {updated_tables}, Response: {ai_response[:200]}..."
+                    )
+                else:
+                    self.log_result(
+                        "Jessica close failure request", 
+                        False, 
+                        "Jessica didn't close the failure",
+                        f"Updated tables: {updated_tables}, Response: {ai_response[:200]}..."
+                    )
+            else:
+                self.log_result(
+                    "Jessica close failure request", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Jessica close failure request", False, f"Exception: {str(e)}")
+    
+    def test_3_jessica_asks_specific_questions(self):
+        """Test 3: Verify Jessica asks exactly the 3 required questions"""
+        try:
+            # Continue the conversation to see Jessica's questions
+            chat_message = {
+                "user_message": "כן, התקלה טופלה",
+                "session_id": self.session_id,
+                "chat_history": [
+                    {"type": "user", "content": f"ג'סיקה, סגרי את התקלה {self.failure_number} - היא טופלה"},
+                    {"type": "ai", "content": "הבנתי, אני סוגרת את התקלה. יש לי כמה שאלות..."}
+                ]
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '')
+                
+                # Check for the 3 specific questions
+                required_questions = [
+                    "כמה זמן זה לקח",
+                    "מי טיפל בתקלה", 
+                    "האם צריך לעשות משהו בעתיד כדי שזה לא יחזור על עצמו"
+                ]
+                
+                questions_found = []
+                for question in required_questions:
+                    if any(word in ai_response for word in question.split()):
+                        questions_found.append(question)
+                
+                if len(questions_found) >= 2:  # At least 2 out of 3 questions
+                    self.log_result(
+                        "Jessica asks specific questions", 
+                        True, 
+                        f"Jessica asks {len(questions_found)}/3 required questions",
+                        f"Questions found: {questions_found}"
+                    )
+                else:
+                    self.log_result(
+                        "Jessica asks specific questions", 
+                        False, 
+                        f"Jessica asks only {len(questions_found)}/3 required questions",
+                        f"Response: {ai_response[:300]}..."
+                    )
+            else:
+                self.log_result(
+                    "Jessica asks specific questions", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Jessica asks specific questions", False, f"Exception: {str(e)}")
+    
+    def test_4_answer_jessica_questions(self):
+        """Test 4: Answer Jessica's questions with specific responses"""
+        try:
+            chat_message = {
+                "user_message": "זמן: 3 שעות, מי טיפל: טכנאי דני, מניעה: בדיקה שבועית של המערכת",
+                "session_id": self.session_id,
+                "chat_history": [
+                    {"type": "user", "content": f"ג'סיקה, סגרי את התקלה {self.failure_number} - היא טופלה"},
+                    {"type": "ai", "content": "כמה זמן זה לקח? מי טיפל בתקלה? האם צריך לעשות משהו בעתיד?"},
+                    {"type": "user", "content": "זמן: 3 שעות, מי טיפל: טכנאי דני, מניעה: בדיקה שבועית של המערכת"}
+                ]
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '')
+                updated_tables = data.get('updated_tables', [])
+                
+                # Check if Jessica updates resolved failures table
+                updates_resolved = 'תקלות שטופלו' in updated_tables
+                acknowledges_answers = any(word in ai_response for word in [
+                    "תודה", "עדכנתי", "רשמתי", "שמרתי", "הבנתי"
+                ])
+                
+                if updates_resolved and acknowledges_answers:
+                    self.log_result(
+                        "Answer Jessica questions", 
+                        True, 
+                        "Jessica processed answers and updated resolved failures",
+                        f"Updated tables: {updated_tables}, Acknowledges: {acknowledges_answers}"
+                    )
+                elif updates_resolved:
+                    self.log_result(
+                        "Answer Jessica questions", 
+                        True, 
+                        "Jessica updated resolved failures but didn't acknowledge clearly",
+                        f"Updated tables: {updated_tables}"
+                    )
+                else:
+                    self.log_result(
+                        "Answer Jessica questions", 
+                        False, 
+                        "Jessica didn't update resolved failures table",
+                        f"Updated tables: {updated_tables}, Response: {ai_response[:200]}..."
+                    )
+            else:
+                self.log_result(
+                    "Answer Jessica questions", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Answer Jessica questions", False, f"Exception: {str(e)}")
+    
+    def test_5_verify_resolved_failure_details(self):
+        """Test 5: Verify resolved failure contains the provided details"""
+        try:
+            response = requests.get(f"{BASE_URL}/resolved-failures", headers=HEADERS)
+            
+            if response.status_code == 200:
+                resolved_failures = response.json()
+                
+                # Find our test failure
+                test_failure = None
+                for failure in resolved_failures:
+                    if failure.get('failure_number') == self.failure_number:
+                        test_failure = failure
+                        break
+                
+                if test_failure:
+                    # Check if details were updated
+                    has_time = test_failure.get('actual_hours') == 3.0
+                    has_resolver = 'דני' in str(test_failure.get('resolved_by', ''))
+                    has_prevention = 'בדיקה שבועית' in str(test_failure.get('lessons_learned', ''))
+                    
+                    details_count = sum([has_time, has_resolver, has_prevention])
+                    
+                    if details_count >= 2:
+                        self.log_result(
+                            "Verify resolved failure details", 
+                            True, 
+                            f"Resolved failure contains {details_count}/3 expected details",
+                            f"Time: {has_time}, Resolver: {has_resolver}, Prevention: {has_prevention}"
+                        )
+                    else:
+                        self.log_result(
+                            "Verify resolved failure details", 
+                            False, 
+                            f"Resolved failure missing details ({details_count}/3)",
+                            f"Failure data: {test_failure}"
+                        )
+                else:
+                    self.log_result(
+                        "Verify resolved failure details", 
+                        False, 
+                        f"Test failure {self.failure_number} not found in resolved failures",
+                        f"Found {len(resolved_failures)} resolved failures"
+                    )
+            else:
+                self.log_result(
+                    "Verify resolved failure details", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Verify resolved failure details", False, f"Exception: {str(e)}")
+    
+    def test_6_verify_failure_moved_from_active(self):
+        """Test 6: Verify failure was moved from active to resolved table"""
+        try:
+            response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+            
+            if response.status_code == 200:
+                active_failures = response.json()
+                
+                # Check that our test failure is NOT in active failures
+                test_failure_in_active = any(
+                    failure.get('failure_number') == self.failure_number 
+                    for failure in active_failures
+                )
+                
+                if not test_failure_in_active:
+                    self.log_result(
+                        "Verify failure moved from active", 
+                        True, 
+                        f"Failure {self.failure_number} successfully moved from active table",
+                        f"Active failures count: {len(active_failures)}"
+                    )
+                else:
+                    self.log_result(
+                        "Verify failure moved from active", 
+                        False, 
+                        f"Failure {self.failure_number} still exists in active table",
+                        "Failure was not properly moved to resolved table"
+                    )
+            else:
+                self.log_result(
+                    "Verify failure moved from active", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Verify failure moved from active", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all Jessica failure closure tests"""
+        print("🚀 Starting Jessica Failure Closure Workflow Testing")
+        print("=" * 60)
+        
+        # Run tests in order
+        self.test_1_create_test_failure()
+        self.test_2_jessica_close_failure_request()
+        self.test_3_jessica_asks_specific_questions()
+        self.test_4_answer_jessica_questions()
+        self.test_5_verify_resolved_failure_details()
+        self.test_6_verify_failure_moved_from_active()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 JESSICA WORKFLOW TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
 if __name__ == "__main__":
     print("🧪 Running Backend Test Suite")
     print("=" * 80)
     
+    # Run Jessica Failure Closure Workflow test (as requested in review)
+    print("\n🤖 PART 1: JESSICA FAILURE CLOSURE WORKFLOW TESTING")
+    jessica_tester = JessicaFailureClosureTest()
+    jessica_results = jessica_tester.run_all_tests()
+    
     # Run Resolved Failures tests
-    print("\n📋 PART 1: RESOLVED FAILURES TESTING")
+    print("\n📋 PART 2: RESOLVED FAILURES TESTING")
     resolved_tester = ResolvedFailuresTest()
     resolved_results = resolved_tester.run_all_tests()
     
     # Run Google Calendar integration tests
-    print("\n📅 PART 2: GOOGLE CALENDAR INTEGRATION TESTING")
+    print("\n📅 PART 3: GOOGLE CALENDAR INTEGRATION TESTING")
     calendar_tester = GoogleCalendarIntegrationTest()
     calendar_results = calendar_tester.run_all_tests()
     
     # Run Push Notifications tests
-    print("\n🔔 PART 3: PUSH NOTIFICATIONS API TESTING")
+    print("\n🔔 PART 4: PUSH NOTIFICATIONS API TESTING")
     push_tester = PushNotificationsTest()
     push_results = push_tester.run_all_tests()
     
@@ -1414,12 +1769,14 @@ if __name__ == "__main__":
     print("🎯 OVERALL TEST SUMMARY")
     print("=" * 80)
     
+    total_jessica_passed = sum(1 for result in jessica_results if result['success'])
     total_resolved_passed = sum(1 for result in resolved_results if result['success'])
     total_calendar_passed = sum(1 for result in calendar_results if result['success'])
     total_push_passed = sum(1 for result in push_results if result['success'])
-    total_passed = total_resolved_passed + total_calendar_passed + total_push_passed
-    total_tests = len(resolved_results) + len(calendar_results) + len(push_results)
+    total_passed = total_jessica_passed + total_resolved_passed + total_calendar_passed + total_push_passed
+    total_tests = len(jessica_results) + len(resolved_results) + len(calendar_results) + len(push_results)
     
+    print(f"Jessica Workflow Tests: {total_jessica_passed}/{len(jessica_results)} passed")
     print(f"Resolved Failures Tests: {total_resolved_passed}/{len(resolved_results)} passed")
     print(f"Google Calendar Tests: {total_calendar_passed}/{len(calendar_results)} passed")
     print(f"Push Notifications Tests: {total_push_passed}/{len(push_results)} passed")
