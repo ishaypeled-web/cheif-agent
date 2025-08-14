@@ -470,6 +470,18 @@ async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
         user_msg = UserMessage(text=user_message)
         response = await chat.send_message(user_msg)
         
+        # Parse and execute any database actions
+        actions = parse_ai_actions(response)
+        updated_tables = []
+        
+        if actions:
+            updated_tables = await execute_ai_actions(actions)
+            # Remove action tags from response
+            import re
+            clean_response = re.sub(r'\[ADD_\w+:.*?\]', '', response, flags=re.DOTALL)
+            clean_response = re.sub(r'\[UPDATE_\w+:.*?\]', '', clean_response, flags=re.DOTALL)
+            response = clean_response.strip()
+        
         # Store chat history in database
         chat_record = {
             "id": str(uuid.uuid4()),
@@ -478,13 +490,14 @@ async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
             "ai_response": response,
             "timestamp": datetime.now().isoformat(),
             "department_context": dept_data["summary"],
-            "leadership_context": len(leadership_data.get("recent_conversations", []))
+            "leadership_context": len(leadership_data.get("recent_conversations", [])),
+            "updated_tables": updated_tables
         }
         ai_chat_history_collection.insert_one(chat_record)
         
         return ChatResponse(
             response=response,
-            updated_tables=[],
+            updated_tables=updated_tables,
             recommendations=[]
         )
         
