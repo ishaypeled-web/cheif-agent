@@ -443,7 +443,7 @@ class PushNotificationService:
     
     def get_user_preferences(self, user_id: str, category: str = None):
         """Get user notification preferences"""
-        preferences = notification_preferences_collection.find_one({"user_id": user_id})
+        preferences = notification_preferences_collection.find_one({"user_id": user_id}, {"_id": 0})
         
         if not preferences:
             # Create default preferences
