@@ -266,14 +266,21 @@ function App() {
 
   const handleAddMaintenance = async () => {
     try {
-      await axios.post(`${BACKEND_URL}/api/maintenance`, maintenanceForm);
+      if (editingItem) {
+        // עריכה - עדכון קיים
+        await axios.put(`${BACKEND_URL}/api/maintenance/${editingItem.id}`, maintenanceForm);
+      } else {
+        // הוספה חדשה
+        await axios.post(`${BACKEND_URL}/api/maintenance`, maintenanceForm);
+      }
       setMaintenanceForm({
         maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
       });
       setShowDialog(false);
+      setEditingItem(null);
       fetchData();
     } catch (error) {
-      console.error('Error adding maintenance:', error);
+      console.error('Error saving maintenance:', error);
     }
   };
 
