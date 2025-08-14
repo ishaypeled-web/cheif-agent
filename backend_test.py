@@ -2134,6 +2134,14 @@ class ComprehensiveBackendTest:
                 response = requests.get(f"{BASE_URL}/calendar/events?user_email=test@example.com", headers=HEADERS, timeout=10)
                 if response.status_code in [200, 400, 401, 403]:  # Any response means endpoint exists
                     calendar_working = True
+                    # Also check if it's a proper error message about authentication
+                    if response.status_code == 401:
+                        try:
+                            data = response.json()
+                            if 'Google Calendar not connected' in data.get('detail', ''):
+                                calendar_working = True  # This is the expected behavior
+                        except:
+                            pass
             except:
                 pass
             
