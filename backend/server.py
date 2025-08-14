@@ -1175,6 +1175,12 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
 - כדי לעדכן ציוד: [UPDATE_EQUIPMENT: id="equipment_id", current_hours="250"]
 - תמיד הקפד על הפורמט המדויק - id או failure_number נדרש לעדכונים!
 
+**🚫 חובה - אל תמציא מידע:**
+- אם חסר לך מידע ספציפי (מספרי תקלה, שמות, זמנים, תאריכים) - בקש אותו מהמשתמש
+- אל תמציא שמות טכנאים, מספרי תקלות, או כל נתון פקטואלי
+- אם לא בטוח במידע - שאל הבהרה
+- אם צריך להזין ערך ואין לך מידע - השאר ריק או תזין "לא צוין"
+
 🎯 **התפקידים שלך:**
 
 **כמנהל מחלקה:**
