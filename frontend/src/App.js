@@ -438,26 +438,27 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="w-full bg-white shadow-md overflow-x-auto flex scrollbar-hide" style={{
+          <TabsList className="w-full bg-white shadow-md overflow-x-auto flex scrollbar-hide gap-1 p-2" style={{
             display: 'flex',
             overflowX: 'auto',
             gap: '0.25rem',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            WebkitScrollbar: { display: 'none' }
+            WebkitScrollbar: { display: 'none' },
+            padding: '0.5rem'
           }}>
-            <TabsTrigger value="dashboard" className="flex-shrink-0 whitespace-nowrap">לוח בקרה</TabsTrigger>
-            <TabsTrigger value="ai-agent" className="flex-shrink-0 whitespace-nowrap">האייג'נט AI</TabsTrigger>
-            <TabsTrigger value="failures" className="flex-shrink-0 whitespace-nowrap">תקלות פעילות</TabsTrigger>
-            <TabsTrigger value="resolved" className="flex-shrink-0 whitespace-nowrap">תקלות שטופלו</TabsTrigger>
-            <TabsTrigger value="maintenance" className="flex-shrink-0 whitespace-nowrap">אחזקות ממתינות</TabsTrigger>
-            <TabsTrigger value="equipment" className="flex-shrink-0 whitespace-nowrap">שעות מכלולים</TabsTrigger>
-            <TabsTrigger value="daily-work" className="flex-shrink-0 whitespace-nowrap">תכנון יומי</TabsTrigger>
-            <TabsTrigger value="notifications" className="flex-shrink-0 whitespace-nowrap">התראות דחף</TabsTrigger>
-            <TabsTrigger value="calendar" className="flex-shrink-0 whitespace-nowrap">קלנדר Google</TabsTrigger>
-            <TabsTrigger value="conversations" className="flex-shrink-0 whitespace-nowrap">מעקב שיחות</TabsTrigger>
-            <TabsTrigger value="dna-tracker" className="flex-shrink-0 whitespace-nowrap">DNA מנהיגותי</TabsTrigger>
-            <TabsTrigger value="ninety-day" className="flex-shrink-0 whitespace-nowrap">תכנית 90 יום</TabsTrigger>
+            <TabsTrigger value="dashboard" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">לוח בקרה</TabsTrigger>
+            <TabsTrigger value="ai-agent" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">האייג'נט AI</TabsTrigger>
+            <TabsTrigger value="failures" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">תקלות פעילות</TabsTrigger>
+            <TabsTrigger value="resolved" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">תקלות שטופלו</TabsTrigger>
+            <TabsTrigger value="maintenance" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">אחזקות ממתינות</TabsTrigger>
+            <TabsTrigger value="equipment" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">שעות מכלולים</TabsTrigger>
+            <TabsTrigger value="daily-work" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">תכנון יומי</TabsTrigger>
+            <TabsTrigger value="notifications" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">התראות דחף</TabsTrigger>
+            <TabsTrigger value="calendar" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">קלנדר Google</TabsTrigger>
+            <TabsTrigger value="conversations" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">מעקב שיחות</TabsTrigger>
+            <TabsTrigger value="dna-tracker" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">DNA מנהיגותי</TabsTrigger>
+            <TabsTrigger value="ninety-day" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm border border-gray-200 rounded-md">תכנית 90 יום</TabsTrigger>
           </TabsList>
 
           {/* Dashboard Tab */}
