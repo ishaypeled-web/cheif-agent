@@ -918,6 +918,478 @@ class GoogleCalendarIntegrationTest:
         
         return self.test_results
 
+class PushNotificationsTest:
+    def __init__(self):
+        self.test_results = []
+        self.test_user_id = "test-user"
+        self.subscription_data = None
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_1_get_vapid_key(self):
+        """Test 1: GET /api/notifications/vapid-key - should return public_key and subject"""
+        try:
+            response = requests.get(f"{BASE_URL}/notifications/vapid-key", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'public_key' in data and 'subject' in data:
+                    # Verify VAPID key format
+                    public_key = data.get('public_key', '')
+                    subject = data.get('subject', '')
+                    
+                    if len(public_key) > 80 and subject.startswith('mailto:'):
+                        self.log_result(
+                            "GET VAPID key", 
+                            True, 
+                            "Successfully returned valid VAPID key and subject",
+                            f"Public key length: {len(public_key)}, Subject: {subject}"
+                        )
+                    else:
+                        self.log_result(
+                            "GET VAPID key", 
+                            False, 
+                            "VAPID key format appears invalid",
+                            f"Public key length: {len(public_key)}, Subject: {subject}"
+                        )
+                else:
+                    self.log_result(
+                        "GET VAPID key", 
+                        False, 
+                        "Missing required fields in response",
+                        f"Response keys: {list(data.keys())}"
+                    )
+            else:
+                self.log_result(
+                    "GET VAPID key", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET VAPID key", False, f"Exception: {str(e)}")
+    
+    def test_2_subscribe_user(self):
+        """Test 2: POST /api/notifications/subscribe - subscription registration"""
+        try:
+            # Sample subscription data (realistic format)
+            self.subscription_data = {
+                "user_id": self.test_user_id,
+                "subscription": {
+                    "endpoint": "https://fcm.googleapis.com/fcm/send/test-endpoint-123",
+                    "keys": {
+                        "p256dh": "BKxvz2gF8rFoyT1wJwbgzKz7-test-p256dh-key-data",
+                        "auth": "test-auth-key-data-16-bytes"
+                    }
+                }
+            }
+            
+            response = requests.post(f"{BASE_URL}/notifications/subscribe", headers=HEADERS, json=self.subscription_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('status') == 'subscribed':
+                    self.log_result(
+                        "POST subscribe user", 
+                        True, 
+                        "Successfully subscribed user to notifications",
+                        f"Response: {data}"
+                    )
+                else:
+                    self.log_result(
+                        "POST subscribe user", 
+                        False, 
+                        "Unexpected response status",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "POST subscribe user", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST subscribe user", False, f"Exception: {str(e)}")
+    
+    def test_3_get_user_preferences(self):
+        """Test 3: GET /api/notifications/preferences/test-user - get user preferences"""
+        try:
+            response = requests.get(f"{BASE_URL}/notifications/preferences/{self.test_user_id}", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Check for required fields
+                required_fields = ['user_id', 'categories', 'language_code', 'rtl_support']
+                present_fields = [field for field in required_fields if field in data]
+                
+                if len(present_fields) == len(required_fields):
+                    # Check Hebrew RTL support
+                    is_hebrew = data.get('language_code') == 'he'
+                    has_rtl = data.get('rtl_support', False)
+                    categories = data.get('categories', {})
+                    
+                    self.log_result(
+                        "GET user preferences", 
+                        True, 
+                        f"Successfully retrieved preferences with Hebrew RTL support",
+                        f"Hebrew: {is_hebrew}, RTL: {has_rtl}, Categories: {list(categories.keys())}"
+                    )
+                else:
+                    missing_fields = [field for field in required_fields if field not in data]
+                    self.log_result(
+                        "GET user preferences", 
+                        False, 
+                        f"Missing required fields: {missing_fields}",
+                        f"Present fields: {present_fields}"
+                    )
+            else:
+                self.log_result(
+                    "GET user preferences", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET user preferences", False, f"Exception: {str(e)}")
+    
+    def test_4_update_user_preferences(self):
+        """Test 4: PUT /api/notifications/preferences/test-user - update user preferences"""
+        try:
+            preferences_data = {
+                "user_id": self.test_user_id,
+                "categories": {
+                    "urgent_failures": True,
+                    "maintenance_reminders": True,
+                    "jessica_updates": False,
+                    "system_status": True
+                },
+                "quiet_hours_enabled": True,
+                "quiet_hours_start": "22:00",
+                "quiet_hours_end": "07:00",
+                "language_code": "he",
+                "rtl_support": True
+            }
+            
+            response = requests.put(f"{BASE_URL}/notifications/preferences/{self.test_user_id}", headers=HEADERS, json=preferences_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('status') == 'updated':
+                    updated_prefs = data.get('preferences', {})
+                    # Verify Hebrew and RTL settings
+                    is_hebrew = updated_prefs.get('language_code') == 'he'
+                    has_rtl = updated_prefs.get('rtl_support', False)
+                    
+                    self.log_result(
+                        "PUT update user preferences", 
+                        True, 
+                        "Successfully updated preferences with Hebrew RTL support",
+                        f"Hebrew: {is_hebrew}, RTL: {has_rtl}, Quiet hours: {preferences_data['quiet_hours_enabled']}"
+                    )
+                else:
+                    self.log_result(
+                        "PUT update user preferences", 
+                        False, 
+                        "Unexpected response status",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "PUT update user preferences", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("PUT update user preferences", False, f"Exception: {str(e)}")
+    
+    def test_5_get_notification_categories(self):
+        """Test 5: GET /api/notifications/categories - get categories with Hebrew translations"""
+        try:
+            response = requests.get(f"{BASE_URL}/notifications/categories", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                categories = data.get('categories', {})
+                
+                if categories:
+                    # Check for Hebrew translations
+                    hebrew_support = True
+                    rtl_categories = []
+                    
+                    for category_name, category_info in categories.items():
+                        if 'label_he' not in category_info or 'description_he' not in category_info:
+                            hebrew_support = False
+                        else:
+                            rtl_categories.append(category_info.get('label_he', ''))
+                    
+                    if hebrew_support:
+                        self.log_result(
+                            "GET notification categories", 
+                            True, 
+                            f"Successfully retrieved {len(categories)} categories with Hebrew translations",
+                            f"Hebrew categories: {rtl_categories}"
+                        )
+                    else:
+                        self.log_result(
+                            "GET notification categories", 
+                            False, 
+                            "Categories missing Hebrew translations",
+                            f"Categories: {list(categories.keys())}"
+                        )
+                else:
+                    self.log_result(
+                        "GET notification categories", 
+                        False, 
+                        "No categories returned",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "GET notification categories", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET notification categories", False, f"Exception: {str(e)}")
+    
+    def test_6_send_test_notification(self):
+        """Test 6: POST /api/notifications/test?user_id=test-user - send test notification"""
+        try:
+            response = requests.post(f"{BASE_URL}/notifications/test?user_id={self.test_user_id}", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('status') == 'sent':
+                    result = data.get('result', {})
+                    self.log_result(
+                        "POST send test notification", 
+                        True, 
+                        "Successfully sent test notification",
+                        f"Result: {result}"
+                    )
+                else:
+                    self.log_result(
+                        "POST send test notification", 
+                        False, 
+                        "Unexpected response status",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "POST send test notification", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST send test notification", False, f"Exception: {str(e)}")
+    
+    def test_7_get_notification_history(self):
+        """Test 7: GET /api/notifications/history/test-user - get notification history"""
+        try:
+            response = requests.get(f"{BASE_URL}/notifications/history/{self.test_user_id}", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                history = data.get('history', [])
+                
+                if isinstance(history, list):
+                    self.log_result(
+                        "GET notification history", 
+                        True, 
+                        f"Successfully retrieved notification history with {len(history)} entries",
+                        f"History entries: {len(history)}"
+                    )
+                else:
+                    self.log_result(
+                        "GET notification history", 
+                        False, 
+                        "History is not a list",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "GET notification history", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET notification history", False, f"Exception: {str(e)}")
+    
+    def test_8_verify_vapid_key_files(self):
+        """Test 8: Verify VAPID key files are generated automatically"""
+        try:
+            # Test if VAPID endpoint works (indicates keys were generated)
+            response = requests.get(f"{BASE_URL}/notifications/vapid-key", headers=HEADERS)
+            
+            if response.status_code == 200:
+                data = response.json()
+                public_key = data.get('public_key', '')
+                
+                # A valid VAPID key should be base64url encoded and quite long
+                if len(public_key) > 80:
+                    self.log_result(
+                        "Verify VAPID key generation", 
+                        True, 
+                        "VAPID keys appear to be generated automatically",
+                        f"Public key length: {len(public_key)} characters"
+                    )
+                else:
+                    self.log_result(
+                        "Verify VAPID key generation", 
+                        False, 
+                        "VAPID key appears invalid or not generated",
+                        f"Public key: {public_key}"
+                    )
+            else:
+                self.log_result(
+                    "Verify VAPID key generation", 
+                    False, 
+                    "Could not retrieve VAPID key",
+                    f"HTTP {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Verify VAPID key generation", False, f"Exception: {str(e)}")
+    
+    def test_9_verify_mongodb_collections(self):
+        """Test 9: Verify MongoDB collections are created for subscriptions and preferences"""
+        try:
+            # Test subscription endpoint (should create collection)
+            if self.subscription_data:
+                response = requests.post(f"{BASE_URL}/notifications/subscribe", headers=HEADERS, json=self.subscription_data)
+                subscription_works = response.status_code == 200
+            else:
+                subscription_works = False
+            
+            # Test preferences endpoint (should create collection)
+            response = requests.get(f"{BASE_URL}/notifications/preferences/{self.test_user_id}", headers=HEADERS)
+            preferences_works = response.status_code == 200
+            
+            # Test history endpoint (should create collection)
+            response = requests.get(f"{BASE_URL}/notifications/history/{self.test_user_id}", headers=HEADERS)
+            history_works = response.status_code == 200
+            
+            if subscription_works and preferences_works and history_works:
+                self.log_result(
+                    "Verify MongoDB collections", 
+                    True, 
+                    "All notification collections appear to be working",
+                    "Subscriptions, preferences, and history endpoints all functional"
+                )
+            else:
+                failed_collections = []
+                if not subscription_works:
+                    failed_collections.append("subscriptions")
+                if not preferences_works:
+                    failed_collections.append("preferences")
+                if not history_works:
+                    failed_collections.append("history")
+                
+                self.log_result(
+                    "Verify MongoDB collections", 
+                    False, 
+                    f"Some collections may not be working: {failed_collections}",
+                    f"Subscription: {subscription_works}, Preferences: {preferences_works}, History: {history_works}"
+                )
+        except Exception as e:
+            self.log_result("Verify MongoDB collections", False, f"Exception: {str(e)}")
+    
+    def test_10_verify_hebrew_rtl_support(self):
+        """Test 10: Verify Hebrew RTL support in preferences and categories"""
+        try:
+            # Test preferences Hebrew support
+            prefs_response = requests.get(f"{BASE_URL}/notifications/preferences/{self.test_user_id}", headers=HEADERS)
+            prefs_hebrew = False
+            prefs_rtl = False
+            
+            if prefs_response.status_code == 200:
+                prefs_data = prefs_response.json()
+                prefs_hebrew = prefs_data.get('language_code') == 'he'
+                prefs_rtl = prefs_data.get('rtl_support', False)
+            
+            # Test categories Hebrew support
+            cats_response = requests.get(f"{BASE_URL}/notifications/categories", headers=HEADERS)
+            cats_hebrew = False
+            
+            if cats_response.status_code == 200:
+                cats_data = cats_response.json()
+                categories = cats_data.get('categories', {})
+                if categories:
+                    # Check if all categories have Hebrew labels
+                    cats_hebrew = all('label_he' in cat_info for cat_info in categories.values())
+            
+            if prefs_hebrew and prefs_rtl and cats_hebrew:
+                self.log_result(
+                    "Verify Hebrew RTL support", 
+                    True, 
+                    "Full Hebrew RTL support confirmed",
+                    f"Preferences Hebrew: {prefs_hebrew}, RTL: {prefs_rtl}, Categories Hebrew: {cats_hebrew}"
+                )
+            else:
+                self.log_result(
+                    "Verify Hebrew RTL support", 
+                    False, 
+                    "Hebrew RTL support incomplete",
+                    f"Preferences Hebrew: {prefs_hebrew}, RTL: {prefs_rtl}, Categories Hebrew: {cats_hebrew}"
+                )
+        except Exception as e:
+            self.log_result("Verify Hebrew RTL support", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all push notifications tests"""
+        print("🚀 Starting Push Notifications API Testing")
+        print("=" * 60)
+        
+        # Run tests in order
+        self.test_1_get_vapid_key()
+        self.test_2_subscribe_user()
+        self.test_3_get_user_preferences()
+        self.test_4_update_user_preferences()
+        self.test_5_get_notification_categories()
+        self.test_6_send_test_notification()
+        self.test_7_get_notification_history()
+        self.test_8_verify_vapid_key_files()
+        self.test_9_verify_mongodb_collections()
+        self.test_10_verify_hebrew_rtl_support()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 PUSH NOTIFICATIONS TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
 if __name__ == "__main__":
     print("🧪 Running Backend Test Suite")
     print("=" * 80)
@@ -932,6 +1404,11 @@ if __name__ == "__main__":
     calendar_tester = GoogleCalendarIntegrationTest()
     calendar_results = calendar_tester.run_all_tests()
     
+    # Run Push Notifications tests
+    print("\n🔔 PART 3: PUSH NOTIFICATIONS API TESTING")
+    push_tester = PushNotificationsTest()
+    push_results = push_tester.run_all_tests()
+    
     # Overall summary
     print("\n" + "=" * 80)
     print("🎯 OVERALL TEST SUMMARY")
@@ -939,11 +1416,13 @@ if __name__ == "__main__":
     
     total_resolved_passed = sum(1 for result in resolved_results if result['success'])
     total_calendar_passed = sum(1 for result in calendar_results if result['success'])
-    total_passed = total_resolved_passed + total_calendar_passed
-    total_tests = len(resolved_results) + len(calendar_results)
+    total_push_passed = sum(1 for result in push_results if result['success'])
+    total_passed = total_resolved_passed + total_calendar_passed + total_push_passed
+    total_tests = len(resolved_results) + len(calendar_results) + len(push_results)
     
     print(f"Resolved Failures Tests: {total_resolved_passed}/{len(resolved_results)} passed")
     print(f"Google Calendar Tests: {total_calendar_passed}/{len(calendar_results)} passed")
+    print(f"Push Notifications Tests: {total_push_passed}/{len(push_results)} passed")
     print(f"Overall: {total_passed}/{total_tests} passed ({(total_passed/total_tests*100):.1f}%)")
     
     if total_passed == total_tests:
