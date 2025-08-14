@@ -183,10 +183,9 @@
 
 ## test_plan:
   current_focus:
-    - "Test resolved failures display"
-    - "Test failure status change and auto-move to resolved"
-    - "Test AI agent interaction with resolved failures"
-  stuck_tasks: []
+    - "Fix auto-transfer functionality in PUT /api/failures/{id} endpoint"
+  stuck_tasks:
+    - "Move failure to resolved when status changes to completed"
   test_all: false
   test_priority: "high_first"
 
