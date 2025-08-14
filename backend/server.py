@@ -635,14 +635,27 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
 
 {conversation_context}
 
-💪 **יכולות עדכון טבלאות:**
-אתה יכול לעדכן ולהוסיף פריטים לכל הטבלאות. השתמש בפורמט הזה:
+💪 **יכולות עדכון טבלאות מלא:**
+אתה יכול להוסיף, לעדכן ולמחוק פריטים בכל הטבלאות. השתמש בפורמטים הבאים:
 
-**טבלאות מחלקה:**
+**הוספת פריטים חדשים:**
 [ADD_FAILURE: failure_number="F003", system="מערכת קירור", description="תיאור התקלה", urgency="4", assignee="טכנאי דן", estimated_hours="3"]
 [ADD_MAINTENANCE: maintenance_type="בדיקה שבועית", system="מנוע ראשי", frequency_days="7", last_performed="2025-08-14"]
 [ADD_EQUIPMENT: system="מנוע חדש", system_type="מנועים", current_hours="0", last_service_date="2025-08-14"]
 [ADD_DAILY_WORK: date="2025-08-15", task="ביצוע בדיקה", source="תקלה", assignee="טכנאי מור", estimated_hours="2", notes="דחוף"]
+
+**עדכון פריטים קיימים:**
+[UPDATE_FAILURE: id="F004", status="הושלם"]
+[UPDATE_FAILURE: failure_number="F004", status="נסגר", notes="טופל בהצלחה"]
+[UPDATE_MAINTENANCE: id="maintenance_id", status="הושלם", last_performed="2025-08-14"]
+[UPDATE_EQUIPMENT: id="equipment_id", current_hours="250"]
+[UPDATE_DAILY_WORK: id="work_id", status="הושלם", notes="בוצע בהצלחה"]
+
+**מחיקת פריטים:**
+[DELETE_FAILURE: failure_number="F004"]
+[DELETE_MAINTENANCE: id="maintenance_id"]
+[DELETE_EQUIPMENT: id="equipment_id"]
+[DELETE_DAILY_WORK: id="work_id"]
 
 **טבלאות ליווי מנהיגותי:**
 [ADD_CONVERSATION: meeting_number="5", date="2025-08-14", duration_minutes="45", main_topics="פיתוח מנהיגות,תכנון קריירה", insights="יהל מראה התקדמות בביטחון עצמי", decisions="להתמקד בפיתוח כישורי תקשורת", next_step="תרגול מתן פידבק לצוות", yahel_energy_level="8"]
@@ -650,6 +663,12 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
 [ADD_DNA_ITEM: component_name="זהות ותפקיד", current_definition="צ'יף מנוסה עם חזון לשיפור המחלקה", clarity_level="7", gaps_identified="צריך להגדיר טוב יותר את הסגנון המנהיגותי הייחודי", development_plan="שיחות עומק על ערכים אישיים ומקצועיים"]
 
 [ADD_90DAY_PLAN: week_number="3", goals="שיפור תקשורת עם הצוות,הטמעת תהליכי עבודה חדשים", concrete_actions="פגישות יחיד עם כל חבר צוות,הכנת מדריך נהלים", success_metrics="שביעות רצון צוות מעל 85%,הפחתת זמן טיפול בתקלות ב-20%", status="מתוכנן"]
+
+**⚡ חשוב מאוד:**
+- כדי לסגור תקלה: [UPDATE_FAILURE: failure_number="F004", status="הושלם"]
+- כדי לסמן משימה כהושלמה: [UPDATE_DAILY_WORK: id="work_id", status="הושלם"]
+- כדי לעדכן ציוד: [UPDATE_EQUIPMENT: id="equipment_id", current_hours="250"]
+- תמיד הקפד על הפורמט המדויק - id או failure_number נדרש לעדכונים!
 
 🎯 **התפקידים שלך:**
 
