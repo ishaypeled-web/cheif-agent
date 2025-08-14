@@ -6,6 +6,13 @@ from datetime import datetime, timedelta
 import uuid
 import os
 from typing import List, Optional
+from dotenv import load_dotenv
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+import asyncio
+import json
+
+# Load environment variables
+load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI(title="יהל Naval Department Management System")
@@ -22,17 +29,24 @@ app.add_middleware(
 # Database setup
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 DB_NAME = os.environ.get('DB_NAME', 'yahel_department_db')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 client = MongoClient(MONGO_URL)
 db = client[DB_NAME]
 
-# Collections
+# Collections - Department Management
 active_failures_collection = db.active_failures
 pending_maintenance_collection = db.pending_maintenance
 equipment_hours_collection = db.equipment_hours
 daily_work_collection = db.daily_work
 
-# Pydantic Models
+# Collections - Leadership Coaching
+conversations_collection = db.conversations
+dna_tracker_collection = db.dna_tracker
+ninety_day_plan_collection = db.ninety_day_plan
+ai_chat_history_collection = db.ai_chat_history
+
+# Pydantic Models - Department Management
 
 class ActiveFailure(BaseModel):
     id: str = None
@@ -79,6 +93,48 @@ class DailyWorkPlan(BaseModel):
     status: str = "מתוכנן"  # מתוכנן, בביצוע, הושלם
     notes: str = ""
     created_at: str = None
+
+# Pydantic Models - Leadership Coaching
+
+class Conversation(BaseModel):
+    id: str = None
+    meeting_number: int
+    date: str
+    duration_minutes: int
+    main_topics: List[str]
+    insights: List[str]
+    decisions: List[str]
+    next_step: str
+    yahel_energy_level: int  # 1-10
+    created_at: str = None
+
+class DNATracker(BaseModel):
+    id: str = None
+    component_name: str  # זהות ותפקיד, אינטרסים אותנטיים, יכולות ומומחיות, עקרונות פעולה, מדדי הצלחה
+    current_definition: str
+    clarity_level: int  # 1-10
+    gaps_identified: List[str]
+    development_plan: str
+    last_updated: str = None
+    created_at: str = None
+
+class NinetyDayPlan(BaseModel):
+    id: str = None
+    week_number: int  # 1-12 (90 days / 7 days)
+    goals: List[str]
+    concrete_actions: List[str]
+    success_metrics: List[str]
+    status: str = "מתוכנן"  # מתוכנן, בביצוע, הושלם
+    reflection: str = ""
+    created_at: str = None
+
+class ChatMessage(BaseModel):
+    user_message: str
+
+class ChatResponse(BaseModel):
+    response: str
+    updated_tables: List[str] = []
+    recommendations: List[str] = []
 
 # Helper functions
 
@@ -135,11 +191,144 @@ def calculate_service_hours(equipment: dict):
     
     return equipment
 
+def get_department_summary():
+    """Get summary of all department data for AI analysis"""
+    try:
+        failures = list(active_failures_collection.find({}, {"_id": 0}))
+        maintenance = list(pending_maintenance_collection.find({}, {"_id": 0}))
+        equipment = list(equipment_hours_collection.find({}, {"_id": 0}))
+        daily_work = list(daily_work_collection.find({}, {"_id": 0}))
+        
+        # Recalculate dynamic fields
+        for item in maintenance:
+            item = calculate_maintenance_dates(item)
+        for item in equipment:
+            item = calculate_service_hours(item)
+            
+        return {
+            "failures": failures,
+            "maintenance": maintenance,
+            "equipment": equipment,
+            "daily_work": daily_work,
+            "summary": {
+                "urgent_failures": len([f for f in failures if f.get('urgency', 0) >= 4]),
+                "overdue_maintenance": len([m for m in maintenance if m.get('days_until_due', 999) <= 0]),
+                "critical_equipment": len([e for e in equipment if e.get('alert_level') == 'אדום']),
+                "today_tasks": len([w for w in daily_work if w.get('date') == datetime.now().isoformat()[:10]])
+            }
+        }
+    except Exception as e:
+        print(f"Error getting department summary: {e}")
+        return {}
+
+def get_leadership_context():
+    """Get leadership coaching context"""
+    try:
+        conversations = list(conversations_collection.find({}, {"_id": 0}).sort("meeting_number", -1).limit(5))
+        dna_items = list(dna_tracker_collection.find({}, {"_id": 0}))
+        plan_items = list(ninety_day_plan_collection.find({}, {"_id": 0}).sort("week_number", 1))
+        
+        return {
+            "recent_conversations": conversations,
+            "dna_tracker": dna_items,
+            "ninety_day_plan": plan_items
+        }
+    except Exception as e:
+        print(f"Error getting leadership context: {e}")
+        return {}
+
+# AI Agent Functions
+
+async def create_yahel_ai_agent(user_message: str) -> ChatResponse:
+    """Create AI agent for Yahel with department and leadership context"""
+    try:
+        # Get all context
+        dept_data = get_department_summary()
+        leadership_data = get_leadership_context()
+        
+        # Create system message
+        system_message = f"""
+אתה האייג'נט AI של יהל - צ'יף באח"י יפו (חיל הים הישראלי). 
+אתה משלב שני תפקידים:
+
+1. מערכת ניהול מחלקה מתקדמת
+2. סוכנת ליווי מנהיגותי המיישמת עקרונות המארג הקוונטי
+
+עקרונות המארג הקוונטי:
+- עקרון אי-ההשוואה™: עזור ליהל לבנות זהות מנהיגותית ייחודית
+- נאמנות ל-DNA™: כל החלטה עקבית עם הזהות והערכים של יהל
+- זמן קוונטי ומהירות אקספוננציאלית™: תוצאות פי 10, לא פלוס 10%
+- בריאה עצמית אוטונומית™: יהל מפתח בעצמו את היכולות הנדרשות
+
+נתוני המחלקה הנוכחיים:
+{json.dumps(dept_data, ensure_ascii=False, indent=2)}
+
+נתוני הליווי המנהיגותי:
+{json.dumps(leadership_data, ensure_ascii=False, indent=2)}
+
+התפקיד שלך:
+1. נתח את מצב המחלקה והמלץ על עדיפויות
+2. זהה patterns ובעיות חוזרות
+3. הצע פתרונות מעשיים ליעילות
+4. שאל שאלות זיקוק אינטרסים מותאמות
+5. עזור ליהל לפתח את ה-DNA המנהיגותי שלו
+6. הנח מסלול התפתחות ל-90 יום
+
+עדכן טבלאות כשצריך ותמיד חשוב אקספוננציאלית - איך להגיע לפי 10 שיפור במקום פלוס 10%.
+
+השב בעברית, בצורה ישירה ומעשית.
+        """
+        
+        # Create unique session ID based on current time
+        session_id = f"yahel_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Initialize chat with OpenAI
+        if not OPENAI_API_KEY:
+            raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+            
+        chat = LlmChat(
+            api_key=OPENAI_API_KEY,
+            session_id=session_id,
+            system_message=system_message
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Send message
+        user_msg = UserMessage(text=user_message)
+        response = await chat.send_message(user_msg)
+        
+        # Store chat history in database
+        chat_record = {
+            "id": str(uuid.uuid4()),
+            "session_id": session_id,
+            "user_message": user_message,
+            "ai_response": response,
+            "timestamp": datetime.now().isoformat(),
+            "department_context": dept_data["summary"],
+            "leadership_context": len(leadership_data.get("recent_conversations", []))
+        }
+        ai_chat_history_collection.insert_one(chat_record)
+        
+        return ChatResponse(
+            response=response,
+            updated_tables=[],
+            recommendations=[]
+        )
+        
+    except Exception as e:
+        print(f"Error in AI agent: {e}")
+        raise HTTPException(status_code=500, detail=f"AI Agent Error: {str(e)}")
+
 # API Routes
 
 @app.get("/")
 async def root():
     return {"message": "יהל Naval Department Management System API", "status": "running"}
+
+# AI Chat Route
+@app.post("/api/ai-chat")
+async def ai_chat(message: ChatMessage):
+    response = await create_yahel_ai_agent(message.user_message)
+    return response
 
 # Active Failures Routes
 @app.post("/api/failures")
@@ -307,22 +496,61 @@ async def delete_daily_work(work_id: str):
         raise HTTPException(status_code=404, detail="Work item not found")
     return {"message": "Daily work deleted successfully"}
 
+# Leadership Coaching Routes
+
+@app.post("/api/conversations")
+async def create_conversation(conversation: Conversation):
+    conversation_dict = conversation.dict()
+    conversation_dict['id'] = str(uuid.uuid4())
+    conversation_dict['created_at'] = datetime.now().isoformat()
+    
+    result = conversations_collection.insert_one(conversation_dict)
+    return {"id": conversation_dict['id'], "message": "Conversation created successfully"}
+
+@app.get("/api/conversations")
+async def get_conversations():
+    conversations = list(conversations_collection.find({}, {"_id": 0}).sort("meeting_number", -1))
+    return conversations
+
+@app.post("/api/dna-tracker")
+async def create_dna_item(dna: DNATracker):
+    dna_dict = dna.dict()
+    dna_dict['id'] = str(uuid.uuid4())
+    dna_dict['created_at'] = datetime.now().isoformat()
+    dna_dict['last_updated'] = datetime.now().isoformat()[:10]
+    
+    result = dna_tracker_collection.insert_one(dna_dict)
+    return {"id": dna_dict['id'], "message": "DNA item created successfully"}
+
+@app.get("/api/dna-tracker")
+async def get_dna_tracker():
+    dna_items = list(dna_tracker_collection.find({}, {"_id": 0}))
+    return dna_items
+
+@app.post("/api/ninety-day-plan")
+async def create_plan_item(plan: NinetyDayPlan):
+    plan_dict = plan.dict()
+    plan_dict['id'] = str(uuid.uuid4())
+    plan_dict['created_at'] = datetime.now().isoformat()
+    
+    result = ninety_day_plan_collection.insert_one(plan_dict)
+    return {"id": plan_dict['id'], "message": "Plan item created successfully"}
+
+@app.get("/api/ninety-day-plan")
+async def get_ninety_day_plan():
+    plan_items = list(ninety_day_plan_collection.find({}, {"_id": 0}).sort("week_number", 1))
+    return plan_items
+
 # Dashboard/Summary Routes
 @app.get("/api/dashboard/summary")
 async def get_dashboard_summary():
-    # Get critical items summary
-    urgent_failures = len(list(active_failures_collection.find({"urgency": {"$gte": 4}})))
-    overdue_maintenance = len(list(pending_maintenance_collection.find({})))
-    critical_equipment = len(list(equipment_hours_collection.find({})))
-    today_tasks = len(list(daily_work_collection.find({"date": datetime.now().isoformat()[:10]})))
-    
-    return {
-        "urgent_failures": urgent_failures,
-        "overdue_maintenance": overdue_maintenance, 
-        "critical_equipment": critical_equipment,
-        "today_tasks": today_tasks,
-        "last_updated": datetime.now().isoformat()
-    }
+    dept_summary = get_department_summary()
+    return dept_summary.get("summary", {})
+
+@app.get("/api/chat-history")
+async def get_chat_history(limit: int = 10):
+    chat_history = list(ai_chat_history_collection.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit))
+    return chat_history
 
 if __name__ == "__main__":
     import uvicorn
