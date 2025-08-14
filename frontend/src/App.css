@@ -130,6 +130,74 @@ body {
   text-align: right;
 }
 
+/* Mobile responsive improvements */
+@media screen and (max-width: 640px) {
+  /* Main container adjustments */
+  .max-w-7xl {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+  
+  /* Dashboard cards on mobile */
+  .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  /* Tables on mobile */
+  .overflow-x-auto {
+    font-size: 0.75rem;
+  }
+  
+  /* Buttons on mobile */
+  .space-x-2 > * {
+    margin: 0.125rem;
+  }
+  
+  /* Cards on mobile */
+  .space-y-6 > * {
+    margin-bottom: 1rem;
+  }
+  
+  /* Mobile-friendly dialog */
+  .fixed.inset-0 {
+    padding: 1rem;
+  }
+  
+  /* Push notifications component mobile styles */
+  .space-x-3.space-x-reverse > * {
+    margin: 0.25rem;
+  }
+  
+  /* Mobile tabs container */
+  .tabs-container-mobile {
+    position: relative;
+    overflow: hidden;
+  }
+}
+
+/* RTL improvements for mobile */
+@media screen and (max-width: 640px) {
+  [dir="rtl"] .flex.space-x-2.space-x-reverse {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  [dir="rtl"] .flex.space-x-2.space-x-reverse > * {
+    margin: 0;
+  }
+  
+  /* Mobile RTL button groups */
+  [dir="rtl"] .flex.justify-between {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  [dir="rtl"] .text-right {
+    text-align: center;
+  }
+}
+
 .chat-textarea:focus {
   outline: none;
   ring: 2px;
