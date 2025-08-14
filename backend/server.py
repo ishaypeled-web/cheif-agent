@@ -226,6 +226,32 @@ class ExportResponse(BaseModel):
     spreadsheet_id: Optional[str] = None
     spreadsheet_url: Optional[str] = None
     message: str
+
+# User Authentication Models
+class User(BaseModel):
+    id: str = None
+    email: str
+    name: str
+    google_id: Optional[str] = None
+    created_at: str = None
+    last_login: str = None
+    is_active: bool = True
+
+class UserSession(BaseModel):
+    id: str = None
+    user_id: str
+    session_token: str
+    created_at: str = None
+    expires_at: str = None
+    is_active: bool = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+    user_id: Optional[str] = None
     recommendations: List[str] = []
 
 # Google Calendar Integration Models
