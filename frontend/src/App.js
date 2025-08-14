@@ -364,8 +364,186 @@ function App() {
             </Card>
           </TabsContent>
 
-          {/* Add more tabs content here... */}
-          {/* For brevity, I'll add the dialog and other components */}
+          {/* Maintenance Tab */}
+          <TabsContent value="maintenance" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">אחזקות ממתינות</h2>
+              <Button onClick={() => openDialog('maintenance')} className="bg-orange-600 hover:bg-orange-700">
+                <Plus className="h-4 w-4 mr-2" />
+                הוסף אחזקה
+              </Button>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>סוג אחזקה</TableHead>
+                      <TableHead>מכלול</TableHead>
+                      <TableHead>תדירות (ימים)</TableHead>
+                      <TableHead>ביצוע אחרון</TableHead>
+                      <TableHead>ביצוע הבא</TableHead>
+                      <TableHead>ימים עד ביצוע</TableHead>
+                      <TableHead>סטטוס</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingMaintenance.map(maintenance => (
+                      <TableRow key={maintenance.id}>
+                        <TableCell className="font-medium">{maintenance.maintenance_type}</TableCell>
+                        <TableCell>{maintenance.system}</TableCell>
+                        <TableCell>{maintenance.frequency_days}</TableCell>
+                        <TableCell>{maintenance.last_performed}</TableCell>
+                        <TableCell>{maintenance.next_due}</TableCell>
+                        <TableCell>
+                          <Badge variant={getMaintenanceStatusColor(maintenance.days_until_due)}>
+                            {maintenance.days_until_due} ימים
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{maintenance.status}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDelete('maintenance', maintenance.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Equipment Hours Tab */}
+          <TabsContent value="equipment" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">שעות מכלולים וטיפולים</h2>
+              <Button onClick={() => openDialog('equipment')} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                הוסף ציוד
+              </Button>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>מכלול</TableHead>
+                      <TableHead>סוג מערכת</TableHead>
+                      <TableHead>שעות נוכחיות</TableHead>
+                      <TableHead>טיפול הבא</TableHead>
+                      <TableHead>שעות עד טיפול</TableHead>
+                      <TableHead>התרעה</TableHead>
+                      <TableHead>טיפול אחרון</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {equipmentHours.map(equipment => (
+                      <TableRow key={equipment.id}>
+                        <TableCell className="font-medium">{equipment.system}</TableCell>
+                        <TableCell>{equipment.system_type}</TableCell>
+                        <TableCell>{equipment.current_hours}</TableCell>
+                        <TableCell>{equipment.next_service_hours}</TableCell>
+                        <TableCell>{equipment.hours_until_service}</TableCell>
+                        <TableCell>
+                          <Badge variant={getAlertColor(equipment.alert_level)}>
+                            {equipment.alert_level}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{equipment.last_service_date || 'לא ידוע'}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDelete('equipment', equipment.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Daily Work Tab */}
+          <TabsContent value="daily-work" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">תכנון עבודה יומי</h2>
+              <Button onClick={() => openDialog('work')} className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4 mr-2" />
+                הוסף משימה
+              </Button>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>תאריך</TableHead>
+                      <TableHead>משימה</TableHead>
+                      <TableHead>מקור</TableHead>
+                      <TableHead>מבצע</TableHead>
+                      <TableHead>זמן משוער</TableHead>
+                      <TableHead>סטטוס</TableHead>
+                      <TableHead>הערות</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dailyWork.map(work => (
+                      <TableRow key={work.id}>
+                        <TableCell>{work.date}</TableCell>
+                        <TableCell className="font-medium">{work.task}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{work.source}</Badge>
+                        </TableCell>
+                        <TableCell>{work.assignee}</TableCell>
+                        <TableCell>{work.estimated_hours} שעות</TableCell>
+                        <TableCell>{work.status}</TableCell>
+                        <TableCell className="max-w-xs truncate">{work.notes}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDelete('daily-work', work.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
