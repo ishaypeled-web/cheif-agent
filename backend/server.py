@@ -181,6 +181,38 @@ class ChatResponse(BaseModel):
     updated_tables: List[str] = []
     recommendations: List[str] = []
 
+# Google Calendar Integration Models
+class UserProfile(BaseModel):
+    id: str = None
+    email: str
+    name: str
+    google_access_token: Optional[str] = None
+    google_refresh_token: Optional[str] = None
+    google_token_expires_at: Optional[datetime] = None
+    created_at: str = None
+
+class CalendarEvent(BaseModel):
+    id: str = None
+    google_event_id: Optional[str] = None
+    title: str
+    description: Optional[str] = ""
+    start_time: datetime
+    end_time: datetime
+    location: Optional[str] = ""
+    attendees: List[str] = []
+    source_type: str = "manual"  # manual, maintenance, daily_plan, failure
+    source_id: Optional[str] = None  # ID of the source item
+    user_email: str
+    created_at: str = None
+
+class CalendarEventRequest(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    start_time: str  # ISO format
+    end_time: str    # ISO format  
+    location: Optional[str] = ""
+    attendees: List[str] = []
+
 # Helper functions
 
 def calculate_maintenance_dates(maintenance: dict):
