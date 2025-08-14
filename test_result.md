@@ -186,9 +186,8 @@
 
 ## test_plan:
   current_focus:
-    - "Fix auto-transfer functionality in PUT /api/failures/{id} endpoint"
-  stuck_tasks:
-    - "Move failure to resolved when status changes to completed"
+    - "All backend tasks completed and working"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
