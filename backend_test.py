@@ -633,7 +633,8 @@ class GoogleCalendarIntegrationTest:
                 "attendees": ["test@example.com"]
             }
             
-            response = requests.post(f"{BASE_URL}/calendar/events", headers=HEADERS, json=event_data)
+            # The endpoint expects user_email as query parameter
+            response = requests.post(f"{BASE_URL}/calendar/events?user_email={self.test_user_email}", headers=HEADERS, json=event_data)
             
             # We expect this to fail without proper authentication, but endpoint should exist
             if response.status_code in [200, 201]:
