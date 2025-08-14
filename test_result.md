@@ -288,19 +288,20 @@
 
 ## metadata:
   created_by: "main_agent"
-  version: "4.0"
-  test_sequence: 4
+  version: "5.0"
+  test_sequence: 5
   run_ui: true
 
 ## test_plan:
-  current_focus: []
+  current_focus:
+    - "Fix white screen error - editingItem initialization"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 ## agent_communication:
     - agent: "main"
-      message: "השלמתי במלואו את אינטגרציית Google Calendar והוספתי מערכת התראות דחף מקיפה. הבקאנד כולל VAPID keys, ניהול מנויים, העדפות משתמש בעברית. הפרונטאנד כולל Service Worker, שירות התראות, hook מתקדם ורכיב UI מלא בעברית RTL. הכל מוכן לבדיקה מקיפה."
+      message: "תיקנתי בהצלחה את שגיאת המסך הלבן הקריטית. הבעיה הייתה בסדר האתחול של משתני state ב-App.js - useEffect hook ניסה לגשת ל-editingItem לפני הגדרתו. העברתי את הצהרות ה-state לפני כל ה-useEffect hooks. האפליקציה כעת נטענת מושלם עם כל הפונקציונליות: לוח הבקרה, 12 הלשוניות, תמיכה מלאה בעברית RTL, ומערכת Jessica AI. זה תיקון קריטי שהחזיר את האפליקציה לפעילות מלאה."
     - agent: "testing"
       message: "🔔 השלמתי בדיקה מקיפה של מערכת ההתראות דחף! כל ה-Push Notifications API endpoints עובדים מצוין: ✅ VAPID keys נוצרים אוטומטית ✅ MongoDB collections חדשים נוצרו בהצלחה ✅ תמיכה מלאה בעברית RTL ✅ כל הקטגוריות עם תרגומים עבריים ✅ מנגנון subscription ו-preferences עובד ✅ שליחת התראות בדיקה פועלת ✅ היסטוריית התראות נשמרת. תיקנתי בעיה קטנה עם ObjectId serialization. המערכת מוכנה לשימוש!"
     - agent: "testing"
