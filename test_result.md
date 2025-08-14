@@ -243,11 +243,10 @@
 
 ## test_plan:
   current_focus:
-    - "Push Notifications API endpoints"
-    - "VAPID Key Management"
-    - "Push Notification Service"
     - "Service Worker for Push Notifications"
     - "Push Notification Service (Frontend)"
+    - "React Hook for Push Notifications"
+    - "Push Notifications UI Component"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
