@@ -797,6 +797,18 @@ function App() {
         </Tabs>
       </main>
 
+      {/* Floating AI Button */}
+      {activeTab !== 'ai-agent' && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            onClick={() => setActiveTab('ai-agent')}
+            className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            <Bot className="h-6 w-6 text-white" />
+          </Button>
+        </div>
+      )}
+
       {/* Add Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-md">
