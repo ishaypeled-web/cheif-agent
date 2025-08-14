@@ -16,10 +16,85 @@ body {
 
 .App {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-/* Custom Hebrew support */
+/* Fix for preview iframe issues */
+@media screen and (max-width: 1200px) {
+  .grid-cols-9 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+  }
+  
+  .grid-cols-9 > * {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .grid-cols-9 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.125rem;
+  }
+  
+  .grid-cols-9 > * {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Chat textarea specific styles */
+.chat-textarea {
+  min-height: 40px;
+  max-height: 120px;
+  resize: none;
+  overflow-y: auto;
+  line-height: 1.5;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-family: 'Heebo', sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+.chat-textarea:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+/* Chat messages container */
+.chat-messages {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Hebrew text support */
 .hebrew-text {
   font-family: 'Heebo', sans-serif;
   direction: rtl;
@@ -113,6 +188,10 @@ th, td {
   .text-responsive {
     font-size: 1rem;
   }
+  
+  .chat-messages {
+    max-height: 300px;
+  }
 }
 
 /* Glass morphism effects */
@@ -138,6 +217,14 @@ textarea:focus {
   ring: 2px;
   ring-color: #667eea;
   ring-opacity: 0.5;
+}
+
+/* Chat input hint */
+.chat-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  text-align: center;
 }
 
 /* Notification styles */
