@@ -130,6 +130,8 @@ class NinetyDayPlan(BaseModel):
 
 class ChatMessage(BaseModel):
     user_message: str
+    session_id: Optional[str] = None
+    chat_history: List[dict] = []
 
 class ChatResponse(BaseModel):
     response: str
