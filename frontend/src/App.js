@@ -339,6 +339,88 @@ function App() {
               </Card>
             </div>
 
+            {/* Leadership Dashboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center text-purple-800">
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    התקדמות מנהיגותית
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>שיחות ליווי</span>
+                    <Badge variant="outline">{leadershipSummary.recent_conversations_count || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>רמת אנרגיה ממוצעת</span>
+                    <Badge variant={leadershipSummary.avg_energy_level >= 7 ? 'default' : 'warning'}>
+                      {leadershipSummary.avg_energy_level || 5}/10
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>בהירות DNA</span>
+                    <Badge variant={leadershipSummary.dna_clarity_average >= 7 ? 'default' : 'warning'}>
+                      {leadershipSummary.dna_clarity_average || 0}/10
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center text-indigo-800">
+                    <Calendar className="h-5 w-5 mr-2" />
+                    תכנית 90 יום
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>שבועות מתוכננים</span>
+                    <Badge variant="outline">{leadershipSummary.total_weeks_planned || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>שבועות הושלמו</span>
+                    <Badge variant="default">{leadershipSummary.weeks_completed || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>אחוז ביצוע</span>
+                    <Badge variant={leadershipSummary.plan_completion_rate >= 50 ? 'default' : 'warning'}>
+                      {leadershipSummary.plan_completion_rate || 0}%
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center text-teal-800">
+                    <Bot className="h-5 w-5 mr-2" />
+                    סטטוס ג'סיקה
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm">פעיל ומוכן</span>
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    מודל: GPT-4o-mini<br/>
+                    מחובר לכל הטבלאות<br/>
+                    יכול לעדכן ולנתח
+                  </div>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveTab('ai-agent')}
+                    className="w-full bg-teal-600 hover:bg-teal-700"
+                  >
+                    דבר עם ג'סיקה
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Quick Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
@@ -364,18 +446,21 @@ function App() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>ציוד דורש טיפול</CardTitle>
+                  <CardTitle>שיחות ליווי אחרונות</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {equipmentHours.filter(eq => eq.alert_level === 'אדום').slice(0, 3).map(equipment => (
-                      <div key={equipment.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                    {conversations.slice(0, 3).map(conv => (
+                      <div key={conv.id} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                         <div>
-                          <p className="font-medium">{equipment.system}</p>
-                          <p className="text-sm text-gray-600">{equipment.current_hours} שעות נוכחיות</p>
+                          <p className="font-medium">מפגש #{conv.meeting_number}</p>
+                          <p className="text-sm text-gray-600">{conv.date}</p>
+                          <p className="text-xs text-gray-500">
+                            {conv.main_topics?.slice(0, 2).join(', ')}
+                          </p>
                         </div>
-                        <Badge variant={getAlertColor(equipment.alert_level)}>
-                          {equipment.alert_level}
+                        <Badge variant="outline">
+                          אנרגיה {conv.yahel_energy_level}/10
                         </Badge>
                       </div>
                     ))}
