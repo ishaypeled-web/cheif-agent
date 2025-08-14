@@ -1437,6 +1437,138 @@ function App() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Google Calendar Tab */}
+          <TabsContent value="calendar" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">קלנדר Google</h2>
+              {!googleConnected ? (
+                <Button onClick={initiateGoogleLogin} className="bg-red-600 hover:bg-red-700">
+                  <Link className="h-4 w-4 mr-2" />
+                  התחבר לGoogle Calendar
+                </Button>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-green-600">✓ מחובר כ-{googleUser?.name}</span>
+                  <Button onClick={() => fetchCalendarEvents(googleUser?.email)} variant="outline" size="sm">
+                    רענן אירועים
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {!googleConnected ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">התחבר לGoogle Calendar</h3>
+                  <p className="text-gray-600 mb-6">
+                    התחבר לחשבון Google שלך כדי ליצור אירועים בקלנדר מאחזקות ומשימות יומיות
+                  </p>
+                  <Button onClick={initiateGoogleLogin} className="bg-red-600 hover:bg-red-700">
+                    <Link className="h-4 w-4 mr-2" />
+                    התחבר עכשיו
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">יצירת אירועים מהירה</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        צור אירועים בקלנדר Google ישירות מהנתונים הקיימים במערכת
+                      </p>
+                      <div className="space-y-2">
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-start"
+                          onClick={() => setActiveTab('maintenance')}
+                        >
+                          <CalendarPlus className="h-4 w-4 mr-2" />
+                          יצירה מאחזקות ממתינות
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-start"
+                          onClick={() => setActiveTab('daily-work')}
+                        >
+                          <CalendarPlus className="h-4 w-4 mr-2" />
+                          יצירה מתכנון יומי
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">סטטוס חיבור</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium">מחובר לGoogle Calendar</span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <strong>משתמש:</strong> {googleUser?.name}<br/>
+                          <strong>אימייל:</strong> {googleUser?.email}<br/>
+                          <strong>חיבור:</strong> פעיל
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Calendar Events List */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">האירועים הקרובים שלי</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {calendarEvents?.google_events?.length > 0 ? (
+                      <div className="space-y-3">
+                        {calendarEvents.google_events.slice(0, 10).map((event, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <h4 className="font-medium">{event.summary}</h4>
+                              <p className="text-sm text-gray-600">
+                                {event.start?.dateTime ? 
+                                  new Date(event.start.dateTime).toLocaleString('he-IL') :
+                                  event.start?.date
+                                }
+                              </p>
+                              {event.location && (
+                                <p className="text-sm text-gray-500">{event.location}</p>
+                              )}
+                            </div>
+                            {event.htmlLink && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => window.open(event.htmlLink, '_blank')}
+                              >
+                                פתח בGoogle
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-600">אין אירועים קרובים</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </TabsContent>
+
         </Tabs>
       </main>
 
