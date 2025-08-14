@@ -11,7 +11,8 @@ import { Alert, AlertDescription } from './components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
 import { Textarea } from './components/ui/textarea';
-import { AlertTriangle, Clock, Settings, Calendar, Plus, Edit, Trash2, Bot, Send, MessageCircle, CalendarPlus, Link } from 'lucide-react';
+import { AlertTriangle, Clock, Settings, Calendar, Plus, Edit, Trash2, Bot, Send, MessageCircle, CalendarPlus, Link, Bell } from 'lucide-react';
+import PushNotifications from './components/PushNotifications';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
