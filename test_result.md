@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: השלמת אינטגרציית Google Calendar והוספת התראות דחף - המשתמשים יכולים להיכנס עם Google OAuth, ליצור אירועים בקלנדר מנתוני המערכת, וכן לקבל התראות דחף על כשלים דחופים, תזכורות תחזוקה ועדכונים מג'סיקה.
+## user_problem_statement: תיקון שגיאת "מסך לבן" שנגרמה מבעיית אתחול משתנה editingItem ב-App.js של הפרונטאנד. השגיאה מנעה את טעינת האפליקציה לחלוטין.
 
 ## backend:
   - task: "Google OAuth endpoints"
