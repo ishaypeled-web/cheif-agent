@@ -908,6 +908,59 @@ async def delete_failure(failure_id: str):
         raise HTTPException(status_code=404, detail="Failure not found")
     return {"message": "Failure deleted successfully"}
 
+# Resolved Failures Routes
+@app.get("/api/resolved-failures")
+async def get_resolved_failures():
+    resolved_failures = list(resolved_failures_collection.find({}, {"_id": 0}).sort("resolved_date", -1))
+    return resolved_failures
+
+@app.post("/api/resolved-failures")
+async def create_resolved_failure(resolved_failure: ResolvedFailure):
+    resolved_failure_dict = resolved_failure.dict()
+    resolved_failure_dict['id'] = str(uuid.uuid4())
+    resolved_failure_dict['resolved_at'] = datetime.now().isoformat()
+    
+    result = resolved_failures_collection.insert_one(resolved_failure_dict)
+    return {"id": resolved_failure_dict['id'], "message": "Resolved failure created successfully"}
+
+@app.put("/api/resolved-failures/{failure_id}")
+async def update_resolved_failure(failure_id: str, updates: dict):
+    """Update resolution details for a resolved failure"""
+    try:
+        # Find the resolved failure
+        query = {'id': failure_id} if not failure_id.startswith('F') else {'failure_number': failure_id}
+        
+        update_data = {}
+        if 'resolution_method' in updates:
+            update_data['resolution_method'] = updates['resolution_method']
+        if 'actual_hours' in updates:
+            update_data['actual_hours'] = float(updates['actual_hours'])
+        if 'lessons_learned' in updates:
+            update_data['lessons_learned'] = updates['lessons_learned']
+        if 'resolved_by' in updates:
+            update_data['resolved_by'] = updates['resolved_by']
+        
+        result = resolved_failures_collection.update_one(query, {'$set': update_data})
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Resolved failure not found")
+        
+        return {"message": "Resolved failure updated successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating resolved failure: {str(e)}")
+
+@app.get("/api/resolved-failures/{failure_id}")
+async def get_resolved_failure(failure_id: str):
+    """Get specific resolved failure"""
+    query = {'id': failure_id} if not failure_id.startswith('F') else {'failure_number': failure_id}
+    resolved_failure = resolved_failures_collection.find_one(query, {"_id": 0})
+    
+    if not resolved_failure:
+        raise HTTPException(status_code=404, detail="Resolved failure not found")
+    
+    return resolved_failure
+
 # Pending Maintenance Routes
 @app.post("/api/maintenance")
 async def create_maintenance(maintenance: PendingMaintenance):
