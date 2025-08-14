@@ -1440,6 +1440,11 @@ function App() {
             </Card>
           </TabsContent>
 
+          {/* Push Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            <PushNotifications userId="yahel-naval-user" />
+          </TabsContent>
+
           {/* Google Calendar Tab */}
           <TabsContent value="calendar" className="space-y-6">
             <div className="flex justify-between items-center">
