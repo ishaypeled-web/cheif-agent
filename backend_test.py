@@ -3019,22 +3019,612 @@ class ComprehensiveBackendTest:
         
         return self.test_results
 
+class GoogleSheetsExportTest:
+    """Test the new Google Sheets export functionality"""
+    
+    def __init__(self):
+        self.test_results = []
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_export_failures(self):
+        """Test POST /api/export/failures"""
+        try:
+            export_request = {
+                "table_name": "failures",
+                "sheet_title": "Test Failures Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/failures", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export failures to Google Sheets", 
+                        True, 
+                        "Successfully exported failures data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export failures to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export failures to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export failures to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def test_export_resolved_failures(self):
+        """Test POST /api/export/resolved-failures"""
+        try:
+            export_request = {
+                "table_name": "resolved-failures",
+                "sheet_title": "Test Resolved Failures Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/resolved-failures", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export resolved failures to Google Sheets", 
+                        True, 
+                        "Successfully exported resolved failures data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export resolved failures to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export resolved failures to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export resolved failures to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def test_export_maintenance(self):
+        """Test POST /api/export/maintenance"""
+        try:
+            export_request = {
+                "table_name": "maintenance",
+                "sheet_title": "Test Maintenance Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/maintenance", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export maintenance to Google Sheets", 
+                        True, 
+                        "Successfully exported maintenance data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export maintenance to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export maintenance to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export maintenance to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def test_export_equipment(self):
+        """Test POST /api/export/equipment"""
+        try:
+            export_request = {
+                "table_name": "equipment",
+                "sheet_title": "Test Equipment Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/equipment", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export equipment to Google Sheets", 
+                        True, 
+                        "Successfully exported equipment data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export equipment to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export equipment to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export equipment to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def test_export_daily_work(self):
+        """Test POST /api/export/daily-work"""
+        try:
+            export_request = {
+                "table_name": "daily-work",
+                "sheet_title": "Test Daily Work Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/daily-work", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export daily work to Google Sheets", 
+                        True, 
+                        "Successfully exported daily work data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export daily work to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export daily work to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export daily work to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def test_export_conversations(self):
+        """Test POST /api/export/conversations"""
+        try:
+            export_request = {
+                "table_name": "conversations",
+                "sheet_title": "Test Conversations Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/conversations", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export conversations to Google Sheets", 
+                        True, 
+                        "Successfully exported conversations data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export conversations to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export conversations to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export conversations to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def test_export_dna_tracker(self):
+        """Test POST /api/export/dna-tracker"""
+        try:
+            export_request = {
+                "table_name": "dna-tracker",
+                "sheet_title": "Test DNA Tracker Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/dna-tracker", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export DNA tracker to Google Sheets", 
+                        True, 
+                        "Successfully exported DNA tracker data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export DNA tracker to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export DNA tracker to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export DNA tracker to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def test_export_ninety_day_plan(self):
+        """Test POST /api/export/ninety-day-plan"""
+        try:
+            export_request = {
+                "table_name": "ninety-day-plan",
+                "sheet_title": "Test 90-Day Plan Export"
+            }
+            
+            response = requests.post(f"{BASE_URL}/export/ninety-day-plan", headers=HEADERS, json=export_request, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_result(
+                        "Export 90-day plan to Google Sheets", 
+                        True, 
+                        "Successfully exported 90-day plan data",
+                        f"Message: {data.get('message', 'N/A')}"
+                    )
+                else:
+                    self.log_result(
+                        "Export 90-day plan to Google Sheets", 
+                        False, 
+                        "Export failed",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Export 90-day plan to Google Sheets", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Export 90-day plan to Google Sheets", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all Google Sheets export tests"""
+        print("🚀 Starting Google Sheets Export Testing")
+        print("=" * 60)
+        
+        # Run all export tests
+        self.test_export_failures()
+        self.test_export_resolved_failures()
+        self.test_export_maintenance()
+        self.test_export_equipment()
+        self.test_export_daily_work()
+        self.test_export_conversations()
+        self.test_export_dna_tracker()
+        self.test_export_ninety_day_plan()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 GOOGLE SHEETS EXPORT TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
+class JessicaAIUpdatedPromptTest:
+    """Test the updated Jessica AI prompt behavior"""
+    
+    def __init__(self):
+        self.test_results = []
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_jessica_asks_for_name_first_interaction(self):
+        """Test that Jessica asks for user's name on first interaction"""
+        try:
+            chat_message = {
+                "user_message": "שלום ג'סיקה, אני רוצה לדבר איתך",
+                "session_id": f"first_interaction_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "chat_history": []  # Empty history = first interaction
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '').lower()
+                
+                # Check if Jessica asks for the user's name
+                name_asking_phrases = ['איך קוראים לך', 'מה השם שלך', 'איך אתה רוצה שאקרא לך', 'איך תרצה שאקרא לך']
+                asks_for_name = any(phrase in ai_response for phrase in name_asking_phrases)
+                
+                if asks_for_name:
+                    self.log_result(
+                        "Jessica asks for name on first interaction", 
+                        True, 
+                        "Jessica correctly asks for user's name on first interaction",
+                        f"Response contains name-asking phrase"
+                    )
+                else:
+                    self.log_result(
+                        "Jessica asks for name on first interaction", 
+                        False, 
+                        "Jessica does not ask for user's name on first interaction",
+                        f"Response: {ai_response[:200]}..."
+                    )
+            else:
+                self.log_result(
+                    "Jessica asks for name on first interaction", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Jessica asks for name on first interaction", False, f"Exception: {str(e)}")
+    
+    def test_jessica_does_not_assume_yahel(self):
+        """Test that Jessica doesn't assume the user's name is Yahel"""
+        try:
+            chat_message = {
+                "user_message": "תספרי לי על המחלקה",
+                "session_id": f"no_yahel_assumption_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "chat_history": []
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '')
+                
+                # Check if Jessica assumes the name "Yahel" or "יהל"
+                assumes_yahel = 'יהל' in ai_response or 'yahel' in ai_response.lower()
+                
+                if not assumes_yahel:
+                    self.log_result(
+                        "Jessica does not assume name is Yahel", 
+                        True, 
+                        "Jessica correctly does not assume user's name is Yahel",
+                        "No mention of 'יהל' or 'Yahel' found in response"
+                    )
+                else:
+                    self.log_result(
+                        "Jessica does not assume name is Yahel", 
+                        False, 
+                        "Jessica incorrectly assumes user's name is Yahel",
+                        f"Response contains 'יהל' or 'Yahel'"
+                    )
+            else:
+                self.log_result(
+                    "Jessica does not assume name is Yahel", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Jessica does not assume name is Yahel", False, f"Exception: {str(e)}")
+    
+    def test_jessica_does_not_invent_data(self):
+        """Test that Jessica doesn't invent information when data is missing"""
+        try:
+            chat_message = {
+                "user_message": "תספרי לי על התקלה F999999 שלא קיימת",
+                "session_id": f"no_invention_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "chat_history": []
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '').lower()
+                
+                # Check if Jessica admits not having the information or asks for clarification
+                honest_phrases = ['לא מצאתי', 'אין לי מידע', 'לא קיים', 'לא נמצא', 'אין בנתונים']
+                is_honest = any(phrase in ai_response for phrase in honest_phrases)
+                
+                # Check if Jessica invents specific details (bad behavior)
+                invention_indicators = ['התקלה הזו', 'המערכת שלה', 'הטכנאי שטיפל']
+                invents_data = any(indicator in ai_response for indicator in invention_indicators)
+                
+                if is_honest and not invents_data:
+                    self.log_result(
+                        "Jessica does not invent missing data", 
+                        True, 
+                        "Jessica correctly admits not having information about non-existent failure",
+                        "Response shows honesty about missing data"
+                    )
+                else:
+                    self.log_result(
+                        "Jessica does not invent missing data", 
+                        False, 
+                        "Jessica may be inventing information about non-existent failure",
+                        f"Response: {ai_response[:200]}..."
+                    )
+            else:
+                self.log_result(
+                    "Jessica does not invent missing data", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Jessica does not invent missing data", False, f"Exception: {str(e)}")
+    
+    def test_jessica_asks_for_clarification(self):
+        """Test that Jessica asks for clarification when specific details are needed"""
+        try:
+            chat_message = {
+                "user_message": "אני רוצה ליצור תקלה חדשה",
+                "session_id": f"clarification_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "chat_history": []
+            }
+            
+            response = requests.post(f"{BASE_URL}/ai-chat", headers=HEADERS, json=chat_message, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('response', '')
+                
+                # Check if Jessica asks for specific details needed to create a failure
+                clarification_phrases = ['איזה מערכת', 'מה התיאור', 'איזה טכנאי', 'כמה שעות', 'מה הדחיפות']
+                asks_clarification = any(phrase in ai_response for phrase in clarification_phrases)
+                
+                if asks_clarification:
+                    self.log_result(
+                        "Jessica asks for clarification when needed", 
+                        True, 
+                        "Jessica correctly asks for specific details to create failure",
+                        "Response contains clarification questions"
+                    )
+                else:
+                    self.log_result(
+                        "Jessica asks for clarification when needed", 
+                        False, 
+                        "Jessica does not ask for necessary details to create failure",
+                        f"Response: {ai_response[:200]}..."
+                    )
+            else:
+                self.log_result(
+                    "Jessica asks for clarification when needed", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Jessica asks for clarification when needed", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all Jessica AI updated prompt tests"""
+        print("🚀 Starting Jessica AI Updated Prompt Testing")
+        print("=" * 60)
+        
+        # Run all AI behavior tests
+        self.test_jessica_asks_for_name_first_interaction()
+        self.test_jessica_does_not_assume_yahel()
+        self.test_jessica_does_not_invent_data()
+        self.test_jessica_asks_for_clarification()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 JESSICA AI UPDATED PROMPT TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
 if __name__ == "__main__":
-    print("🎯 Starting Comprehensive Backend Testing Suite")
+    print("🎯 Starting Comprehensive Backend Testing - Review Request Focus")
     print("=" * 80)
     
-    # Run the specific failure status management test first (as requested in review)
-    print("🔥 PRIORITY: Testing Updated Failure Management System")
+    # Run NEW Google Sheets Export Tests (PRIORITY)
+    print("🆕 PRIORITY: Testing NEW Google Sheets Export Functionality")
     print("=" * 80)
     
-    status_test = FailureStatusManagementTest()
-    status_results = status_test.run_all_tests()
+    sheets_test = GoogleSheetsExportTest()
+    sheets_results = sheets_test.run_all_tests()
     
     print("\n" + "=" * 80)
     
-    # Run other test suites
+    # Run NEW Jessica AI Updated Prompt Tests (PRIORITY)
+    print("🆕 PRIORITY: Testing NEW Jessica AI Updated Prompt")
+    print("=" * 80)
+    
+    jessica_ai_test = JessicaAIUpdatedPromptTest()
+    jessica_ai_results = jessica_ai_test.run_all_tests()
+    
+    print("\n" + "=" * 80)
+    
+    # Run Existing Functionality Tests
+    print("🔄 Testing Existing Functionality")
+    print("=" * 80)
+    
     resolved_test = ResolvedFailuresTest()
     resolved_results = resolved_test.run_all_tests()
+    
+    print("\n" + "=" * 80)
+    
+    status_test = FailureStatusManagementTest()
+    status_results = status_test.run_all_tests()
     
     print("\n" + "=" * 80)
     
@@ -3051,12 +3641,19 @@ if __name__ == "__main__":
     jessica_test = JessicaFailureClosureTest()
     jessica_results = jessica_test.run_all_tests()
     
+    print("\n" + "=" * 80)
+    
+    comprehensive_test = ComprehensiveBackendTest()
+    comprehensive_results = comprehensive_test.run_all_tests()
+    
     # Overall summary
     print("\n" + "=" * 80)
-    print("🏆 OVERALL TEST SUMMARY")
+    print("🏆 OVERALL TEST SUMMARY - REVIEW REQUEST FOCUS")
     print("=" * 80)
     
-    all_results = status_results + resolved_results + google_results + push_results + jessica_results
+    all_results = (sheets_results + jessica_ai_results + resolved_results + 
+                  status_results + google_results + push_results + 
+                  jessica_results + comprehensive_results)
     total_passed = sum(1 for result in all_results if result['success'])
     total_tests = len(all_results)
     
@@ -3064,6 +3661,30 @@ if __name__ == "__main__":
     print(f"✅ Total Passed: {total_passed}")
     print(f"❌ Total Failed: {total_tests - total_passed}")
     print(f"Overall Success Rate: {(total_passed/total_tests*100):.1f}%")
+    
+    # Test Categories Summary
+    categories = [
+        ("🆕 Google Sheets Export (NEW)", sheets_results),
+        ("🆕 Jessica AI Updated Prompt (NEW)", jessica_ai_results),
+        ("Resolved Failures", resolved_results),
+        ("Failure Status Management", status_results),
+        ("Google Calendar Integration", google_results),
+        ("Push Notifications", push_results),
+        ("Jessica Failure Closure", jessica_results),
+        ("Comprehensive Backend", comprehensive_results)
+    ]
+    
+    print("\n📊 BY CATEGORY:")
+    for category_name, results in categories:
+        passed = sum(1 for r in results if r['success'])
+        total = len(results)
+        print(f"  {category_name}: {passed}/{total} ({(passed/total*100):.1f}%)")
+    
+    # Focus on NEW functionality results
+    print("\n🎯 NEW FUNCTIONALITY RESULTS:")
+    new_functionality_passed = sum(1 for r in sheets_results + jessica_ai_results if r['success'])
+    new_functionality_total = len(sheets_results + jessica_ai_results)
+    print(f"  Google Sheets Export + Jessica AI Updates: {new_functionality_passed}/{new_functionality_total} ({(new_functionality_passed/new_functionality_total*100):.1f}%)")
     
     # Show failed tests from all suites
     failed_tests = [result for result in all_results if not result['success']]
