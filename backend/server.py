@@ -33,6 +33,11 @@ import aiohttp
 import gspread
 from google.oauth2.service_account import Credentials
 
+# JWT Authentication imports
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 # Load environment variables
 load_dotenv()
 
