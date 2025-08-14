@@ -149,13 +149,22 @@ function App() {
     const newUserMessage = {
       type: 'user',
       content: userMessage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      sessionId: sessionId
     };
-    setChatMessages(prev => [...prev, newUserMessage]);
+    
+    const updatedMessages = [...chatMessages, newUserMessage];
+    setChatMessages(updatedMessages);
+    saveChatHistory(updatedMessages);
     
     try {
+      // Include chat history in the request for context
+      const contextMessages = updatedMessages.slice(-10); // Last 10 messages for context
+      
       const response = await axios.post(`${BACKEND_URL}/api/ai-chat`, {
-        user_message: userMessage
+        user_message: userMessage,
+        session_id: sessionId,
+        chat_history: contextMessages
       });
       
       // Add AI response to chat
@@ -164,9 +173,13 @@ function App() {
         content: response.data.response,
         recommendations: response.data.recommendations || [],
         updated_tables: response.data.updated_tables || [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        sessionId: sessionId
       };
-      setChatMessages(prev => [...prev, aiMessage]);
+      
+      const finalMessages = [...updatedMessages, aiMessage];
+      setChatMessages(finalMessages);
+      saveChatHistory(finalMessages);
       
       // Refresh data if tables were updated
       if (response.data.updated_tables && response.data.updated_tables.length > 0) {
@@ -178,11 +191,21 @@ function App() {
       const errorMessage = {
         type: 'ai',
         content: 'מצטער, הייתה בעיה בחיבור לאייג\'נט AI. נסה שוב.',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        sessionId: sessionId
       };
-      setChatMessages(prev => [...prev, errorMessage]);
+      const errorMessages = [...updatedMessages, errorMessage];
+      setChatMessages(errorMessages);
+      saveChatHistory(errorMessages);
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const clearChatHistory = () => {
+    setChatMessages([]);
+    if (sessionId) {
+      localStorage.removeItem(`chat_history_${sessionId}`);
     }
   };
 
