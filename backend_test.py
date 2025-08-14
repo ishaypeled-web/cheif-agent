@@ -3020,38 +3020,57 @@ class ComprehensiveBackendTest:
         return self.test_results
 
 if __name__ == "__main__":
-    # Run comprehensive backend testing as requested in review
-    print("🎯 Running Comprehensive Backend Testing (Review Request)")
+    print("🎯 Starting Comprehensive Backend Testing Suite")
     print("=" * 80)
     
-    comprehensive_test = ComprehensiveBackendTest()
-    comprehensive_results = comprehensive_test.run_all_tests()
+    # Run the specific failure status management test first (as requested in review)
+    print("🔥 PRIORITY: Testing Updated Failure Management System")
+    print("=" * 80)
     
-    # Also run the Jessica test to ensure it still works
+    status_test = FailureStatusManagementTest()
+    status_results = status_test.run_all_tests()
+    
     print("\n" + "=" * 80)
-    print("🤖 Running Jessica Specific Tests")
-    print("=" * 80)
     
-    jessica_test = JessicaUpdatedQuestionsTest()
+    # Run other test suites
+    resolved_test = ResolvedFailuresTest()
+    resolved_results = resolved_test.run_all_tests()
+    
+    print("\n" + "=" * 80)
+    
+    google_test = GoogleCalendarIntegrationTest()
+    google_results = google_test.run_all_tests()
+    
+    print("\n" + "=" * 80)
+    
+    push_test = PushNotificationsTest()
+    push_results = push_test.run_all_tests()
+    
+    print("\n" + "=" * 80)
+    
+    jessica_test = JessicaFailureClosureTest()
     jessica_results = jessica_test.run_all_tests()
     
     # Overall summary
     print("\n" + "=" * 80)
-    print("🏆 COMPLETE BACKEND TEST SUMMARY")
+    print("🏆 OVERALL TEST SUMMARY")
     print("=" * 80)
     
-    total_tests = len(comprehensive_results) + len(jessica_results)
-    total_passed = sum(1 for result in comprehensive_results if result['success']) + sum(1 for result in jessica_results if result['success'])
-    total_failed = total_tests - total_passed
+    all_results = status_results + resolved_results + google_results + push_results + jessica_results
+    total_passed = sum(1 for result in all_results if result['success'])
+    total_tests = len(all_results)
     
-    print(f"Total Tests Run: {total_tests}")
+    print(f"Total Tests Across All Suites: {total_tests}")
     print(f"✅ Total Passed: {total_passed}")
-    print(f"❌ Total Failed: {total_failed}")
+    print(f"❌ Total Failed: {total_tests - total_passed}")
     print(f"Overall Success Rate: {(total_passed/total_tests*100):.1f}%")
     
-    if total_failed == 0:
-        print("\n🎉 ALL BACKEND TESTS PASSED! System is working correctly.")
-    else:
-        print(f"\n⚠️  {total_failed} tests failed. Please review the issues above.")
+    # Show failed tests from all suites
+    failed_tests = [result for result in all_results if not result['success']]
+    if failed_tests:
+        print(f"\n🔍 ALL FAILED TESTS ({len(failed_tests)}):")
+        for result in failed_tests:
+            print(f"  • {result['test']}: {result['message']}")
     
+    print("\n🎯 Backend testing completed!")
     print("=" * 80)
