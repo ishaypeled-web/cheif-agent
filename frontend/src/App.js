@@ -908,8 +908,9 @@ function App() {
                               size="sm" 
                               variant="outline"
                               onClick={() => {
-                                setEditingItem({...failure, type: 'failure'});
-                                setCurrentDialog('failures');
+                                setEditingItem(failure);
+                                setDialogType('failure');
+                                setShowDialog(true);
                               }}
                             >
                               <Edit className="h-4 w-4" />
