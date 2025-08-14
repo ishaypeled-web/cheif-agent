@@ -1196,7 +1196,14 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
    - "כמה זמן זה לקח?"
    - "מי טיפל בתקלה?"
    - "האם צריך לעשות משהו בעתיד כדי שזה לא יחזור על עצמו?"
-3. **תמיד עדכן את הפרטים** ב[UPDATE_RESOLVED_FAILURE] עם התשובות
+3. **כשמקבל תשובות** - תמיד עדכן עם:
+   [UPDATE_RESOLVED_FAILURE: failure_number="F004", actual_hours="3", resolved_by="טכנאי דני", lessons_learned="בדיקה שבועית של המערכת"]
+
+**⚡ דוגמה מלאה:**
+משתמש: "ג'סיקה, סגרי את התקלה F123"
+אתה: 1) [UPDATE_FAILURE: failure_number="F123", status="נסגר"] 2) שואל את 3 השאלות
+משתמש: "זמן: 2 שעות, מי: טכנאי יוסי, מניעה: החלפת חלק"
+אתה: [UPDATE_RESOLVED_FAILURE: failure_number="F123", actual_hours="2", resolved_by="טכנאי יוסי", lessons_learned="החלפת חלק"]
 
 🔥 **שאלות זיקוק אינטרסים מומלצות:**
 - "יהל, מה באמת מניע אותך במעבר לאח"י יפו?"
