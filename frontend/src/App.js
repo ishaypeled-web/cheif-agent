@@ -74,7 +74,7 @@ function App() {
 
   const loadChatHistory = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/history/${sessionId}`);
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/ai-chat/history/${sessionId}`);
       setChatHistory(response.data.history || []);
     } catch (error) {
       console.error('Error loading chat history:', error);
