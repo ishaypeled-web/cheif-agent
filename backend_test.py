@@ -14,6 +14,588 @@ import time
 BASE_URL = "https://jessica-agent.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
+class FailureStatusManagementTest:
+    """Test the updated failure management system with status field and automatic transfer"""
+    
+    def __init__(self):
+        self.test_results = []
+        self.test_failures = []  # Store created failures for cleanup
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_1_create_failure_with_initial_status(self):
+        """Test 1: Create a new failure with initial status 'פתוח'"""
+        try:
+            failure_data = {
+                "failure_number": f"STATUS-TEST-{datetime.now().strftime('%m%d%H%M%S')}",
+                "date": datetime.now().strftime('%Y-%m-%d'),
+                "system": "מערכת בדיקת סטטוס",
+                "description": "תקלה לבדיקת שדה הסטטוס החדש",
+                "urgency": 3,
+                "assignee": "טכנאי בדיקה",
+                "estimated_hours": 2.0,
+                "status": "פתוח"
+            }
+            
+            response = requests.post(f"{BASE_URL}/failures", headers=HEADERS, json=failure_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                failure_id = data.get('id')
+                self.test_failures.append({
+                    'id': failure_id,
+                    'failure_number': failure_data['failure_number']
+                })
+                
+                # Verify the failure was created with correct status
+                get_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+                if get_response.status_code == 200:
+                    failures = get_response.json()
+                    created_failure = next((f for f in failures if f.get('id') == failure_id), None)
+                    
+                    if created_failure and created_failure.get('status') == 'פתוח':
+                        self.log_result(
+                            "Create failure with initial status 'פתוח'", 
+                            True, 
+                            f"Successfully created failure with status 'פתוח'",
+                            f"Failure ID: {failure_id}, Number: {failure_data['failure_number']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Create failure with initial status 'פתוח'", 
+                            False, 
+                            f"Failure created but status incorrect: {created_failure.get('status') if created_failure else 'Not found'}",
+                            f"Expected: 'פתוח', Got: {created_failure.get('status') if created_failure else 'N/A'}"
+                        )
+                else:
+                    self.log_result(
+                        "Create failure with initial status 'פתוח'", 
+                        False, 
+                        "Could not verify created failure",
+                        f"GET failures returned: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Create failure with initial status 'פתוח'", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create failure with initial status 'פתוח'", False, f"Exception: {str(e)}")
+    
+    def test_2_update_status_to_in_progress(self):
+        """Test 2: Update failure status to 'בטיפול'"""
+        if not self.test_failures:
+            self.log_result("Update status to 'בטיפול'", False, "No test failure available")
+            return
+            
+        try:
+            test_failure = self.test_failures[0]
+            failure_id = test_failure['id']
+            
+            # Get current failure data
+            response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+            if response.status_code != 200:
+                self.log_result("Update status to 'בטיפול'", False, "Could not get current failure data")
+                return
+            
+            failures = response.json()
+            current_failure = next((f for f in failures if f.get('id') == failure_id), None)
+            
+            if not current_failure:
+                self.log_result("Update status to 'בטיפול'", False, "Could not find current failure")
+                return
+            
+            # Update status to 'בטיפול'
+            updated_failure = current_failure.copy()
+            updated_failure['status'] = 'בטיפול'
+            
+            response = requests.put(
+                f"{BASE_URL}/failures/{failure_id}", 
+                headers=HEADERS, 
+                json=updated_failure
+            )
+            
+            if response.status_code == 200:
+                # Verify the update
+                get_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+                if get_response.status_code == 200:
+                    failures = get_response.json()
+                    updated_failure_data = next((f for f in failures if f.get('id') == failure_id), None)
+                    
+                    if updated_failure_data and updated_failure_data.get('status') == 'בטיפול':
+                        self.log_result(
+                            "Update status to 'בטיפול'", 
+                            True, 
+                            "Successfully updated failure status to 'בטיפול'",
+                            f"Failure remains in active failures table"
+                        )
+                    else:
+                        self.log_result(
+                            "Update status to 'בטיפול'", 
+                            False, 
+                            f"Status not updated correctly: {updated_failure_data.get('status') if updated_failure_data else 'Not found'}",
+                            f"Expected: 'בטיפול'"
+                        )
+                else:
+                    self.log_result(
+                        "Update status to 'בטיפול'", 
+                        False, 
+                        "Could not verify status update",
+                        f"GET failures returned: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Update status to 'בטיפול'", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Update status to 'בטיפול'", False, f"Exception: {str(e)}")
+    
+    def test_3_update_status_to_completed_auto_transfer(self):
+        """Test 3: Update failure status to 'הושלם' and verify automatic transfer to resolved failures"""
+        if not self.test_failures:
+            self.log_result("Update status to 'הושלם' (auto-transfer)", False, "No test failure available")
+            return
+            
+        try:
+            test_failure = self.test_failures[0]
+            failure_id = test_failure['id']
+            failure_number = test_failure['failure_number']
+            
+            # Get current failure data
+            response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+            if response.status_code != 200:
+                self.log_result("Update status to 'הושלם' (auto-transfer)", False, "Could not get current failure data")
+                return
+            
+            failures = response.json()
+            current_failure = next((f for f in failures if f.get('id') == failure_id), None)
+            
+            if not current_failure:
+                self.log_result("Update status to 'הושלם' (auto-transfer)", False, "Could not find current failure")
+                return
+            
+            # Update status to 'הושלם' - this should trigger auto-transfer
+            updated_failure = current_failure.copy()
+            updated_failure['status'] = 'הושלם'
+            
+            response = requests.put(
+                f"{BASE_URL}/failures/{failure_id}", 
+                headers=HEADERS, 
+                json=updated_failure
+            )
+            
+            if response.status_code == 200:
+                # Wait a moment for auto-transfer
+                time.sleep(2)
+                
+                # Check if failure was moved to resolved failures
+                resolved_response = requests.get(f"{BASE_URL}/resolved-failures", headers=HEADERS)
+                if resolved_response.status_code == 200:
+                    resolved_failures = resolved_response.json()
+                    moved_failure = next((f for f in resolved_failures if f.get('id') == failure_id), None)
+                    
+                    if moved_failure:
+                        # Check if failure was removed from active failures
+                        active_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+                        if active_response.status_code == 200:
+                            active_failures = active_response.json()
+                            still_active = next((f for f in active_failures if f.get('id') == failure_id), None)
+                            
+                            if not still_active:
+                                self.log_result(
+                                    "Update status to 'הושלם' (auto-transfer)", 
+                                    True, 
+                                    "Successfully moved failure to resolved failures table",
+                                    f"Failure {failure_number} automatically transferred when status changed to 'הושלם'"
+                                )
+                            else:
+                                self.log_result(
+                                    "Update status to 'הושלם' (auto-transfer)", 
+                                    False, 
+                                    "Failure moved to resolved but still exists in active",
+                                    "Auto-transfer incomplete"
+                                )
+                        else:
+                            self.log_result(
+                                "Update status to 'הושלם' (auto-transfer)", 
+                                False, 
+                                "Could not verify removal from active failures",
+                                f"GET active failures returned: {active_response.status_code}"
+                            )
+                    else:
+                        self.log_result(
+                            "Update status to 'הושלם' (auto-transfer)", 
+                            False, 
+                            "Failure not found in resolved failures table",
+                            "Auto-transfer did not occur"
+                        )
+                else:
+                    self.log_result(
+                        "Update status to 'הושלם' (auto-transfer)", 
+                        False, 
+                        "Could not check resolved failures",
+                        f"GET resolved-failures returned: {resolved_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Update status to 'הושלם' (auto-transfer)", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Update status to 'הושלם' (auto-transfer)", False, f"Exception: {str(e)}")
+    
+    def test_4_direct_edit_resolved_failure(self):
+        """Test 4: Direct edit resolved failure details using PUT /api/resolved-failures/{id}"""
+        if not self.test_failures:
+            self.log_result("Direct edit resolved failure", False, "No test failure available")
+            return
+            
+        try:
+            test_failure = self.test_failures[0]
+            failure_id = test_failure['id']
+            
+            # First verify the failure is in resolved failures
+            resolved_response = requests.get(f"{BASE_URL}/resolved-failures", headers=HEADERS)
+            if resolved_response.status_code != 200:
+                self.log_result("Direct edit resolved failure", False, "Could not get resolved failures")
+                return
+            
+            resolved_failures = resolved_response.json()
+            resolved_failure = next((f for f in resolved_failures if f.get('id') == failure_id), None)
+            
+            if not resolved_failure:
+                self.log_result("Direct edit resolved failure", False, "Failure not found in resolved failures")
+                return
+            
+            # Update resolved failure details
+            update_data = {
+                "resolution_method": "החלפת רכיב פגום + כיול מערכת",
+                "actual_hours": 3.5,
+                "lessons_learned": "חשוב לבדוק כל הרכיבים הקשורים לפני החלפה ולבצע כיול מלא אחרי",
+                "resolved_by": "טכנאי מומחה + מהנדס מערכת"
+            }
+            
+            response = requests.put(
+                f"{BASE_URL}/resolved-failures/{failure_id}", 
+                headers=HEADERS, 
+                json=update_data
+            )
+            
+            if response.status_code == 200:
+                # Verify the update
+                get_response = requests.get(f"{BASE_URL}/resolved-failures/{failure_id}", headers=HEADERS)
+                if get_response.status_code == 200:
+                    updated_failure = get_response.json()
+                    
+                    # Check if all fields were updated
+                    all_updated = True
+                    updated_fields = []
+                    for key, expected_value in update_data.items():
+                        actual_value = updated_failure.get(key)
+                        if actual_value == expected_value:
+                            updated_fields.append(key)
+                        else:
+                            all_updated = False
+                            break
+                    
+                    if all_updated:
+                        self.log_result(
+                            "Direct edit resolved failure", 
+                            True, 
+                            "Successfully updated all resolved failure details",
+                            f"Updated fields: {updated_fields}"
+                        )
+                    else:
+                        self.log_result(
+                            "Direct edit resolved failure", 
+                            False, 
+                            "Not all fields were updated correctly",
+                            f"Expected: {update_data}, Got: {updated_failure}"
+                        )
+                else:
+                    self.log_result(
+                        "Direct edit resolved failure", 
+                        False, 
+                        "Could not verify update",
+                        f"GET resolved failure returned: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Direct edit resolved failure", 
+                    False, 
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Direct edit resolved failure", False, f"Exception: {str(e)}")
+    
+    def test_5_test_all_status_options(self):
+        """Test 5: Test all status field options (פתוח, בטיפול, ממתין לחלקים, בבדיקה, הושלם, סגור)"""
+        try:
+            status_options = ["פתוח", "בטיפול", "ממתין לחלקים", "בבדיקה"]
+            completion_statuses = ["הושלם", "סגור"]
+            
+            test_results = {}
+            
+            for status in status_options:
+                # Create a failure with this status
+                failure_data = {
+                    "failure_number": f"STATUS-{status}-{datetime.now().strftime('%H%M%S')}",
+                    "date": datetime.now().strftime('%Y-%m-%d'),
+                    "system": "מערכת בדיקת סטטוס",
+                    "description": f"תקלה לבדיקת סטטוס {status}",
+                    "urgency": 2,
+                    "assignee": "טכנאי בדיקה",
+                    "estimated_hours": 1.0,
+                    "status": status
+                }
+                
+                response = requests.post(f"{BASE_URL}/failures", headers=HEADERS, json=failure_data)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    failure_id = data.get('id')
+                    
+                    # Verify the failure was created with correct status
+                    get_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+                    if get_response.status_code == 200:
+                        failures = get_response.json()
+                        created_failure = next((f for f in failures if f.get('id') == failure_id), None)
+                        
+                        if created_failure and created_failure.get('status') == status:
+                            test_results[status] = True
+                            # Clean up - delete the test failure
+                            requests.delete(f"{BASE_URL}/failures/{failure_id}", headers=HEADERS)
+                        else:
+                            test_results[status] = False
+                    else:
+                        test_results[status] = False
+                else:
+                    test_results[status] = False
+            
+            # Test completion statuses (should auto-transfer)
+            for status in completion_statuses:
+                # Create a failure first
+                failure_data = {
+                    "failure_number": f"COMPLETE-{status}-{datetime.now().strftime('%H%M%S')}",
+                    "date": datetime.now().strftime('%Y-%m-%d'),
+                    "system": "מערכת בדיקת סטטוס",
+                    "description": f"תקלה לבדיקת סטטוס {status}",
+                    "urgency": 2,
+                    "assignee": "טכנאי בדיקה",
+                    "estimated_hours": 1.0,
+                    "status": "פתוח"
+                }
+                
+                create_response = requests.post(f"{BASE_URL}/failures", headers=HEADERS, json=failure_data)
+                
+                if create_response.status_code == 200:
+                    data = create_response.json()
+                    failure_id = data.get('id')
+                    
+                    # Update to completion status
+                    failure_data['status'] = status
+                    update_response = requests.put(
+                        f"{BASE_URL}/failures/{failure_id}", 
+                        headers=HEADERS, 
+                        json=failure_data
+                    )
+                    
+                    if update_response.status_code == 200:
+                        time.sleep(1)  # Wait for auto-transfer
+                        
+                        # Check if moved to resolved failures
+                        resolved_response = requests.get(f"{BASE_URL}/resolved-failures", headers=HEADERS)
+                        if resolved_response.status_code == 200:
+                            resolved_failures = resolved_response.json()
+                            moved_failure = next((f for f in resolved_failures if f.get('id') == failure_id), None)
+                            test_results[status] = moved_failure is not None
+                            
+                            # Clean up - delete from resolved failures
+                            if moved_failure:
+                                # Note: We don't have a DELETE endpoint for resolved failures, so we leave it
+                                pass
+                        else:
+                            test_results[status] = False
+                    else:
+                        test_results[status] = False
+                else:
+                    test_results[status] = False
+            
+            # Evaluate results
+            all_statuses = status_options + completion_statuses
+            successful_statuses = [status for status, success in test_results.items() if success]
+            failed_statuses = [status for status, success in test_results.items() if not success]
+            
+            if len(successful_statuses) == len(all_statuses):
+                self.log_result(
+                    "Test all status options", 
+                    True, 
+                    f"All {len(all_statuses)} status options work correctly",
+                    f"Working statuses: {successful_statuses}"
+                )
+            else:
+                self.log_result(
+                    "Test all status options", 
+                    False, 
+                    f"Some status options failed: {failed_statuses}",
+                    f"Working: {successful_statuses}, Failed: {failed_statuses}"
+                )
+                
+        except Exception as e:
+            self.log_result("Test all status options", False, f"Exception: {str(e)}")
+    
+    def test_6_verify_crud_operations_with_status(self):
+        """Test 6: Verify all CRUD operations work properly with the new status field"""
+        try:
+            # CREATE - Create failure with status
+            failure_data = {
+                "failure_number": f"CRUD-TEST-{datetime.now().strftime('%m%d%H%M%S')}",
+                "date": datetime.now().strftime('%Y-%m-%d'),
+                "system": "מערכת בדיקת CRUD",
+                "description": "תקלה לבדיקת פעולות CRUD עם שדה סטטוס",
+                "urgency": 3,
+                "assignee": "טכנאי CRUD",
+                "estimated_hours": 2.0,
+                "status": "פתוח"
+            }
+            
+            create_response = requests.post(f"{BASE_URL}/failures", headers=HEADERS, json=failure_data)
+            
+            if create_response.status_code != 200:
+                self.log_result("Verify CRUD operations with status", False, "CREATE operation failed")
+                return
+            
+            failure_id = create_response.json().get('id')
+            crud_results = {"CREATE": True}
+            
+            # READ - Get the created failure
+            read_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+            if read_response.status_code == 200:
+                failures = read_response.json()
+                found_failure = next((f for f in failures if f.get('id') == failure_id), None)
+                crud_results["READ"] = found_failure is not None and found_failure.get('status') == 'פתוח'
+            else:
+                crud_results["READ"] = False
+            
+            # UPDATE - Update the failure status
+            if found_failure:
+                updated_failure = found_failure.copy()
+                updated_failure['status'] = 'בטיפול'
+                updated_failure['description'] = 'תקלה מעודכנת לבדיקת CRUD'
+                
+                update_response = requests.put(
+                    f"{BASE_URL}/failures/{failure_id}", 
+                    headers=HEADERS, 
+                    json=updated_failure
+                )
+                
+                if update_response.status_code == 200:
+                    # Verify update
+                    verify_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+                    if verify_response.status_code == 200:
+                        failures = verify_response.json()
+                        updated_found = next((f for f in failures if f.get('id') == failure_id), None)
+                        crud_results["UPDATE"] = (updated_found is not None and 
+                                                updated_found.get('status') == 'בטיפול' and
+                                                'מעודכנת' in updated_found.get('description', ''))
+                    else:
+                        crud_results["UPDATE"] = False
+                else:
+                    crud_results["UPDATE"] = False
+            else:
+                crud_results["UPDATE"] = False
+            
+            # DELETE - Delete the failure
+            delete_response = requests.delete(f"{BASE_URL}/failures/{failure_id}", headers=HEADERS)
+            if delete_response.status_code == 200:
+                # Verify deletion
+                verify_delete_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+                if verify_delete_response.status_code == 200:
+                    failures = verify_delete_response.json()
+                    deleted_found = next((f for f in failures if f.get('id') == failure_id), None)
+                    crud_results["DELETE"] = deleted_found is None
+                else:
+                    crud_results["DELETE"] = False
+            else:
+                crud_results["DELETE"] = False
+            
+            # Evaluate results
+            successful_operations = [op for op, success in crud_results.items() if success]
+            failed_operations = [op for op, success in crud_results.items() if not success]
+            
+            if len(successful_operations) == 4:
+                self.log_result(
+                    "Verify CRUD operations with status", 
+                    True, 
+                    "All CRUD operations work correctly with status field",
+                    f"Successful operations: {successful_operations}"
+                )
+            else:
+                self.log_result(
+                    "Verify CRUD operations with status", 
+                    False, 
+                    f"Some CRUD operations failed: {failed_operations}",
+                    f"Results: {crud_results}"
+                )
+                
+        except Exception as e:
+            self.log_result("Verify CRUD operations with status", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all failure status management tests"""
+        print("🚀 Starting Failure Status Management Testing")
+        print("=" * 60)
+        
+        # Run tests in order
+        self.test_1_create_failure_with_initial_status()
+        self.test_2_update_status_to_in_progress()
+        self.test_3_update_status_to_completed_auto_transfer()
+        self.test_4_direct_edit_resolved_failure()
+        self.test_5_test_all_status_options()
+        self.test_6_verify_crud_operations_with_status()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 FAILURE STATUS MANAGEMENT TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
 class ResolvedFailuresTest:
     def __init__(self):
         self.test_results = []
