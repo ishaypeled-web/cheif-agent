@@ -1316,7 +1316,15 @@ function App() {
                         עודכן: {dna.last_updated}
                       </span>
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            setEditingItem(dna);
+                            setDialogType('dna');
+                            setShowDialog(true);
+                          }}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
