@@ -609,6 +609,102 @@ class PushNotificationService:
 # Initialize services
 push_service = PushNotificationService()
 
+# Authentication Functions
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a plain password against a hashed password"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Hash a password"""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create a JWT access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_user_by_google_id(google_id: str):
+    """Get user by Google ID"""
+    user = authenticated_users_collection.find_one({"google_id": google_id}, {"_id": 0})
+    return user
+
+def create_user(email: str, name: str, google_id: str = None):
+    """Create a new user in the system"""
+    user_id = str(uuid.uuid4())
+    user_data = {
+        "id": user_id,
+        "email": email,
+        "name": name,
+        "google_id": google_id,
+        "created_at": datetime.now().isoformat(),
+        "last_login": datetime.now().isoformat(),
+        "is_active": True
+    }
+    
+    authenticated_users_collection.insert_one(user_data)
+    return user_data
+
+def create_user_session(user_id: str, session_token: str):
+    """Create a user session"""
+    session_data = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "session_token": session_token,
+        "created_at": datetime.now().isoformat(),
+        "expires_at": (datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)).isoformat(),
+        "is_active": True
+    }
+    
+    user_sessions_collection.insert_one(session_data)
+    return session_data
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get the current authenticated user"""
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    if not credentials:
+        raise credentials_exception
+    
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        user_id: str = payload.get("user_id")
+        
+        if email is None or user_id is None:
+            raise credentials_exception
+            
+        token_data = TokenData(email=email, user_id=user_id)
+    except JWTError:
+        raise credentials_exception
+    
+    # Check if user exists and is active
+    user = authenticated_users_collection.find_one({"id": user_id, "is_active": True}, {"_id": 0})
+    if user is None:
+        raise credentials_exception
+    
+    return user
+
+async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get the current user if authenticated, None otherwise"""
+    if not credentials:
+        return None
+    
+    try:
+        return await get_current_user(credentials)
+    except HTTPException:
+        return None
+
 def calculate_service_hours(equipment: dict):
     """Calculate next service hours and alert level based on system type"""
     system_type = equipment['system_type'].lower()
