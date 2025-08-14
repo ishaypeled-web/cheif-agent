@@ -222,6 +222,34 @@ class CalendarEventRequest(BaseModel):
     location: Optional[str] = ""
     attendees: List[str] = []
 
+# Push Notifications Models
+class PushSubscriptionData(BaseModel):
+    endpoint: str = Field(..., description="Push service endpoint URL")
+    keys: Dict[str, str] = Field(..., description="Encryption keys (p256dh and auth)")
+
+class SubscribeRequest(BaseModel):
+    user_id: str = Field(..., description="Unique user identifier")
+    subscription: PushSubscriptionData = Field(..., description="Push subscription object")
+
+class NotificationRequest(BaseModel):
+    user_id: str = Field(..., description="Target user identifier")
+    title: str = Field(..., max_length=100, description="Notification title")
+    body: str = Field(..., max_length=300, description="Notification body text")
+    category: str = Field(default="general", description="Notification category")
+    icon: Optional[str] = Field(None, description="Icon URL")
+    badge: Optional[str] = Field(None, description="Badge icon URL")
+    data: Optional[Dict] = Field(default_factory=dict, description="Custom data payload")
+    urgent: bool = Field(default=False, description="Urgent notification flag")
+
+class NotificationPreferences(BaseModel):
+    user_id: str = Field(..., description="User identifier")
+    categories: Dict[str, bool] = Field(default_factory=dict, description="Category enablement flags")
+    quiet_hours_enabled: bool = Field(default=False, description="Enable quiet hours")
+    quiet_hours_start: Optional[str] = Field(None, description="Quiet hours start time (HH:MM)")
+    quiet_hours_end: Optional[str] = Field(None, description="Quiet hours end time (HH:MM)")
+    language_code: str = Field(default="en", description="Preferred language")
+    rtl_support: bool = Field(default=False, description="Enable RTL layout support")
+
 # Helper functions
 
 # Google Calendar Helper Functions
