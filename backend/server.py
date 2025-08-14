@@ -29,6 +29,10 @@ from pathlib import Path
 import sqlite3
 import aiohttp
 
+# Google Sheets imports
+import gspread
+from google.oauth2.service_account import Credentials
+
 # Load environment variables
 load_dotenv()
 
