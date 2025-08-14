@@ -937,11 +937,39 @@ async def get_failures():
 
 @app.put("/api/failures/{failure_id}")
 async def update_failure(failure_id: str, failure: ActiveFailure):
+    # Get current failure data before update
+    current_failure = active_failures_collection.find_one({"id": failure_id})
+    if not current_failure:
+        raise HTTPException(status_code=404, detail="Failure not found")
+    
     failure_dict = failure.dict()
-    result = active_failures_collection.update_one(
-        {"id": failure_id}, 
-        {"$set": failure_dict}
-    )
+    
+    # Check if status is being changed to completed
+    if failure_dict.get('status') in ['הושלם', 'נסגר', 'טופל']:
+        # Move to resolved failures instead of updating
+        resolution_info = {
+            'actual_hours': failure_dict.get('estimated_hours', current_failure.get('estimated_hours')),
+            'resolution_method': '',  # Empty for now, Jessica can fill this later
+            'resolved_by': failure_dict.get('assignee', current_failure.get('assignee')),
+            'lessons_learned': ''
+        }
+        
+        moved = await move_failure_to_resolved(current_failure, resolution_info)
+        if moved:
+            return {"message": "Failure completed and moved to resolved failures", "moved_to_resolved": True}
+        else:
+            # If move failed, fall back to regular update
+            result = active_failures_collection.update_one(
+                {"id": failure_id}, 
+                {"$set": failure_dict}
+            )
+    else:
+        # Regular update for non-completed status
+        result = active_failures_collection.update_one(
+            {"id": failure_id}, 
+            {"$set": failure_dict}
+        )
+    
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Failure not found")
     return {"message": "Failure updated successfully"}
