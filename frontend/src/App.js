@@ -131,10 +131,13 @@ function App() {
       // איפוס טפסים כאשר אין עריכה
       if (!showDialog) {
         setFailureForm({
-          failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0
+          failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0, status: 'פתוח'
         });
         setMaintenanceForm({
           maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
+        });
+        setResolvedFailureForm({
+          resolution_method: '', resolved_by: '', actual_hours: 0, lessons_learned: ''
         });
       }
     }
