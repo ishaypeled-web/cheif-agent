@@ -32,6 +32,27 @@ body {
     font-size: 0.75rem;
     padding: 0.5rem 0.75rem;
   }
+  
+  /* Mobile tabs for 12 columns */
+  .grid-cols-12 {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.25rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .grid-cols-12::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .grid-cols-12 > * {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -43,6 +64,54 @@ body {
   .grid-cols-9 > * {
     font-size: 0.7rem;
     padding: 0.25rem 0.5rem;
+  }
+  
+  /* Mobile tabs for 12 columns - smaller screens */
+  .grid-cols-12 {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.125rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 0.5rem;
+  }
+  
+  .grid-cols-12::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .grid-cols-12 > * {
+    font-size: 0.65rem;
+    padding: 0.375rem 0.625rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
+    border-radius: 0.375rem;
+  }
+  
+  /* Add scroll indicators */
+  .grid-cols-12::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .grid-cols-12::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to right, rgba(255,255,255,0.8), transparent);
+    pointer-events: none;
+    z-index: 1;
   }
 }
 
