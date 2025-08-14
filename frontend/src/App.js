@@ -102,6 +102,7 @@ function App() {
       setLoading(true);
       const [
         failuresRes, 
+        resolvedFailuresRes,
         maintenanceRes, 
         equipmentRes, 
         dailyWorkRes, 
@@ -112,6 +113,7 @@ function App() {
         leadershipRes
       ] = await Promise.all([
         axios.get(`${BACKEND_URL}/api/failures`),
+        axios.get(`${BACKEND_URL}/api/resolved-failures`),
         axios.get(`${BACKEND_URL}/api/maintenance`),
         axios.get(`${BACKEND_URL}/api/equipment`),
         axios.get(`${BACKEND_URL}/api/daily-work/today`),
@@ -123,6 +125,7 @@ function App() {
       ]);
       
       setActiveFailures(failuresRes.data);
+      setResolvedFailures(resolvedFailuresRes.data);
       setPendingMaintenance(maintenanceRes.data);
       setEquipmentHours(equipmentRes.data);
       setDailyWork(dailyWorkRes.data);
