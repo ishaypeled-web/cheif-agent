@@ -2045,7 +2045,7 @@ async def google_login():
 
 @app.get("/api/auth/google/callback")
 async def google_callback(request: Request):
-    """Handle Google OAuth callback"""
+    """Handle Google OAuth callback and create authenticated user session"""
     try:
         flow = create_google_oauth_flow()
         
@@ -2060,7 +2060,7 @@ async def google_callback(request: Request):
         service = build('oauth2', 'v2', credentials=credentials)
         user_info = service.userinfo().get().execute()
         
-        # Save user tokens
+        # Save Google Calendar tokens (existing functionality)
         save_user_tokens(
             user_info['email'],
             user_info.get('name', ''),
@@ -2069,19 +2069,37 @@ async def google_callback(request: Request):
             credentials.expiry
         )
         
-        # Create response data
-        response_data = {
-            "success": True,
-            "user": {
-                "email": user_info['email'],
-                "name": user_info.get('name', ''),
-                "picture": user_info.get('picture', '')
-            }
-        }
+        # Check if user exists in our authentication system
+        google_id = user_info.get('id')
+        user = get_user_by_google_id(google_id)
         
-        # Redirect to frontend with success message
+        if not user:
+            # Create new user
+            user = create_user(
+                email=user_info['email'],
+                name=user_info.get('name', ''),
+                google_id=google_id
+            )
+        else:
+            # Update last login
+            authenticated_users_collection.update_one(
+                {"id": user["id"]},
+                {"$set": {"last_login": datetime.now().isoformat()}}
+            )
+        
+        # Create JWT access token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user["email"], "user_id": user["id"]},
+            expires_delta=access_token_expires
+        )
+        
+        # Create session in database
+        create_user_session(user["id"], access_token)
+        
+        # Redirect to frontend with authentication token
         frontend_url = os.environ.get('FRONTEND_URL', 'https://jessica-agent.preview.emergentagent.com')
-        redirect_url = f"{frontend_url}?google_auth=success&email={user_info['email']}"
+        redirect_url = f"{frontend_url}?google_auth=success&token={access_token}&email={user['email']}&name={user['name']}"
         
         return RedirectResponse(url=redirect_url)
         
