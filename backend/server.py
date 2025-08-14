@@ -250,25 +250,54 @@ def parse_ai_actions(ai_response: str):
     # Look for action patterns in AI response
     import re
     
-    # Existing patterns
+    # ADD patterns
     add_failure_pattern = r'\[ADD_FAILURE:(.*?)\]'
     add_maintenance_pattern = r'\[ADD_MAINTENANCE:(.*?)\]'
     add_equipment_pattern = r'\[ADD_EQUIPMENT:(.*?)\]'
     add_daily_work_pattern = r'\[ADD_DAILY_WORK:(.*?)\]'
-    
-    # New leadership coaching patterns
     add_conversation_pattern = r'\[ADD_CONVERSATION:(.*?)\]'
     add_dna_item_pattern = r'\[ADD_DNA_ITEM:(.*?)\]'
     add_90day_plan_pattern = r'\[ADD_90DAY_PLAN:(.*?)\]'
     
+    # UPDATE patterns - NEW!
+    update_failure_pattern = r'\[UPDATE_FAILURE:(.*?)\]'
+    update_maintenance_pattern = r'\[UPDATE_MAINTENANCE:(.*?)\]'
+    update_equipment_pattern = r'\[UPDATE_EQUIPMENT:(.*?)\]'
+    update_daily_work_pattern = r'\[UPDATE_DAILY_WORK:(.*?)\]'
+    update_conversation_pattern = r'\[UPDATE_CONVERSATION:(.*?)\]'
+    update_dna_item_pattern = r'\[UPDATE_DNA_ITEM:(.*?)\]'
+    update_90day_plan_pattern = r'\[UPDATE_90DAY_PLAN:(.*?)\]'
+    
+    # DELETE patterns - NEW!
+    delete_failure_pattern = r'\[DELETE_FAILURE:(.*?)\]'
+    delete_maintenance_pattern = r'\[DELETE_MAINTENANCE:(.*?)\]'
+    delete_equipment_pattern = r'\[DELETE_EQUIPMENT:(.*?)\]'
+    delete_daily_work_pattern = r'\[DELETE_DAILY_WORK:(.*?)\]'
+    
     patterns = [
+        # ADD patterns
         (add_failure_pattern, 'add_failure'),
         (add_maintenance_pattern, 'add_maintenance'),
         (add_equipment_pattern, 'add_equipment'),
         (add_daily_work_pattern, 'add_daily_work'),
         (add_conversation_pattern, 'add_conversation'),
         (add_dna_item_pattern, 'add_dna_item'),
-        (add_90day_plan_pattern, 'add_90day_plan')
+        (add_90day_plan_pattern, 'add_90day_plan'),
+        
+        # UPDATE patterns
+        (update_failure_pattern, 'update_failure'),
+        (update_maintenance_pattern, 'update_maintenance'),
+        (update_equipment_pattern, 'update_equipment'),
+        (update_daily_work_pattern, 'update_daily_work'),
+        (update_conversation_pattern, 'update_conversation'),
+        (update_dna_item_pattern, 'update_dna_item'),
+        (update_90day_plan_pattern, 'update_90day_plan'),
+        
+        # DELETE patterns
+        (delete_failure_pattern, 'delete_failure'),
+        (delete_maintenance_pattern, 'delete_maintenance'),
+        (delete_equipment_pattern, 'delete_equipment'),
+        (delete_daily_work_pattern, 'delete_daily_work'),
     ]
     
     for pattern, action_type in patterns:
