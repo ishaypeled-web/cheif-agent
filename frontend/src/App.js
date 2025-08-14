@@ -10,7 +10,8 @@ import { Badge } from './components/ui/badge';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
-import { AlertTriangle, Clock, Settings, Calendar, Plus, Edit, Trash2 } from 'lucide-react';
+import { Textarea } from './components/ui/textarea';
+import { AlertTriangle, Clock, Settings, Calendar, Plus, Edit, Trash2, Bot, Send, MessageCircle } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
