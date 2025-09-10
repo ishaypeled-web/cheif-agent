@@ -1472,8 +1472,8 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
         actions = parse_ai_actions(response)
         updated_tables = []
         
-        if actions:
-            updated_tables = await execute_ai_actions(actions)
+        if actions and user_id:
+            updated_tables = await execute_ai_actions(actions, user_id)
             # Remove action tags from response
             import re
             clean_response = re.sub(r'\[ADD_\w+:.*?\]', '', response, flags=re.DOTALL)
@@ -1490,10 +1490,11 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
         chat_record = {
             "id": str(uuid.uuid4()),
             "session_id": session_id,
+            "user_id": user_id,  # Add user_id
             "user_message": user_message,
             "ai_response": response,
             "timestamp": datetime.now().isoformat(),
-            "department_context": dept_data["summary"],
+            "department_context": dept_data.get("summary", {}),
             "leadership_context": len(leadership_data.get("recent_conversations", [])),
             "updated_tables": updated_tables,
             "chat_history_length": len(chat_history) if chat_history else 0
