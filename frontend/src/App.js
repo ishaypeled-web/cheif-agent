@@ -51,6 +51,15 @@ function App() {
   const [resolvedFailureForm, setResolvedFailureForm] = useState({
     resolution_method: '', resolved_by: '', actual_hours: 0, lessons_learned: ''
   });
+  const [conversationForm, setConversationForm] = useState({
+    meeting_number: 1, date: '', participant: '', topic: '', insights: '', follow_up_plan: ''
+  });
+  const [dnaForm, setDnaForm] = useState({
+    component_name: '', self_assessment: 3, target_score: 5, action_plan: '', mentor_notes: '', last_updated: ''
+  });
+  const [ninetyDayForm, setNinetyDayForm] = useState({
+    week_number: 1, goals: '', planned_activities: '', required_resources: '', success_indicators: '', status: 'מתוכנן'
+  });
 
   const [editingItem, setEditingItem] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
