@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta
 import uuid
 import os
+import secrets
 from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
 from emergentintegrations.llm.chat import LlmChat, UserMessage
