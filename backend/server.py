@@ -1626,21 +1626,22 @@ async def delete_failure(failure_id: str, current_user = Depends(get_current_use
 
 # Resolved Failures Routes
 @app.get("/api/resolved-failures")
-async def get_resolved_failures():
-    resolved_failures = list(resolved_failures_collection.find({}, {"_id": 0}).sort("resolved_date", -1))
+async def get_resolved_failures(current_user = Depends(get_current_user)):
+    resolved_failures = list(resolved_failures_collection.find({"user_id": current_user['id']}, {"_id": 0}).sort("resolved_date", -1))
     return resolved_failures
 
 @app.post("/api/resolved-failures")
-async def create_resolved_failure(resolved_failure: ResolvedFailure):
+async def create_resolved_failure(resolved_failure: ResolvedFailure, current_user = Depends(get_current_user)):
     resolved_failure_dict = resolved_failure.dict()
     resolved_failure_dict['id'] = str(uuid.uuid4())
+    resolved_failure_dict['user_id'] = current_user['id']
     resolved_failure_dict['resolved_at'] = datetime.now().isoformat()
     
     result = resolved_failures_collection.insert_one(resolved_failure_dict)
     return {"id": resolved_failure_dict['id'], "message": "Resolved failure created successfully"}
 
 @app.put("/api/resolved-failures/{failure_id}")
-async def update_resolved_failure(failure_id: str, updates: dict):
+async def update_resolved_failure(failure_id: str, updates: dict, current_user = Depends(get_current_user)):
     """Update resolution details for a resolved failure"""
     try:
         # Find the resolved failure
