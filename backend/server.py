@@ -1750,9 +1750,10 @@ async def delete_maintenance(maintenance_id: str, current_user = Depends(get_cur
 
 # Equipment Hours Routes
 @app.post("/api/equipment")
-async def create_equipment(equipment: EquipmentHours):
+async def create_equipment(equipment: EquipmentHours, current_user = Depends(get_current_user)):
     equipment_dict = equipment.dict()
     equipment_dict['id'] = str(uuid.uuid4())
+    equipment_dict['user_id'] = current_user['id']
     equipment_dict['created_at'] = datetime.now().isoformat()
     
     # Calculate service hours
@@ -1762,8 +1763,8 @@ async def create_equipment(equipment: EquipmentHours):
     return {"id": equipment_dict['id'], "message": "Equipment created successfully"}
 
 @app.get("/api/equipment")
-async def get_equipment():
-    equipment_items = list(equipment_hours_collection.find({}, {"_id": 0}))
+async def get_equipment(current_user = Depends(get_current_user)):
+    equipment_items = list(equipment_hours_collection.find({"user_id": current_user['id']}, {"_id": 0}))
     # Recalculate service hours for each item
     for item in equipment_items:
         item = calculate_service_hours(item)
@@ -1773,12 +1774,13 @@ async def get_equipment():
     return equipment_items
 
 @app.put("/api/equipment/{equipment_id}")
-async def update_equipment(equipment_id: str, equipment: EquipmentHours):
+async def update_equipment(equipment_id: str, equipment: EquipmentHours, current_user = Depends(get_current_user)):
     equipment_dict = equipment.dict()
+    equipment_dict['user_id'] = current_user['id']
     equipment_dict = calculate_service_hours(equipment_dict)
     
     result = equipment_hours_collection.update_one(
-        {"id": equipment_id}, 
+        {"id": equipment_id, "user_id": current_user['id']}, 
         {"$set": equipment_dict}
     )
     if result.matched_count == 0:
@@ -1786,8 +1788,8 @@ async def update_equipment(equipment_id: str, equipment: EquipmentHours):
     return {"message": "Equipment updated successfully"}
 
 @app.delete("/api/equipment/{equipment_id}")
-async def delete_equipment(equipment_id: str):
-    result = equipment_hours_collection.delete_one({"id": equipment_id})
+async def delete_equipment(equipment_id: str, current_user = Depends(get_current_user)):
+    result = equipment_hours_collection.delete_one({"id": equipment_id, "user_id": current_user['id']})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Equipment not found")
     return {"message": "Equipment deleted successfully"}
