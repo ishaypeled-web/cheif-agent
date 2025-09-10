@@ -1796,17 +1796,18 @@ async def delete_equipment(equipment_id: str, current_user = Depends(get_current
 
 # Daily Work Plan Routes
 @app.post("/api/daily-work")
-async def create_daily_work(work: DailyWorkPlan):
+async def create_daily_work(work: DailyWorkPlan, current_user = Depends(get_current_user)):
     work_dict = work.dict()
     work_dict['id'] = str(uuid.uuid4())
+    work_dict['user_id'] = current_user['id']
     work_dict['created_at'] = datetime.now().isoformat()
     
     result = daily_work_collection.insert_one(work_dict)
     return {"id": work_dict['id'], "message": "Daily work created successfully"}
 
 @app.get("/api/daily-work")
-async def get_daily_work(date: Optional[str] = None):
-    query = {}
+async def get_daily_work(date: Optional[str] = None, current_user = Depends(get_current_user)):
+    query = {"user_id": current_user['id']}
     if date:
         query['date'] = date
     
@@ -1816,15 +1817,16 @@ async def get_daily_work(date: Optional[str] = None):
     return work_items
 
 @app.get("/api/daily-work/today")
-async def get_today_work():
+async def get_today_work(current_user = Depends(get_current_user)):
     today = datetime.now().isoformat()[:10]
-    return await get_daily_work(today)
+    return await get_daily_work(today, current_user)
 
 @app.put("/api/daily-work/{work_id}")
-async def update_daily_work(work_id: str, work: DailyWorkPlan):
+async def update_daily_work(work_id: str, work: DailyWorkPlan, current_user = Depends(get_current_user)):
     work_dict = work.dict()
+    work_dict['user_id'] = current_user['id']
     result = daily_work_collection.update_one(
-        {"id": work_id}, 
+        {"id": work_id, "user_id": current_user['id']}, 
         {"$set": work_dict}
     )
     if result.matched_count == 0:
@@ -1832,8 +1834,8 @@ async def update_daily_work(work_id: str, work: DailyWorkPlan):
     return {"message": "Daily work updated successfully"}
 
 @app.delete("/api/daily-work/{work_id}")
-async def delete_daily_work(work_id: str):
-    result = daily_work_collection.delete_one({"id": work_id})
+async def delete_daily_work(work_id: str, current_user = Depends(get_current_user)):
+    result = daily_work_collection.delete_one({"id": work_id, "user_id": current_user['id']})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Work item not found")
     return {"message": "Daily work deleted successfully"}
