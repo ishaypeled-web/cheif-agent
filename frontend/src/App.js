@@ -276,7 +276,11 @@ function App() {
   };
 
   const initiateGoogleAuth = () => {
-    window.location.href = `${BACKEND_URL}/api/auth/google/login`;
+    // Use window.location.origin as fallback to ensure it always works
+    const backendUrl = BACKEND_URL || window.location.origin;
+    const authUrl = `${backendUrl}/api/auth/google/login`;
+    console.log('Redirecting to Google OAuth:', authUrl);
+    window.location.href = authUrl;
   };
 
   // Helper functions
