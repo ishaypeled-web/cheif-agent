@@ -1289,11 +1289,69 @@ function App() {
           </TabsContent>
 
           <TabsContent value="daily-work" className="space-y-6">
-            <div className="text-center py-12">
-              <Settings className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">תכנון עבודה יומי</h3>
-              <p className="text-gray-600">הטבלה תהיה זמינה בקרוב עם מערכת ההפרדה החדשה</p>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">תכנון עבודה יומי</h2>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('daily-work', 'תכנון עבודה יומי - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('daily-work')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף משימה
+                </Button>
+              </div>
             </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>תאריך</TableHead>
+                      <TableHead>משימה</TableHead>
+                      <TableHead>מקור</TableHead>
+                      <TableHead>מבצע</TableHead>
+                      <TableHead>זמן משוער</TableHead>
+                      <TableHead>הערות</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dailyWork.map((work) => (
+                      <TableRow key={work.id}>
+                        <TableCell>{work.date}</TableCell>
+                        <TableCell className="font-medium">{work.task}</TableCell>
+                        <TableCell>{work.source}</TableCell>
+                        <TableCell>{work.assignee}</TableCell>
+                        <TableCell>{work.estimated_hours}h</TableCell>
+                        <TableCell className="max-w-xs truncate">{work.notes}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => openDialog('daily-work', work)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {dailyWork.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    אין משימות לתאריך זה
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="conversations" className="space-y-6">
