@@ -429,6 +429,29 @@ function App() {
     }
   };
 
+  const handleDeleteMaintenance = async (maintenance) => {
+    if (!window.confirm('האם אתה בטוח שברצונך למחוק תחזוקה זו?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/maintenance/${maintenance.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        await fetchData();
+        alert('התחזוקה נמחקה בהצלחה');
+      } else {
+        throw new Error('Failed to delete maintenance');
+      }
+    } catch (error) {
+      console.error('Error deleting maintenance:', error);
+      alert('שגיאה במחיקת התחזוקה');
+    }
+  };
+
   const handleAddEquipment = async () => {
     if (!isAuthenticated) return;
     
