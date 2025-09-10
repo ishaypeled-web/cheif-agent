@@ -1926,17 +1926,18 @@ async def delete_dna_item(dna_id: str, current_user = Depends(get_current_user))
     return {"message": "DNA item deleted successfully"}
 
 @app.post("/api/ninety-day-plan")
-async def create_plan_item(plan: NinetyDayPlan):
+async def create_plan_item(plan: NinetyDayPlan, current_user = Depends(get_current_user)):
     plan_dict = plan.dict()
     plan_dict['id'] = str(uuid.uuid4())
+    plan_dict['user_id'] = current_user['id']
     plan_dict['created_at'] = datetime.now().isoformat()
     
     # Check if week already exists
-    existing = ninety_day_plan_collection.find_one({'week_number': plan_dict['week_number']})
+    existing = ninety_day_plan_collection.find_one({'week_number': plan_dict['week_number'], 'user_id': current_user['id']})
     if existing:
         # Update existing
         result = ninety_day_plan_collection.update_one(
-            {'week_number': plan_dict['week_number']},
+            {'week_number': plan_dict['week_number'], 'user_id': current_user['id']},
             {'$set': plan_dict}
         )
         return {"id": existing['id'], "message": f"Week {plan_dict['week_number']} plan updated successfully"}
@@ -1946,15 +1947,16 @@ async def create_plan_item(plan: NinetyDayPlan):
         return {"id": plan_dict['id'], "message": f"Week {plan_dict['week_number']} plan created successfully"}
 
 @app.get("/api/ninety-day-plan")
-async def get_ninety_day_plan():
-    plan_items = list(ninety_day_plan_collection.find({}, {"_id": 0}).sort("week_number", 1))
+async def get_ninety_day_plan(current_user = Depends(get_current_user)):
+    plan_items = list(ninety_day_plan_collection.find({"user_id": current_user['id']}, {"_id": 0}).sort("week_number", 1))
     return plan_items
 
 @app.put("/api/ninety-day-plan/{plan_id}")
-async def update_plan_item(plan_id: str, plan: NinetyDayPlan):
+async def update_plan_item(plan_id: str, plan: NinetyDayPlan, current_user = Depends(get_current_user)):
     plan_dict = plan.dict()
+    plan_dict['user_id'] = current_user['id']
     result = ninety_day_plan_collection.update_one(
-        {"id": plan_id}, 
+        {"id": plan_id, "user_id": current_user['id']}, 
         {"$set": plan_dict}
     )
     if result.matched_count == 0:
@@ -1962,8 +1964,8 @@ async def update_plan_item(plan_id: str, plan: NinetyDayPlan):
     return {"message": "Plan item updated successfully"}
 
 @app.delete("/api/ninety-day-plan/{plan_id}")
-async def delete_plan_item(plan_id: str):
-    result = ninety_day_plan_collection.delete_one({"id": plan_id})
+async def delete_plan_item(plan_id: str, current_user = Depends(get_current_user)):
+    result = ninety_day_plan_collection.delete_one({"id": plan_id, "user_id": current_user['id']})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Plan item not found")
     return {"message": "Plan item deleted successfully"}
