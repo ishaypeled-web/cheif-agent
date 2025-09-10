@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Resolved Failures Feature
-Testing the complete flow of resolved failures functionality
+Backend Testing Suite for Yahel Naval Management System
+Testing authentication functionality and data isolation after recent updates
 """
 
 import requests
