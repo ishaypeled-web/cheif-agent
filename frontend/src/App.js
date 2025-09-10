@@ -1199,25 +1199,88 @@ function App() {
 
           {/* Placeholder for remaining tabs... */}
           <TabsContent value="maintenance" className="space-y-6">
-            <MaintenancesTab 
-              maintenances={pendingMaintenance}
-              onAdd={() => {
-                setDialogType('maintenance');
-                setEditingItem(null);
-                setMaintenanceForm({
-                  maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
-                });
-                setShowDialog(true);
-              }}
-              onEdit={(maintenance) => {
-                setDialogType('maintenance');
-                setEditingItem(maintenance);
-                setMaintenanceForm(maintenance);
-                setShowDialog(true);
-              }}
-              onDelete={handleDeleteMaintenance}
-              onExport={() => handleExportTable('maintenance', 'תחזוקות ממתינות - יציאה')}
-            />
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">תחזוקות ממתינות</h2>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('maintenance', 'תחזוקות ממתינות - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('maintenance')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף תחזוקה
+                </Button>
+              </div>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>סוג תחזוקה</TableHead>
+                      <TableHead>מערכת</TableHead>
+                      <TableHead>תדירות (ימים)</TableHead>
+                      <TableHead>תחזוקה אחרונה</TableHead>
+                      <TableHead>ימים לתחזוקה</TableHead>
+                      <TableHead>סטטוס</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingMaintenance.map((maintenance) => (
+                      <TableRow key={maintenance.id}>
+                        <TableCell className="font-medium">{maintenance.maintenance_type}</TableCell>
+                        <TableCell>{maintenance.system}</TableCell>
+                        <TableCell>{maintenance.frequency_days}</TableCell>
+                        <TableCell>{maintenance.last_performed}</TableCell>
+                        <TableCell>
+                          <Badge className={maintenance.days_until_due <= 0 ? 'bg-red-100 text-red-800' : 
+                                          maintenance.days_until_due <= 7 ? 'bg-yellow-100 text-yellow-800' : 
+                                          'bg-green-100 text-green-800'}>
+                            {maintenance.days_until_due || 0}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={maintenance.days_until_due <= 0 ? 'destructive' : 
+                                        maintenance.days_until_due <= 7 ? 'secondary' : 'default'}>
+                            {maintenance.days_until_due <= 0 ? 'חריג' : 
+                             maintenance.days_until_due <= 7 ? 'דחוף' : 'תקין'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => openDialog('maintenance', maintenance)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleDeleteMaintenance(maintenance)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {pendingMaintenance.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    אין תחזוקות ממתינות
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-6">
