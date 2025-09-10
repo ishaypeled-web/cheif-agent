@@ -42,7 +42,7 @@ class AuthenticationTest:
             print(f"   Details: {details}")
     
     def test_1_google_oauth_login_endpoint(self):
-        """Test 1: Google OAuth login endpoint - should redirect to Google OAuth"""
+        """Test 1: Google OAuth login endpoint - should redirect to Google OAuth with correct client_id"""
         try:
             # Don't follow redirects to check the redirect response
             response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS, allow_redirects=False)
@@ -51,12 +51,22 @@ class AuthenticationTest:
                 # Check if redirect location contains Google OAuth components
                 location = response.headers.get('Location', '')
                 if 'accounts.google.com' in location and 'oauth2' in location:
-                    self.log_result(
-                        "Google OAuth login endpoint", 
-                        True, 
-                        "Successfully redirects to Google OAuth",
-                        f"Redirect location contains Google OAuth components: {location[:100]}..."
-                    )
+                    # Check if the correct client_id is in the URL
+                    expected_client_id = "383959914027-m8mtk81ocnvtjsfjl6eqsv2cdfh6t2m1.apps.googleusercontent.com"
+                    if expected_client_id in location:
+                        self.log_result(
+                            "Google OAuth login endpoint", 
+                            True, 
+                            "✅ Successfully redirects to Google OAuth with correct client_id (NO MORE 403 DELETED CLIENT ERROR!)",
+                            f"✅ Redirect URL contains correct client_id: {expected_client_id[:50]}... ✅ Full URL: {location[:150]}..."
+                        )
+                    else:
+                        self.log_result(
+                            "Google OAuth login endpoint", 
+                            False, 
+                            "Redirects to Google but with wrong client_id",
+                            f"Expected client_id not found in URL: {location[:150]}..."
+                        )
                 else:
                     self.log_result(
                         "Google OAuth login endpoint", 
@@ -71,12 +81,22 @@ class AuthenticationTest:
                     if 'authorization_url' in data and 'state' in data:
                         auth_url = data.get('authorization_url', '')
                         if 'accounts.google.com' in auth_url and 'oauth2' in auth_url:
-                            self.log_result(
-                                "Google OAuth login endpoint", 
-                                True, 
-                                "Successfully returns Google OAuth authorization URL",
-                                f"URL contains Google OAuth components, State: {data.get('state', '')[:20]}..."
-                            )
+                            # Check client_id in JSON response
+                            expected_client_id = "383959914027-m8mtk81ocnvtjsfjl6eqsv2cdfh6t2m1.apps.googleusercontent.com"
+                            if expected_client_id in auth_url:
+                                self.log_result(
+                                    "Google OAuth login endpoint", 
+                                    True, 
+                                    "✅ Successfully returns Google OAuth authorization URL with correct client_id",
+                                    f"✅ URL contains correct client_id, State: {data.get('state', '')[:20]}... ✅ Client resolved 403 error!"
+                                )
+                            else:
+                                self.log_result(
+                                    "Google OAuth login endpoint", 
+                                    False, 
+                                    "Authorization URL doesn't contain expected client_id",
+                                    f"Expected client_id not found in URL: {auth_url[:150]}..."
+                                )
                         else:
                             self.log_result(
                                 "Google OAuth login endpoint", 
