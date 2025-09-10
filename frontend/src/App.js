@@ -1355,11 +1355,69 @@ function App() {
           </TabsContent>
 
           <TabsContent value="conversations" className="space-y-6">
-            <div className="text-center py-12">
-              <MessageCircle className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">מעקב שיחות</h3>
-              <p className="text-gray-600">הטבלה תהיה זמינה בקרוב עם מערכת ההפרדה החדשה</p>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">מעקב שיחות</h2>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('conversations', 'מעקב שיחות - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('conversation')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף שיחה
+                </Button>
+              </div>
             </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>מס' פגישה</TableHead>
+                      <TableHead>תאריך</TableHead>
+                      <TableHead>משתתף</TableHead>
+                      <TableHead>נושא</TableHead>
+                      <TableHead>תובנות</TableHead>
+                      <TableHead>תכנית מעקב</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {conversations.map((conversation) => (
+                      <TableRow key={conversation.id}>
+                        <TableCell className="font-medium">{conversation.meeting_number}</TableCell>
+                        <TableCell>{conversation.date}</TableCell>
+                        <TableCell>{conversation.participant}</TableCell>
+                        <TableCell className="max-w-xs truncate">{conversation.topic}</TableCell>
+                        <TableCell className="max-w-xs truncate">{conversation.insights}</TableCell>
+                        <TableCell className="max-w-xs truncate">{conversation.follow_up_plan}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => openDialog('conversation', conversation)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {conversations.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    אין שיחות רשומות
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="dna-tracker" className="space-y-6">
