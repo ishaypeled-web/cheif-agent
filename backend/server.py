@@ -1560,23 +1560,24 @@ async def ai_chat(message: ChatMessage):
 
 # Active Failures Routes
 @app.post("/api/failures")
-async def create_failure(failure: ActiveFailure):
+async def create_failure(failure: ActiveFailure, current_user = Depends(get_current_user)):
     failure_dict = failure.dict()
     failure_dict['id'] = str(uuid.uuid4())
+    failure_dict['user_id'] = current_user['id']  # Associate with authenticated user
     failure_dict['created_at'] = datetime.now().isoformat()
     
     result = active_failures_collection.insert_one(failure_dict)
     return {"id": failure_dict['id'], "message": "Failure created successfully"}
 
 @app.get("/api/failures")
-async def get_failures():
-    failures = list(active_failures_collection.find({}, {"_id": 0}))
+async def get_failures(current_user = Depends(get_current_user)):
+    failures = list(active_failures_collection.find({"user_id": current_user['id']}, {"_id": 0}))
     # Sort by urgency (highest first) then by date
     failures.sort(key=lambda x: (-x['urgency'], x['date']))
     return failures
 
 @app.put("/api/failures/{failure_id}")
-async def update_failure(failure_id: str, failure: ActiveFailure):
+async def update_failure(failure_id: str, failure: ActiveFailure, current_user = Depends(get_current_user)):
     # Get current failure data before update
     current_failure = active_failures_collection.find_one({"id": failure_id})
     if not current_failure:
