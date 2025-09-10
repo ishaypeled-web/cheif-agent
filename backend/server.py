@@ -1644,8 +1644,8 @@ async def create_resolved_failure(resolved_failure: ResolvedFailure, current_use
 async def update_resolved_failure(failure_id: str, updates: dict, current_user = Depends(get_current_user)):
     """Update resolution details for a resolved failure"""
     try:
-        # Find the resolved failure
-        query = {'id': failure_id} if not failure_id.startswith('F') else {'failure_number': failure_id}
+        # Find the resolved failure (filter by user)
+        query = {'id': failure_id, 'user_id': current_user['id']} if not failure_id.startswith('F') else {'failure_number': failure_id, 'user_id': current_user['id']}
         
         update_data = {}
         if 'resolution_method' in updates:
@@ -1668,9 +1668,9 @@ async def update_resolved_failure(failure_id: str, updates: dict, current_user =
         raise HTTPException(status_code=500, detail=f"Error updating resolved failure: {str(e)}")
 
 @app.get("/api/resolved-failures/{failure_id}")
-async def get_resolved_failure(failure_id: str):
+async def get_resolved_failure(failure_id: str, current_user = Depends(get_current_user)):
     """Get specific resolved failure"""
-    query = {'id': failure_id} if not failure_id.startswith('F') else {'failure_number': failure_id}
+    query = {'id': failure_id, 'user_id': current_user['id']} if not failure_id.startswith('F') else {'failure_number': failure_id, 'user_id': current_user['id']}
     resolved_failure = resolved_failures_collection.find_one(query, {"_id": 0})
     
     if not resolved_failure:
@@ -1679,7 +1679,7 @@ async def get_resolved_failure(failure_id: str):
     return resolved_failure
 
 @app.delete("/api/resolved-failures/{failure_id}")
-async def delete_resolved_failure(failure_id: str):
+async def delete_resolved_failure(failure_id: str, current_user = Depends(get_current_user)):
     """Delete specific resolved failure"""
     try:
         query = {'id': failure_id} if not failure_id.startswith('F') else {'failure_number': failure_id}
