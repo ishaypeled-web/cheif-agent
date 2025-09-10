@@ -1421,11 +1421,73 @@ function App() {
           </TabsContent>
 
           <TabsContent value="dna-tracker" className="space-y-6">
-            <div className="text-center py-12">
-              <Settings className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">DNA מנהיגותי</h3>
-              <p className="text-gray-600">הטבלה תהיה זמינה בקרוב עם מערכת ההפרדה החדשה</p>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">DNA מנהיגותי</h2>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('dna-tracker', 'DNA מנהיגותי - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('dna')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף רכיב
+                </Button>
+              </div>
             </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>רכיב מנהיגותי</TableHead>
+                      <TableHead>הערכה עצמית</TableHead>
+                      <TableHead>יעד</TableHead>
+                      <TableHead>תכנית פעולה</TableHead>
+                      <TableHead>הערות מנטור</TableHead>
+                      <TableHead>עדכון אחרון</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dnaTracker.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.component_name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{item.self_assessment}/5</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{item.target_score}/5</Badge>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">{item.action_plan}</TableCell>
+                        <TableCell className="max-w-xs truncate">{item.mentor_notes}</TableCell>
+                        <TableCell>{item.last_updated}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => openDialog('dna', item)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {dnaTracker.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    אין רכיבי DNA מוגדרים
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="ninety-day" className="space-y-6">
