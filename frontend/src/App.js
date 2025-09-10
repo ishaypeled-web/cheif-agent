@@ -1172,11 +1172,25 @@ function App() {
 
           {/* Placeholder for remaining tabs... */}
           <TabsContent value="maintenance" className="space-y-6">
-            <div className="text-center py-12">
-              <Settings className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">טבלת תחזוקות</h3>
-              <p className="text-gray-600">הטבלה תהיה זמינה בקרוב עם מערכת ההפרדה החדשה</p>
-            </div>
+            <MaintenancesTab 
+              maintenances={pendingMaintenance}
+              onAdd={() => {
+                setDialogType('maintenance');
+                setEditingItem(null);
+                setMaintenanceForm({
+                  maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
+                });
+                setShowDialog(true);
+              }}
+              onEdit={(maintenance) => {
+                setDialogType('maintenance');
+                setEditingItem(maintenance);
+                setMaintenanceForm(maintenance);
+                setShowDialog(true);
+              }}
+              onDelete={handleDeleteMaintenance}
+              onExport={handleExportToSheets}
+            />
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-6">
