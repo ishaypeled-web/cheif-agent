@@ -323,6 +323,82 @@ function App() {
   const openDialog = (type, item = null) => {
     setDialogType(type);
     setEditingItem(item);
+    
+    // Reset forms based on type
+    if (item) {
+      // Editing existing item
+      switch (type) {
+        case 'failure':
+          setFailureForm(item);
+          break;
+        case 'maintenance':
+          setMaintenanceForm(item);
+          break;
+        case 'equipment':
+          setEquipmentForm(item);
+          break;
+        case 'daily-work':
+          setWorkForm(item);
+          break;
+        case 'conversation':
+          setConversationForm(item);
+          break;
+        case 'dna':
+          setDnaForm(item);
+          break;
+        case 'ninety-day':
+          setNinetyDayForm(item);
+          break;
+        case 'resolved-failure':
+          setResolvedFailureForm(item);
+          break;
+      }
+    } else {
+      // Adding new item - reset forms
+      switch (type) {
+        case 'failure':
+          setFailureForm({
+            failure_number: '', date: '', system: '', description: '', urgency: 1, assignee: '', estimated_hours: 0, status: 'פתוח'
+          });
+          break;
+        case 'maintenance':
+          setMaintenanceForm({
+            maintenance_type: '', system: '', frequency_days: 30, last_performed: ''
+          });
+          break;
+        case 'equipment':
+          setEquipmentForm({
+            system: '', system_type: 'מנועים', current_hours: 0, last_service_date: ''
+          });
+          break;
+        case 'daily-work':
+          setWorkForm({
+            date: new Date().toISOString().split('T')[0], task: '', source: 'תקלה', source_id: '', assignee: '', estimated_hours: 0, notes: ''
+          });
+          break;
+        case 'conversation':
+          setConversationForm({
+            meeting_number: conversations.length + 1, date: new Date().toISOString().split('T')[0], participant: '', topic: '', insights: '', follow_up_plan: ''
+          });
+          break;
+        case 'dna':
+          setDnaForm({
+            component_name: '', self_assessment: 3, target_score: 5, action_plan: '', mentor_notes: '', last_updated: new Date().toISOString().split('T')[0]
+          });
+          break;
+        case 'ninety-day':
+          setNinetyDayForm({
+            week_number: ninetyDayPlan.length + 1, goals: '', planned_activities: '', required_resources: '', success_indicators: '', status: 'מתוכנן'
+          });
+          break;
+        case 'resolved-failure':
+          setResolvedFailureForm({
+            resolution_method: '', resolved_by: '', actual_hours: 0, lessons_learned: ''
+          });
+          break;
+      }
+    }
+    
     setShowDialog(true);
   };
 
