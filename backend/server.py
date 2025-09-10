@@ -1682,7 +1682,7 @@ async def get_resolved_failure(failure_id: str, current_user = Depends(get_curre
 async def delete_resolved_failure(failure_id: str, current_user = Depends(get_current_user)):
     """Delete specific resolved failure"""
     try:
-        query = {'id': failure_id} if not failure_id.startswith('F') else {'failure_number': failure_id}
+        query = {'id': failure_id, 'user_id': current_user['id']} if not failure_id.startswith('F') else {'failure_number': failure_id, 'user_id': current_user['id']}
         result = resolved_failures_collection.delete_one(query)
         
         if result.deleted_count == 0:
