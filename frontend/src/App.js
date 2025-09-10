@@ -587,14 +587,18 @@ function App() {
               <p className="text-gray-600 text-sm mb-6">
                 התחבר עם חשבון Google שלך כדי לגשת למערכת
               </p>
-              <Button 
-                onClick={initiateGoogleAuth}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-                size="lg"
+              <a 
+                href="https://fleet-mentor.preview.emergentagent.com/api/auth/google/login"
+                className="w-full"
               >
-                <User className="h-5 w-5 ml-2" />
-                התחבר עם Google
-              </Button>
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                  size="lg"
+                >
+                  <User className="h-5 w-5 ml-2" />
+                  התחבר עם Google
+                </Button>
+              </a>
             </div>
             
             <div className="text-center text-sm text-gray-500">
