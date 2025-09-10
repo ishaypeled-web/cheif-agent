@@ -1510,8 +1510,22 @@ async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_
         )
         
     except Exception as e:
-        print(f"Error in AI agent: {e}")
-        raise HTTPException(status_code=500, detail=f"AI Agent Error: {str(e)}")
+        error_msg = str(e)
+        print(f"Error in AI agent: {error_msg}")
+        
+        # Return a friendly error message instead of crashing
+        if "AuthenticationError" in error_msg or "API key" in error_msg:
+            return ChatResponse(
+                response="מצטער, יש בעיה זמנית בחיבור למערכת הAI. אנא נסה שוב מאוחר יותר.",
+                success=False,
+                updated_tables=[]
+            )
+        else:
+            return ChatResponse(
+                response="מצטער, אירעה שגיאה. אנא נסה שוב או פנה למנהל המערכת.",
+                success=False,
+                updated_tables=[]
+            )
 
 # API Routes
 
