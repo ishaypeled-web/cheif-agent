@@ -1515,11 +1515,11 @@ async def root():
 
 # AI Chat Route
 @app.get("/api/ai-chat/history/{session_id}")
-async def get_session_chat_history(session_id: str):
+async def get_session_chat_history(session_id: str, current_user = Depends(get_current_user)):
     """Get chat history for specific session"""
     try:
         chat_records = list(ai_chat_history_collection.find(
-            {"session_id": session_id}, 
+            {"session_id": session_id, "user_id": current_user['id']}, 
             {"_id": 0}
         ).sort("timestamp", 1))
         
@@ -1542,20 +1542,23 @@ async def get_session_chat_history(session_id: str):
         return {"history": []}
 
 @app.delete("/api/ai-chat/history/{session_id}")
-async def clear_session_chat_history(session_id: str):
+async def clear_session_chat_history(session_id: str, current_user = Depends(get_current_user)):
     """Clear chat history for specific session"""
     try:
-        result = ai_chat_history_collection.delete_many({"session_id": session_id})
+        result = ai_chat_history_collection.delete_many({"session_id": session_id, "user_id": current_user['id']})
         return {"message": f"Cleared {result.deleted_count} chat records"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing chat history: {str(e)}")
 
 @app.post("/api/ai-chat")
-async def ai_chat(message: ChatMessage):
+async def ai_chat(message: ChatMessage, current_user = Depends(get_current_user)):
+    # Add user context to the message
+    message.user_id = current_user['id']
     response = await create_yahel_ai_agent(
         message.user_message, 
         message.session_id, 
-        message.chat_history
+        message.chat_history,
+        current_user
     )
     return response
 
