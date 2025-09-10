@@ -1212,7 +1212,7 @@ function App() {
                 setShowDialog(true);
               }}
               onDelete={handleDeleteMaintenance}
-              onExport={handleExportToSheets}
+              onExport={() => handleExportTable('maintenance', 'תחזוקות ממתינות - יציאה')}
             />
           </TabsContent>
 
