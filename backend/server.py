@@ -2074,30 +2074,40 @@ async def google_login():
         raise HTTPException(status_code=500, detail=f"Error creating OAuth flow: {str(e)}")
 
 @app.get("/api/auth/google/callback")
-async def google_callback(request: Request):
+async def google_callback(request: Request, code: str = None, state: str = None, error: str = None):
     """Handle Google OAuth callback and create authenticated user session"""
     try:
-        flow = create_google_oauth_flow()
+        if error:
+            raise HTTPException(status_code=400, detail=f"OAuth error: {error}")
+            
+        if not code:
+            raise HTTPException(status_code=400, detail="No authorization code received")
         
-        # Get the full URL with query parameters
-        authorization_response = str(request.url)
+        # Exchange code for token using direct HTTP requests to avoid HTTPS issues
+        import httpx
         
-        # Fetch token
-        flow.fetch_token(authorization_response=authorization_response)
+        token_url = "https://oauth2.googleapis.com/token"
+        token_data = {
+            "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+            "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": os.environ.get('GOOGLE_REDIRECT_URI')
+        }
+        
+        async with httpx.AsyncClient() as client:
+            token_response = await client.post(token_url, data=token_data)
+            token_response.raise_for_status()
+            tokens = token_response.json()
         
         # Get user info
-        credentials = flow.credentials
-        service = build('oauth2', 'v2', credentials=credentials)
-        user_info = service.userinfo().get().execute()
+        access_token = tokens.get("access_token")
+        user_info_url = f"https://www.googleapis.com/oauth2/v2/userinfo?access_token={access_token}"
         
-        # Save Google Calendar tokens (existing functionality)
-        save_user_tokens(
-            user_info['email'],
-            user_info.get('name', ''),
-            credentials.token,
-            credentials.refresh_token,
-            credentials.expiry
-        )
+        async with httpx.AsyncClient() as client:
+            user_response = await client.get(user_info_url)
+            user_response.raise_for_status()
+            user_info = user_response.json()
         
         # Check if user exists in our authentication system
         google_id = user_info.get('id')
@@ -2119,17 +2129,26 @@ async def google_callback(request: Request):
         
         # Create JWT access token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
+        jwt_token = create_access_token(
             data={"sub": user["email"], "user_id": user["id"]},
             expires_delta=access_token_expires
         )
         
         # Create session in database
-        create_user_session(user["id"], access_token)
+        create_user_session(user["id"], jwt_token)
+        
+        # Save Google Calendar tokens for existing functionality
+        save_user_tokens(
+            user_info['email'],
+            user_info.get('name', ''),
+            access_token,
+            tokens.get('refresh_token'),
+            None  # We'll handle expiry differently
+        )
         
         # Redirect to frontend with authentication token
         frontend_url = os.environ.get('FRONTEND_URL', 'https://fleet-mentor.preview.emergentagent.com')
-        redirect_url = f"{frontend_url}?google_auth=success&token={access_token}&email={user['email']}&name={user['name']}"
+        redirect_url = f"{frontend_url}?google_auth=success&token={jwt_token}&email={user['email']}&name={user['name']}"
         
         return RedirectResponse(url=redirect_url)
         
