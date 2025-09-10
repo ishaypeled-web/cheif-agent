@@ -1843,24 +1843,27 @@ async def delete_daily_work(work_id: str, current_user = Depends(get_current_use
 # Leadership Coaching Routes
 
 @app.post("/api/conversations")
-async def create_conversation(conversation: Conversation):
+async def create_conversation(conversation: Conversation, current_user = Depends(get_current_user)):
     conversation_dict = conversation.dict()
     conversation_dict['id'] = str(uuid.uuid4())
+    conversation_dict['user_id'] = current_user['id']
     conversation_dict['created_at'] = datetime.now().isoformat()
     
     result = conversations_collection.insert_one(conversation_dict)
     return {"id": conversation_dict['id'], "message": "Conversation created successfully"}
 
 @app.get("/api/conversations")
-async def get_conversations():
-    conversations = list(conversations_collection.find({}, {"_id": 0}).sort("meeting_number", -1))
+async def get_conversations(current_user = Depends(get_current_user)):
+    conversations = list(conversations_collection.find({"user_id": current_user['id']}, {"_id": 0}).sort("meeting_number", -1))
     return conversations
 
 @app.put("/api/conversations/{conversation_id}")
-async def update_conversation(conversation_id: str, conversation: Conversation):
+async def update_conversation(conversation_id: str, conversation: Conversation, current_user = Depends(get_current_user)):
     conversation_dict = conversation.dict()
+    conversation_dict['user_id'] = current_user['id']
+    
     result = conversations_collection.update_one(
-        {"id": conversation_id}, 
+        {"id": conversation_id, "user_id": current_user['id']}, 
         {"$set": conversation_dict}
     )
     if result.matched_count == 0:
@@ -1868,8 +1871,8 @@ async def update_conversation(conversation_id: str, conversation: Conversation):
     return {"message": "Conversation updated successfully"}
 
 @app.delete("/api/conversations/{conversation_id}")
-async def delete_conversation(conversation_id: str):
-    result = conversations_collection.delete_one({"id": conversation_id})
+async def delete_conversation(conversation_id: str, current_user = Depends(get_current_user)):
+    result = conversations_collection.delete_one({"id": conversation_id, "user_id": current_user['id']})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {"message": "Conversation deleted successfully"}
