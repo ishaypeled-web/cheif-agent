@@ -926,7 +926,7 @@ def parse_ai_actions(ai_response: str):
     
     return actions
 
-async def execute_ai_actions(actions):
+async def execute_ai_actions(actions, user_id: str):
     """Execute database actions from AI"""
     updated_tables = []
     
@@ -936,6 +936,7 @@ async def execute_ai_actions(actions):
                 # Create failure
                 failure_data = {
                     'id': str(uuid.uuid4()),
+                    'user_id': user_id,  # Add user_id
                     'failure_number': params.get('failure_number', f'F{datetime.now().strftime("%m%d%H%M")}'),
                     'date': params.get('date', datetime.now().isoformat()[:10]),
                     'system': params.get('system', ''),
