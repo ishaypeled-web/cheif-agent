@@ -2777,10 +2777,10 @@ async def export_equipment(request: ExportRequest, current_user = Depends(get_cu
         )
 
 @app.post("/api/export/daily-work", response_model=ExportResponse)
-async def export_daily_work(request: ExportRequest):
+async def export_daily_work(request: ExportRequest, current_user = Depends(get_current_user)):
     """Export daily work data to Google Sheets"""
     try:
-        daily_work = list(daily_work_collection.find({}, {"_id": 0}))
+        daily_work = list(daily_work_collection.find({"user_id": current_user['id']}, {"_id": 0}))
         result = export_table_to_sheets("daily-work", daily_work, request.sheet_title)
         
         return ExportResponse(
@@ -2796,10 +2796,10 @@ async def export_daily_work(request: ExportRequest):
         )
 
 @app.post("/api/export/conversations", response_model=ExportResponse)
-async def export_conversations(request: ExportRequest):
+async def export_conversations(request: ExportRequest, current_user = Depends(get_current_user)):
     """Export conversations data to Google Sheets"""
     try:
-        conversations = list(conversations_collection.find({}, {"_id": 0}))
+        conversations = list(conversations_collection.find({"user_id": current_user['id']}, {"_id": 0}))
         result = export_table_to_sheets("conversations", conversations, request.sheet_title)
         
         return ExportResponse(
@@ -2815,10 +2815,10 @@ async def export_conversations(request: ExportRequest):
         )
 
 @app.post("/api/export/dna-tracker", response_model=ExportResponse)
-async def export_dna_tracker(request: ExportRequest):
+async def export_dna_tracker(request: ExportRequest, current_user = Depends(get_current_user)):
     """Export DNA tracker data to Google Sheets"""
     try:
-        dna_tracker = list(dna_tracker_collection.find({}, {"_id": 0}))
+        dna_tracker = list(dna_tracker_collection.find({"user_id": current_user['id']}, {"_id": 0}))
         result = export_table_to_sheets("dna-tracker", dna_tracker, request.sheet_title)
         
         return ExportResponse(
@@ -2834,10 +2834,10 @@ async def export_dna_tracker(request: ExportRequest):
         )
 
 @app.post("/api/export/ninety-day-plan", response_model=ExportResponse)
-async def export_ninety_day_plan(request: ExportRequest):
+async def export_ninety_day_plan(request: ExportRequest, current_user = Depends(get_current_user)):
     """Export ninety day plan data to Google Sheets"""
     try:
-        ninety_day_plan = list(ninety_day_plan_collection.find({}, {"_id": 0}))
+        ninety_day_plan = list(ninety_day_plan_collection.find({"user_id": current_user['id']}, {"_id": 0}))
         result = export_table_to_sheets("ninety-day-plan", ninety_day_plan, request.sheet_title)
         
         return ExportResponse(
