@@ -798,6 +798,7 @@ async def move_failure_to_resolved(failure_data: dict, resolution_info: dict = N
         # Create resolved failure record
         resolved_failure = {
             'id': failure_data['id'],
+            'user_id': failure_data.get('user_id'),  # Maintain user_id
             'failure_number': failure_data['failure_number'],
             'date': failure_data['date'],
             'system': failure_data['system'],
@@ -817,8 +818,8 @@ async def move_failure_to_resolved(failure_data: dict, resolution_info: dict = N
         # Insert into resolved failures
         resolved_failures_collection.insert_one(resolved_failure)
         
-        # Remove from active failures
-        active_failures_collection.delete_one({'id': failure_data['id']})
+        # Remove from active failures (filter by user_id)
+        active_failures_collection.delete_one({'id': failure_data['id'], 'user_id': failure_data.get('user_id')})
         
         print(f"Moved failure {failure_data['failure_number']} to resolved failures")
         return True
