@@ -571,7 +571,7 @@ function App() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
                 size="lg"
               >
-                <User className="h-5 w-5 mr-2" />
+                <User className="h-5 w-5 ml-2" />
                 התחבר עם Google
               </Button>
             </div>
