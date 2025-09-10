@@ -1704,9 +1704,10 @@ async def delete_resolved_failure(failure_id: str, current_user = Depends(get_cu
 
 # Pending Maintenance Routes
 @app.post("/api/maintenance")
-async def create_maintenance(maintenance: PendingMaintenance):
+async def create_maintenance(maintenance: PendingMaintenance, current_user = Depends(get_current_user)):
     maintenance_dict = maintenance.dict()
     maintenance_dict['id'] = str(uuid.uuid4())
+    maintenance_dict['user_id'] = current_user['id']
     maintenance_dict['created_at'] = datetime.now().isoformat()
     
     # Calculate dates
@@ -1716,8 +1717,8 @@ async def create_maintenance(maintenance: PendingMaintenance):
     return {"id": maintenance_dict['id'], "message": "Maintenance created successfully"}
 
 @app.get("/api/maintenance")
-async def get_maintenance():
-    maintenance_items = list(pending_maintenance_collection.find({}, {"_id": 0}))
+async def get_maintenance(current_user = Depends(get_current_user)):
+    maintenance_items = list(pending_maintenance_collection.find({"user_id": current_user['id']}, {"_id": 0}))
     # Recalculate dates for each item
     for item in maintenance_items:
         item = calculate_maintenance_dates(item)
@@ -1726,7 +1727,7 @@ async def get_maintenance():
     return maintenance_items
 
 @app.put("/api/maintenance/{maintenance_id}")
-async def update_maintenance(maintenance_id: str, maintenance: PendingMaintenance):
+async def update_maintenance(maintenance_id: str, maintenance: PendingMaintenance, current_user = Depends(get_current_user)):
     maintenance_dict = maintenance.dict()
     maintenance_dict = calculate_maintenance_dates(maintenance_dict)
     
