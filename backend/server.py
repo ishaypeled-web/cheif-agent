@@ -2045,18 +2045,32 @@ async def get_chat_history(limit: int = 10):
 # Google Calendar OAuth Routes
 @app.get("/api/auth/google/login")
 async def google_login():
-    """Initiate Google OAuth flow with proper redirect"""
+    """Initiate Google OAuth flow with simpler redirect"""
     try:
-        flow = create_google_oauth_flow()
-        authorization_url, state = flow.authorization_url(
-            access_type='offline',
-            include_granted_scopes='true',
-            prompt='consent'  # Force consent to get refresh token
+        client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI')
+        
+        # Create the Google OAuth URL manually to avoid library issues
+        scope = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/calendar"
+        state = secrets.token_urlsafe(32)
+        
+        oauth_url = (
+            f"https://accounts.google.com/o/oauth2/auth"
+            f"?response_type=code"
+            f"&client_id={client_id}"
+            f"&redirect_uri={redirect_uri}"
+            f"&scope={scope}"
+            f"&state={state}"
+            f"&access_type=offline"
+            f"&include_granted_scopes=true"
+            f"&prompt=consent"
         )
-        # Return a redirect response instead of JSON
+        
         from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=authorization_url, status_code=302)
+        return RedirectResponse(url=oauth_url, status_code=302)
+        
     except Exception as e:
+        print(f"Error in google_login: {e}")
         raise HTTPException(status_code=500, detail=f"Error creating OAuth flow: {str(e)}")
 
 @app.get("/api/auth/google/callback")
