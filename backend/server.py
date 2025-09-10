@@ -2170,6 +2170,16 @@ async def google_callback(request: Request, code: str = None, state: str = None,
         redirect_url = f"{frontend_url}?google_auth=error&message={str(e)}"
         return RedirectResponse(url=redirect_url)
 
+@app.get("/api/auth/google/user")
+async def get_current_user_info(current_user = Depends(get_current_user)):
+    """Get current authenticated user information"""
+    return {
+        "user_id": current_user["id"],
+        "email": current_user["email"], 
+        "name": current_user.get("name", ""),
+        "authenticated": True
+    }
+
 @app.get("/api/auth/user/{email}")
 async def get_user_info(email: str):
     """Get user information and Google auth status"""
