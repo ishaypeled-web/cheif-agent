@@ -450,7 +450,7 @@
 
 ## test_plan:
   current_focus:
-    - "Google Sheets Export Endpoints"
+    - "Missing Authentication Middleware on 5 Data Endpoints"
     - "Jessica AI Updated Prompt - Name Asking"
     - "Jessica AI Updated Prompt - No Data Invention"
     - "Jessica AI Updated Prompt - Clarification Requests"
@@ -459,7 +459,7 @@
     - "Jessica AI Updated Prompt - No Data Invention"
     - "Jessica AI Updated Prompt - Clarification Requests"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 ## agent_communication:
     - agent: "main"
