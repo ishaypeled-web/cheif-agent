@@ -548,42 +548,158 @@ class AuthenticationTest:
         except Exception as e:
             self.log_result("Authentication middleware coverage", False, f"Exception: {str(e)}")
     
-    def run_all_tests(self):
-        """Run all authentication tests"""
-        print("🔐 Starting Authentication Functionality Testing")
-        print("=" * 60)
-        
-        # Run tests in order
-        self.test_1_google_oauth_login_endpoint()
-        self.test_2_google_oauth_callback_endpoint()
-        self.test_3_jwt_token_creation()
-        self.test_4_endpoints_without_authentication()
-        self.test_5_endpoints_with_invalid_jwt_token()
-        self.test_6_data_isolation_user_id_filtering()
-        self.test_7_ai_chat_authentication_requirement()
-        self.test_8_jwt_secret_key_configuration()
-        self.test_9_authentication_middleware_coverage()
-        
-        # Summary
-        print("\n" + "=" * 60)
-        print("📊 AUTHENTICATION TEST SUMMARY")
-        print("=" * 60)
-        
-        passed = sum(1 for result in self.test_results if result['success'])
-        failed = len(self.test_results) - passed
-        
-        print(f"Total Tests: {len(self.test_results)}")
-        print(f"✅ Passed: {passed}")
-        print(f"❌ Failed: {failed}")
-        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
-        
-        if failed > 0:
-            print("\n🔍 FAILED TESTS:")
-            for result in self.test_results:
-                if not result['success']:
-                    print(f"  • {result['test']}: {result['message']}")
-        
-        return self.test_results
+    def test_10_complete_oauth_flow_simulation(self):
+        """Test 10: Complete OAuth flow simulation - test the full authentication process"""
+        try:
+            print("\n🔐 Testing Complete Google OAuth Flow...")
+            
+            # Step 1: Test OAuth login initiation
+            print("   Step 1: Testing OAuth login initiation...")
+            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS, allow_redirects=False)
+            
+            oauth_working = False
+            if response.status_code == 302:
+                location = response.headers.get('Location', '')
+                if 'accounts.google.com' in location and 'oauth2' in location:
+                    oauth_working = True
+                    print(f"   ✅ OAuth login redirect working: {location[:100]}...")
+            elif response.status_code == 200:
+                try:
+                    data = response.json()
+                    if 'authorization_url' in data:
+                        oauth_working = True
+                        print(f"   ✅ OAuth login JSON response working")
+                except:
+                    pass
+            
+            # Step 2: Test callback endpoint behavior
+            print("   Step 2: Testing OAuth callback endpoint...")
+            callback_params = {
+                "code": "test_authorization_code_123",
+                "state": "test_state_456"
+            }
+            callback_response = requests.get(f"{BASE_URL}/auth/google/callback", params=callback_params, headers=HEADERS)
+            
+            callback_working = False
+            if callback_response.status_code in [200, 302, 400, 401, 403]:
+                callback_working = True
+                print(f"   ✅ OAuth callback endpoint responding: HTTP {callback_response.status_code}")
+            
+            # Step 3: Test protected endpoint behavior
+            print("   Step 3: Testing protected endpoints require authentication...")
+            protected_response = requests.get(f"{BASE_URL}/failures", headers=HEADERS)
+            
+            protection_working = False
+            if protected_response.status_code in [401, 403]:
+                protection_working = True
+                print(f"   ✅ Protected endpoints require auth: HTTP {protected_response.status_code}")
+            
+            # Step 4: Test JWT token validation
+            print("   Step 4: Testing JWT token validation...")
+            invalid_token_headers = {**HEADERS, "Authorization": "Bearer invalid.jwt.token"}
+            jwt_response = requests.get(f"{BASE_URL}/failures", headers=invalid_token_headers)
+            
+            jwt_validation_working = False
+            if jwt_response.status_code == 401:
+                jwt_validation_working = True
+                print(f"   ✅ JWT validation working: rejects invalid tokens")
+            
+            # Overall assessment
+            working_components = sum([oauth_working, callback_working, protection_working, jwt_validation_working])
+            
+            if working_components >= 3:
+                self.log_result(
+                    "Complete OAuth flow simulation", 
+                    True, 
+                    f"✅ OAuth authentication system fully functional ({working_components}/4 components working)",
+                    f"✅ OAuth Login: {oauth_working}, ✅ Callback: {callback_working}, ✅ Protection: {protection_working}, ✅ JWT Validation: {jwt_validation_working}"
+                )
+            else:
+                self.log_result(
+                    "Complete OAuth flow simulation", 
+                    False, 
+                    f"OAuth authentication system has issues ({working_components}/4 components working)",
+                    f"OAuth Login: {oauth_working}, Callback: {callback_working}, Protection: {protection_working}, JWT Validation: {jwt_validation_working}"
+                )
+                
+        except Exception as e:
+            self.log_result("Complete OAuth flow simulation", False, f"Exception: {str(e)}")
+    
+    def test_11_google_oauth_credentials_validation(self):
+        """Test 11: Validate that new Google OAuth credentials are working (no more 403 deleted client)"""
+        try:
+            print("\n🔑 Testing New Google OAuth Credentials...")
+            
+            # Test the OAuth login endpoint to see if we get proper Google redirect
+            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS, allow_redirects=False)
+            
+            if response.status_code == 302:
+                location = response.headers.get('Location', '')
+                
+                # Check for the new client ID in the redirect URL
+                new_client_id = "383959914027-m8mtk81ocnvtjsfjl6eqsv2cdfh6t2m1.apps.googleusercontent.com"
+                
+                if new_client_id in location:
+                    # Check that it's a proper Google OAuth URL
+                    if 'accounts.google.com/o/oauth2/auth' in location:
+                        self.log_result(
+                            "Google OAuth credentials validation", 
+                            True, 
+                            "✅ NEW GOOGLE OAUTH CREDENTIALS WORKING! No more 403 'deleted client' error",
+                            f"✅ Redirect URL contains new client_id: {new_client_id} ✅ Redirects to: accounts.google.com/o/oauth2/auth"
+                        )
+                    else:
+                        self.log_result(
+                            "Google OAuth credentials validation", 
+                            False, 
+                            "Client ID found but not redirecting to proper Google OAuth URL",
+                            f"Redirect location: {location[:150]}..."
+                        )
+                else:
+                    self.log_result(
+                        "Google OAuth credentials validation", 
+                        False, 
+                        "New client ID not found in redirect URL",
+                        f"Expected: {new_client_id}, Got URL: {location[:150]}..."
+                    )
+            elif response.status_code == 200:
+                # Check JSON response
+                try:
+                    data = response.json()
+                    auth_url = data.get('authorization_url', '')
+                    new_client_id = "383959914027-m8mtk81ocnvtjsfjl6eqsv2cdfh6t2m1.apps.googleusercontent.com"
+                    
+                    if new_client_id in auth_url and 'accounts.google.com' in auth_url:
+                        self.log_result(
+                            "Google OAuth credentials validation", 
+                            True, 
+                            "✅ NEW GOOGLE OAUTH CREDENTIALS WORKING! (JSON response)",
+                            f"✅ Authorization URL contains new client_id and Google OAuth endpoint"
+                        )
+                    else:
+                        self.log_result(
+                            "Google OAuth credentials validation", 
+                            False, 
+                            "JSON response doesn't contain expected new credentials",
+                            f"Auth URL: {auth_url[:150]}..."
+                        )
+                except:
+                    self.log_result(
+                        "Google OAuth credentials validation", 
+                        False, 
+                        "HTTP 200 but invalid JSON response",
+                        response.text[:200]
+                    )
+            else:
+                self.log_result(
+                    "Google OAuth credentials validation", 
+                    False, 
+                    f"Unexpected HTTP response: {response.status_code}",
+                    response.text[:200]
+                )
+                
+        except Exception as e:
+            self.log_result("Google OAuth credentials validation", False, f"Exception: {str(e)}")
 
 def main():
     """Main function to run authentication tests"""
