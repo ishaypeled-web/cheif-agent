@@ -2758,10 +2758,10 @@ async def export_maintenance(request: ExportRequest):
         )
 
 @app.post("/api/export/equipment", response_model=ExportResponse)
-async def export_equipment(request: ExportRequest):
+async def export_equipment(request: ExportRequest, current_user = Depends(get_current_user)):
     """Export equipment data to Google Sheets"""
     try:
-        equipment = list(equipment_hours_collection.find({}, {"_id": 0}))
+        equipment = list(equipment_hours_collection.find({"user_id": current_user['id']}, {"_id": 0}))
         result = export_table_to_sheets("equipment", equipment, request.sheet_title)
         
         return ExportResponse(
