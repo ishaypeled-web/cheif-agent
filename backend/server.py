@@ -1878,18 +1878,19 @@ async def delete_conversation(conversation_id: str, current_user = Depends(get_c
     return {"message": "Conversation deleted successfully"}
 
 @app.post("/api/dna-tracker")
-async def create_dna_item(dna: DNATracker):
+async def create_dna_item(dna: DNATracker, current_user = Depends(get_current_user)):
     dna_dict = dna.dict()
     dna_dict['id'] = str(uuid.uuid4())
+    dna_dict['user_id'] = current_user['id']
     dna_dict['created_at'] = datetime.now().isoformat()
     dna_dict['last_updated'] = datetime.now().isoformat()[:10]
     
-    # Check if component already exists
-    existing = dna_tracker_collection.find_one({'component_name': dna_dict['component_name']})
+    # Check if component already exists for this user
+    existing = dna_tracker_collection.find_one({'component_name': dna_dict['component_name'], 'user_id': current_user['id']})
     if existing:
         # Update existing
         result = dna_tracker_collection.update_one(
-            {'component_name': dna_dict['component_name']},
+            {'component_name': dna_dict['component_name'], 'user_id': current_user['id']},
             {'$set': dna_dict}
         )
         return {"id": existing['id'], "message": "DNA component updated successfully"}
@@ -1899,17 +1900,18 @@ async def create_dna_item(dna: DNATracker):
         return {"id": dna_dict['id'], "message": "DNA component created successfully"}
 
 @app.get("/api/dna-tracker")
-async def get_dna_tracker():
-    dna_items = list(dna_tracker_collection.find({}, {"_id": 0}))
+async def get_dna_tracker(current_user = Depends(get_current_user)):
+    dna_items = list(dna_tracker_collection.find({"user_id": current_user['id']}, {"_id": 0}))
     return dna_items
 
 @app.put("/api/dna-tracker/{dna_id}")
-async def update_dna_item(dna_id: str, dna: DNATracker):
+async def update_dna_item(dna_id: str, dna: DNATracker, current_user = Depends(get_current_user)):
     dna_dict = dna.dict()
+    dna_dict['user_id'] = current_user['id']
     dna_dict['last_updated'] = datetime.now().isoformat()[:10]
     
     result = dna_tracker_collection.update_one(
-        {"id": dna_id}, 
+        {"id": dna_id, "user_id": current_user['id']}, 
         {"$set": dna_dict}
     )
     if result.matched_count == 0:
@@ -1917,8 +1919,8 @@ async def update_dna_item(dna_id: str, dna: DNATracker):
     return {"message": "DNA item updated successfully"}
 
 @app.delete("/api/dna-tracker/{dna_id}")
-async def delete_dna_item(dna_id: str):
-    result = dna_tracker_collection.delete_one({"id": dna_id})
+async def delete_dna_item(dna_id: str, current_user = Depends(get_current_user)):
+    result = dna_tracker_collection.delete_one({"id": dna_id, "user_id": current_user['id']})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="DNA item not found")
     return {"message": "DNA item deleted successfully"}
