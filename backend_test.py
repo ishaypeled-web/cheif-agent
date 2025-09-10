@@ -416,23 +416,49 @@ class AuthenticationTest:
             # We can't directly test the secret key, but we can test if JWT functionality works
             # by checking if the OAuth login endpoint works (it uses JWT internally)
             
-            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS)
+            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS, allow_redirects=False)
             
-            if response.status_code == 200:
-                data = response.json()
-                if 'authorization_url' in data and 'state' in data:
+            if response.status_code == 302:
+                # Redirect response indicates OAuth is working
+                location = response.headers.get('Location', '')
+                if 'accounts.google.com' in location:
                     self.log_result(
                         "JWT secret key configuration", 
                         True, 
-                        "JWT functionality appears to work (OAuth login successful)",
-                        "OAuth login endpoint works, suggesting JWT_SECRET_KEY is configured"
+                        "JWT functionality appears to work (OAuth login redirects correctly)",
+                        "OAuth login endpoint redirects to Google, suggesting JWT_SECRET_KEY is configured"
                     )
                 else:
                     self.log_result(
                         "JWT secret key configuration", 
                         False, 
-                        "OAuth login endpoint returns incomplete response",
-                        f"Response: {data}"
+                        "OAuth login redirects but not to Google",
+                        f"Redirect location: {location}"
+                    )
+            elif response.status_code == 200:
+                # Maybe it returns JSON
+                try:
+                    data = response.json()
+                    if 'authorization_url' in data and 'state' in data:
+                        self.log_result(
+                            "JWT secret key configuration", 
+                            True, 
+                            "JWT functionality appears to work (OAuth login successful)",
+                            "OAuth login endpoint works, suggesting JWT_SECRET_KEY is configured"
+                        )
+                    else:
+                        self.log_result(
+                            "JWT secret key configuration", 
+                            False, 
+                            "OAuth login endpoint returns incomplete response",
+                            f"Response: {data}"
+                        )
+                except:
+                    self.log_result(
+                        "JWT secret key configuration", 
+                        False, 
+                        "OAuth login endpoint returns non-JSON response",
+                        response.text[:200]
                     )
             elif response.status_code == 500:
                 # Server error might indicate JWT configuration issue
