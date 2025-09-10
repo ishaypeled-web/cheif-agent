@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: תיקון שגיאת "מסך לבן" שנגרמה מבעיית אתחול משתנה editingItem ב-App.js של הפרונטאנד. השגיאה מנעה את טעינת האפליקציה לחלוטין.
+## user_problem_statement: יישום מערכת אימות משתמשים מלאה עם הפרדת נתונים. הפרונטאנד מוכן, כעת נדרש לעדכן את הבקאנד עם מידלוואר אימות על כל הנקודות קצה (~40 endpoints). המשתמש מדווח על שגיאת 403 בהתחברות דרך גוגל.
 
 ## backend:
   - task: "Google Sheets Export Endpoints"
