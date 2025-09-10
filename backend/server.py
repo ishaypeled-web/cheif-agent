@@ -777,12 +777,12 @@ def get_department_summary(user_id: str):
         print(f"Error getting department summary: {e}")
         return {}
 
-def get_leadership_context():
+def get_leadership_context(user_id: str):
     """Get leadership coaching context"""
     try:
-        conversations = list(conversations_collection.find({}, {"_id": 0}).sort("meeting_number", -1).limit(5))
-        dna_items = list(dna_tracker_collection.find({}, {"_id": 0}))
-        plan_items = list(ninety_day_plan_collection.find({}, {"_id": 0}).sort("week_number", 1))
+        conversations = list(conversations_collection.find({"user_id": user_id}, {"_id": 0}).sort("meeting_number", -1).limit(5))
+        dna_items = list(dna_tracker_collection.find({"user_id": user_id}, {"_id": 0}))
+        plan_items = list(ninety_day_plan_collection.find({"user_id": user_id}, {"_id": 0}).sort("week_number", 1))
         
         return {
             "recent_conversations": conversations,
