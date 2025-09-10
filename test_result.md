@@ -107,15 +107,15 @@
 ## backend:
   - task: "Google OAuth Authentication - 403 Error Fix"
     implemented: true  
-    working: true
+    working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        - working: true
-          agent: "deep_testing_backend_v2"
-          comment: "✅ Google OAuth login endpoint successfully redirects to Google OAuth (accounts.google.com/oauth2). JWT_SECRET_KEY configured properly. Authentication flow working correctly. 403 error resolved."
+        - working: false
+          agent: "main"
+          comment: "✅ בעיה נפתרה חלקית - הקוד תקין! הבעיה היא שה-Google OAuth Client נמחק מ-Google Cloud Console. Google מחזיר שגיאה: 'Error 401: deleted client - The OAuth client was deleted.' המשתמש צריך ליצור OAuth Client חדש ב-Google Console ולעדכן את GOOGLE_CLIENT_ID ו-GOOGLE_CLIENT_SECRET ב-.env."
 
   - task: "Backend Authentication Middleware Implementation"
     implemented: true
