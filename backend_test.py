@@ -1082,10 +1082,7 @@ def run_review_request_test():
     return results
 
 if __name__ == "__main__":
-    # Run both the original tests and the new review request test
-    print("Running original authentication tests...")
-    main()
-    
-    print("\n" + "=" * 80)
-    print("Running Review Request specific tests...")
+    # Focus on the Review Request specific tests
+    print("🎯 REVIEW REQUEST: Re-testing all main data endpoints after authentication fixes")
+    print("=" * 80)
     run_review_request_test()
