@@ -2158,7 +2158,7 @@ async def google_callback(request: Request, code: str = None, state: str = None,
         )
         
         # Redirect to frontend with authentication token
-        frontend_url = os.environ.get('FRONTEND_URL', 'https://fleet-mentor.preview.emergentagent.com')
+        frontend_url = "https://fleet-mentor.preview.emergentagent.com"
         redirect_url = f"{frontend_url}?google_auth=success&token={jwt_token}&email={user['email']}&name={user['name']}"
         
         return RedirectResponse(url=redirect_url)
