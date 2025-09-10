@@ -63,7 +63,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   // API calls
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://fleet-mentor.preview.emergentagent.com';
 
   // Authentication helpers
   const getAuthHeaders = () => {
