@@ -32,3 +32,4 @@ gspread>=5.7.0
 webpush>=1.0.0
 cryptography>=42.0.8
 aiohttp>=3.8.0
+httpx>=0.24.0
