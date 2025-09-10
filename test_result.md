@@ -306,6 +306,18 @@
           agent: "testing"
           comment: "✅ כל 8 טבלות הניהול עובדות מצוין! תקלות פעילות (3 פריטים), תקלות שטופלו (31 פריטים), אחזקות ממתינות (0 פריטים), שעות מכלולים (0 פריטים), תכנון יומי (1 פריט), מעקב שיחות (1 פריט), DNA Tracker (1 פריט), תכנית 90 יום (0 פריטים). כל פעולות CRUD עובדות תקין."
 
+  - task: "Missing Authentication Middleware on 5 Data Endpoints"
+    implemented: false
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🚨 CRITICAL SECURITY ISSUE: בדקתי את כל 8 נקודות הקצה הראשיות ומצאתי 5 endpoints שחסר להם authentication middleware: ❌ GET /api/equipment (Equipment Hours) - מחזיר HTTP 200 ונתונים ללא אימות ❌ GET /api/daily-work (Daily Work Plan) - מחזיר HTTP 200 ונתונים ללא אימות ❌ GET /api/conversations (Conversations) - מחזיר HTTP 200 ונתונים ללא אימות ❌ GET /api/dna-tracker (DNA Tracker) - מחזיר HTTP 200 ונתונים ללא אימות ❌ GET /api/ninety-day-plan (90-Day Plan) - מחזיר HTTP 200 ונתונים ללא אימות. זה מסביר למה המשתמש רואה נתונים במקום הודעת 'טבלה תהיה זמינה בקרוב'. ✅ רק 3 endpoints מוגנים נכון: /api/failures, /api/resolved-failures, /api/maintenance (יש להם current_user = Depends(get_current_user) ו-user_id filtering). צריך להוסיף authentication middleware ו-user_id filtering ל-5 הנקודות החסרות."
+
 ## frontend:
   - task: "Fix white screen error - editingItem initialization"
     implemented: true
