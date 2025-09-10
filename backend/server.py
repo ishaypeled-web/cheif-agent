@@ -747,13 +747,13 @@ def calculate_service_hours(equipment: dict):
     
     return equipment
 
-def get_department_summary():
+def get_department_summary(user_id: str):
     """Get summary of all department data for AI analysis"""
     try:
-        failures = list(active_failures_collection.find({}, {"_id": 0}))
-        maintenance = list(pending_maintenance_collection.find({}, {"_id": 0}))
-        equipment = list(equipment_hours_collection.find({}, {"_id": 0}))
-        daily_work = list(daily_work_collection.find({}, {"_id": 0}))
+        failures = list(active_failures_collection.find({"user_id": user_id}, {"_id": 0}))
+        maintenance = list(pending_maintenance_collection.find({"user_id": user_id}, {"_id": 0}))
+        equipment = list(equipment_hours_collection.find({"user_id": user_id}, {"_id": 0}))
+        daily_work = list(daily_work_collection.find({"user_id": user_id}, {"_id": 0}))
         
         # Recalculate dynamic fields
         for item in maintenance:
