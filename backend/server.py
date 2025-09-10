@@ -1254,12 +1254,14 @@ async def execute_ai_actions(actions):
     
     return updated_tables
 
-async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_history: List[dict] = None) -> ChatResponse:
+async def create_yahel_ai_agent(user_message: str, session_id: str = None, chat_history: List[dict] = None, current_user: dict = None) -> ChatResponse:
     """Create AI agent for Yahel with department and leadership context"""
     try:
+        user_id = current_user['id'] if current_user else None
+        
         # Get all context
-        dept_data = get_department_summary()
-        leadership_data = get_leadership_context()
+        dept_data = get_department_summary(user_id) if user_id else {}
+        leadership_data = get_leadership_context(user_id) if user_id else {}
         
         # Build conversation history context
         conversation_context = ""
