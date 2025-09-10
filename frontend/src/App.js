@@ -2054,6 +2054,219 @@ function App() {
               </>
             )}
 
+            {dialogType === 'equipment' && (
+              <>
+                <Input
+                  placeholder="שם המכלול/המערכת"
+                  value={equipmentForm.system}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, system: e.target.value})}
+                />
+                <Select value={equipmentForm.system_type} onValueChange={(v) => setEquipmentForm({...equipmentForm, system_type: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="סוג המערכת" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="מנועים">מנועים</SelectItem>
+                    <SelectItem value="מערכות חשמל">מערכות חשמל</SelectItem>
+                    <SelectItem value="מערכות הידראוליות">מערכות הידראוליות</SelectItem>
+                    <SelectItem value="מערכות ניווט">מערכות ניווט</SelectItem>
+                    <SelectItem value="מערכות נשק">מערכות נשק</SelectItem>
+                    <SelectItem value="אחר">אחר</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  placeholder="שעות נוכחיות"
+                  value={equipmentForm.current_hours}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, current_hours: parseInt(e.target.value)})}
+                />
+                <Input
+                  type="date"
+                  placeholder="תאריך שירות אחרון"
+                  value={equipmentForm.last_service_date}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, last_service_date: e.target.value})}
+                />
+                <Button onClick={handleEquipment} className="w-full bg-blue-600 hover:bg-blue-700">
+                  {editingItem ? 'עדכן ציוד' : 'הוסף ציוד'}
+                </Button>
+              </>
+            )}
+
+            {dialogType === 'daily-work' && (
+              <>
+                <Input
+                  type="date"
+                  placeholder="תאריך"
+                  value={workForm.date}
+                  onChange={(e) => setWorkForm({...workForm, date: e.target.value})}
+                />
+                <Input
+                  placeholder="תיאור המשימה"
+                  value={workForm.task}
+                  onChange={(e) => setWorkForm({...workForm, task: e.target.value})}
+                />
+                <Select value={workForm.source} onValueChange={(v) => setWorkForm({...workForm, source: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="מקור המשימה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="תקלה">תקלה</SelectItem>
+                    <SelectItem value="תחזוקה">תחזוקה</SelectItem>
+                    <SelectItem value="שגרה">שגרה</SelectItem>
+                    <SelectItem value="אחר">אחר</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder="מבצע אחראי"
+                  value={workForm.assignee}
+                  onChange={(e) => setWorkForm({...workForm, assignee: e.target.value})}
+                />
+                <Input
+                  type="number"
+                  placeholder="זמן משוער (שעות)"
+                  value={workForm.estimated_hours}
+                  onChange={(e) => setWorkForm({...workForm, estimated_hours: parseFloat(e.target.value)})}
+                />
+                <Textarea
+                  placeholder="הערות"
+                  value={workForm.notes}
+                  onChange={(e) => setWorkForm({...workForm, notes: e.target.value})}
+                />
+                <Button onClick={handleDailyWork} className="w-full bg-blue-600 hover:bg-blue-700">
+                  {editingItem ? 'עדכן משימה' : 'הוסף משימה'}
+                </Button>
+              </>
+            )}
+
+            {dialogType === 'conversation' && (
+              <>
+                <Input
+                  type="number"
+                  placeholder="מספר פגישה"
+                  value={conversationForm.meeting_number}
+                  onChange={(e) => setConversationForm({...conversationForm, meeting_number: parseInt(e.target.value)})}
+                />
+                <Input
+                  type="date"
+                  placeholder="תאריך"
+                  value={conversationForm.date}
+                  onChange={(e) => setConversationForm({...conversationForm, date: e.target.value})}
+                />
+                <Input
+                  placeholder="משתתף בשיחה"
+                  value={conversationForm.participant}
+                  onChange={(e) => setConversationForm({...conversationForm, participant: e.target.value})}
+                />
+                <Input
+                  placeholder="נושא השיחה"
+                  value={conversationForm.topic}
+                  onChange={(e) => setConversationForm({...conversationForm, topic: e.target.value})}
+                />
+                <Textarea
+                  placeholder="תובנות מהשיחה"
+                  value={conversationForm.insights}
+                  onChange={(e) => setConversationForm({...conversationForm, insights: e.target.value})}
+                />
+                <Textarea
+                  placeholder="תכנית מעקב"
+                  value={conversationForm.follow_up_plan}
+                  onChange={(e) => setConversationForm({...conversationForm, follow_up_plan: e.target.value})}
+                />
+                <Button onClick={handleConversation} className="w-full bg-blue-600 hover:bg-blue-700">
+                  {editingItem ? 'עדכן שיחה' : 'הוסף שיחה'}
+                </Button>
+              </>
+            )}
+
+            {dialogType === 'dna' && (
+              <>
+                <Input
+                  placeholder="שם הרכיב המנהיגותי"
+                  value={dnaForm.component_name}
+                  onChange={(e) => setDnaForm({...dnaForm, component_name: e.target.value})}
+                />
+                <Select value={dnaForm.self_assessment.toString()} onValueChange={(v) => setDnaForm({...dnaForm, self_assessment: parseInt(v)})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="הערכה עצמית (1-5)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 - נמוך</SelectItem>
+                    <SelectItem value="2">2 - מתחת לממוצע</SelectItem>
+                    <SelectItem value="3">3 - ממוצע</SelectItem>
+                    <SelectItem value="4">4 - גבוה</SelectItem>
+                    <SelectItem value="5">5 - מעולה</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={dnaForm.target_score.toString()} onValueChange={(v) => setDnaForm({...dnaForm, target_score: parseInt(v)})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="יעד להשגה (1-5)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 - ממוצע</SelectItem>
+                    <SelectItem value="4">4 - גבוה</SelectItem>
+                    <SelectItem value="5">5 - מעולה</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Textarea
+                  placeholder="תכנית פעולה"
+                  value={dnaForm.action_plan}
+                  onChange={(e) => setDnaForm({...dnaForm, action_plan: e.target.value})}
+                />
+                <Textarea
+                  placeholder="הערות מנטור"
+                  value={dnaForm.mentor_notes}
+                  onChange={(e) => setDnaForm({...dnaForm, mentor_notes: e.target.value})}
+                />
+                <Button onClick={handleDNA} className="w-full bg-blue-600 hover:bg-blue-700">
+                  {editingItem ? 'עדכן רכיב DNA' : 'הוסף רכיב DNA'}
+                </Button>
+              </>
+            )}
+
+            {dialogType === 'ninety-day' && (
+              <>
+                <Input
+                  type="number"
+                  placeholder="מספר שבוע"
+                  value={ninetyDayForm.week_number}
+                  onChange={(e) => setNinetyDayForm({...ninetyDayForm, week_number: parseInt(e.target.value)})}
+                />
+                <Textarea
+                  placeholder="יעדים לשבוע"
+                  value={ninetyDayForm.goals}
+                  onChange={(e) => setNinetyDayForm({...ninetyDayForm, goals: e.target.value})}
+                />
+                <Textarea
+                  placeholder="פעילויות מתוכננות"
+                  value={ninetyDayForm.planned_activities}
+                  onChange={(e) => setNinetyDayForm({...ninetyDayForm, planned_activities: e.target.value})}
+                />
+                <Textarea
+                  placeholder="משאבים נדרשים"
+                  value={ninetyDayForm.required_resources}
+                  onChange={(e) => setNinetyDayForm({...ninetyDayForm, required_resources: e.target.value})}
+                />
+                <Textarea
+                  placeholder="אינדיקטורים להצלחה"
+                  value={ninetyDayForm.success_indicators}
+                  onChange={(e) => setNinetyDayForm({...ninetyDayForm, success_indicators: e.target.value})}
+                />
+                <Select value={ninetyDayForm.status} onValueChange={(v) => setNinetyDayForm({...ninetyDayForm, status: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="סטטוס" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="מתוכנן">מתוכנן</SelectItem>
+                    <SelectItem value="בתהליך">בתהליך</SelectItem>
+                    <SelectItem value="הושלם">הושלם</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleNinetyDay} className="w-full bg-blue-600 hover:bg-blue-700">
+                  {editingItem ? 'עדכן תכנית שבועית' : 'הוסף תכנית שבועית'}
+                </Button>
+              </>
+            )}
+
             {/* Other dialog types would be here... */}
           </div>
         </DialogContent>
