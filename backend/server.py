@@ -2166,7 +2166,7 @@ async def google_callback(request: Request, code: str = None, state: str = None,
     except Exception as e:
         print(f"OAuth callback error: {e}")
         # Redirect to frontend with error
-        frontend_url = os.environ.get('FRONTEND_URL', 'https://fleet-mentor.preview.emergentagent.com')
+        frontend_url = "https://fleet-mentor.preview.emergentagent.com"
         redirect_url = f"{frontend_url}?google_auth=error&message={str(e)}"
         return RedirectResponse(url=redirect_url)
 
