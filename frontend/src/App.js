@@ -1217,11 +1217,75 @@ function App() {
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-6">
-            <div className="text-center py-12">
-              <Settings className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">שעות מכלולים</h3>
-              <p className="text-gray-600">הטבלה תהיה זמינה בקרוב עם מערכת ההפרדה החדשה</p>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">שעות מכלולים</h2>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('equipment', 'שעות מכלולים - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('equipment')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף ציוד
+                </Button>
+              </div>
             </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>מכלול</TableHead>
+                      <TableHead>סוג</TableHead>
+                      <TableHead>שעות נוכחיות</TableHead>
+                      <TableHead>שירות אחרון</TableHead>
+                      <TableHead>שעות מהשירות</TableHead>
+                      <TableHead>רמת התראה</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {equipmentHours.map((equipment) => (
+                      <TableRow key={equipment.id}>
+                        <TableCell className="font-medium">{equipment.system}</TableCell>
+                        <TableCell>{equipment.system_type}</TableCell>
+                        <TableCell>{equipment.current_hours}</TableCell>
+                        <TableCell>{equipment.last_service_date}</TableCell>
+                        <TableCell>{equipment.hours_since_service || 0}</TableCell>
+                        <TableCell>
+                          <Badge className={equipment.alert_level === 'אדום' ? 'bg-red-100 text-red-800' : 
+                                          equipment.alert_level === 'צהוב' ? 'bg-yellow-100 text-yellow-800' : 
+                                          'bg-green-100 text-green-800'}>
+                            {equipment.alert_level || 'ירוק'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => openDialog('equipment', equipment)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {equipmentHours.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    אין ציוד רשום במערכת
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="daily-work" className="space-y-6">
