@@ -1578,12 +1578,13 @@ async def get_failures(current_user = Depends(get_current_user)):
 
 @app.put("/api/failures/{failure_id}")
 async def update_failure(failure_id: str, failure: ActiveFailure, current_user = Depends(get_current_user)):
-    # Get current failure data before update
-    current_failure = active_failures_collection.find_one({"id": failure_id})
+    # Get current failure data before update (filter by user)
+    current_failure = active_failures_collection.find_one({"id": failure_id, "user_id": current_user['id']})
     if not current_failure:
         raise HTTPException(status_code=404, detail="Failure not found")
     
     failure_dict = failure.dict()
+    failure_dict['user_id'] = current_user['id']  # Ensure user_id is maintained
     
     # Check if status is being changed to completed
     if failure_dict.get('status') in ['הושלם', 'נסגר', 'טופל']:
@@ -1601,13 +1602,13 @@ async def update_failure(failure_id: str, failure: ActiveFailure, current_user =
         else:
             # If move failed, fall back to regular update
             result = active_failures_collection.update_one(
-                {"id": failure_id}, 
+                {"id": failure_id, "user_id": current_user['id']}, 
                 {"$set": failure_dict}
             )
     else:
         # Regular update for non-completed status
         result = active_failures_collection.update_one(
-            {"id": failure_id}, 
+            {"id": failure_id, "user_id": current_user['id']}, 
             {"$set": failure_dict}
         )
     
@@ -1616,7 +1617,8 @@ async def update_failure(failure_id: str, failure: ActiveFailure, current_user =
     return {"message": "Failure updated successfully"}
 
 @app.delete("/api/failures/{failure_id}")
-async def delete_failure(failure_id: str):
+async def delete_failure(failure_id: str, current_user = Depends(get_current_user)):
+    result = active_failures_collection.delete_one({"id": failure_id, "user_id": current_user['id']})
     result = active_failures_collection.delete_one({"id": failure_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Failure not found")
