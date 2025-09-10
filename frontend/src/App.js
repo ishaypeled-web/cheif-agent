@@ -514,6 +514,126 @@ function App() {
     }
   };
 
+  const handleEquipment = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const authHeaders = getAuthHeaders();
+      if (editingItem) {
+        await axios.put(`${BACKEND_URL}/api/equipment/${editingItem.id}`, equipmentForm, { headers: authHeaders });
+      } else {
+        await axios.post(`${BACKEND_URL}/api/equipment`, equipmentForm, { headers: authHeaders });
+      }
+      setEquipmentForm({
+        system: '', system_type: 'מנועים', current_hours: 0, last_service_date: ''
+      });
+      setShowDialog(false);
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving equipment:', error);
+      if (error.response && error.response.status === 401) {
+        handleLogout();
+      }
+    }
+  };
+
+  const handleDailyWork = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const authHeaders = getAuthHeaders();
+      if (editingItem) {
+        await axios.put(`${BACKEND_URL}/api/daily-work/${editingItem.id}`, workForm, { headers: authHeaders });
+      } else {
+        await axios.post(`${BACKEND_URL}/api/daily-work`, workForm, { headers: authHeaders });
+      }
+      setWorkForm({
+        date: '', task: '', source: 'תקלה', source_id: '', assignee: '', estimated_hours: 0, notes: ''
+      });
+      setShowDialog(false);
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving daily work:', error);
+      if (error.response && error.response.status === 401) {
+        handleLogout();
+      }
+    }
+  };
+
+  const handleConversation = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const authHeaders = getAuthHeaders();
+      if (editingItem) {
+        await axios.put(`${BACKEND_URL}/api/conversations/${editingItem.id}`, conversationForm, { headers: authHeaders });
+      } else {
+        await axios.post(`${BACKEND_URL}/api/conversations`, conversationForm, { headers: authHeaders });
+      }
+      setConversationForm({
+        meeting_number: 1, date: '', participant: '', topic: '', insights: '', follow_up_plan: ''
+      });
+      setShowDialog(false);
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving conversation:', error);
+      if (error.response && error.response.status === 401) {
+        handleLogout();
+      }
+    }
+  };
+
+  const handleDNA = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const authHeaders = getAuthHeaders();
+      if (editingItem) {
+        await axios.put(`${BACKEND_URL}/api/dna-tracker/${editingItem.id}`, dnaForm, { headers: authHeaders });
+      } else {
+        await axios.post(`${BACKEND_URL}/api/dna-tracker`, dnaForm, { headers: authHeaders });
+      }
+      setDnaForm({
+        component_name: '', self_assessment: 3, target_score: 5, action_plan: '', mentor_notes: '', last_updated: ''
+      });
+      setShowDialog(false);
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving DNA item:', error);
+      if (error.response && error.response.status === 401) {
+        handleLogout();
+      }
+    }
+  };
+
+  const handleNinetyDay = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const authHeaders = getAuthHeaders();
+      if (editingItem) {
+        await axios.put(`${BACKEND_URL}/api/ninety-day-plan/${editingItem.id}`, ninetyDayForm, { headers: authHeaders });
+      } else {
+        await axios.post(`${BACKEND_URL}/api/ninety-day-plan`, ninetyDayForm, { headers: authHeaders });
+      }
+      setNinetyDayForm({
+        week_number: 1, goals: '', planned_activities: '', required_resources: '', success_indicators: '', status: 'מתוכנן'
+      });
+      setShowDialog(false);
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving ninety day plan:', error);
+      if (error.response && error.response.status === 401) {
+        handleLogout();
+      }
+    }
+  };
+
   const handleDeleteMaintenance = async (maintenance) => {
     if (!window.confirm('האם אתה בטוח שברצונך למחוק תחזוקה זו?')) {
       return;
