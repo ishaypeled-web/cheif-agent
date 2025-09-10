@@ -1491,11 +1491,73 @@ function App() {
           </TabsContent>
 
           <TabsContent value="ninety-day" className="space-y-6">
-            <div className="text-center py-12">
-              <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">תכנית 90 יום</h3>
-              <p className="text-gray-600">הטבלה תהיה זמינה בקרוב עם מערכת ההפרדה החדשה</p>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">תכנית 90 יום</h2>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleExportTable('ninety-day-plan', 'תכנית 90 יום - יציאה')}
+                  className="bg-green-600 hover:bg-green-700"
+                  title="יצוא לגוגל שיטס"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  יצוא לשיטס
+                </Button>
+                <Button onClick={() => openDialog('ninety-day')} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף שבוע
+                </Button>
+              </div>
             </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>שבוע</TableHead>
+                      <TableHead>יעדים</TableHead>
+                      <TableHead>פעילויות מתוכננות</TableHead>
+                      <TableHead>משאבים נדרשים</TableHead>
+                      <TableHead>אינדיקטורים להצלחה</TableHead>
+                      <TableHead>סטטוס</TableHead>
+                      <TableHead>פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ninetyDayPlan.map((week) => (
+                      <TableRow key={week.id}>
+                        <TableCell className="font-medium">שבוע {week.week_number}</TableCell>
+                        <TableCell className="max-w-xs truncate">{week.goals}</TableCell>
+                        <TableCell className="max-w-xs truncate">{week.planned_activities}</TableCell>
+                        <TableCell className="max-w-xs truncate">{week.required_resources}</TableCell>
+                        <TableCell className="max-w-xs truncate">{week.success_indicators}</TableCell>
+                        <TableCell>
+                          <Badge variant={week.status === 'הושלם' ? 'default' : week.status === 'בתהליך' ? 'secondary' : 'outline'}>
+                            {week.status || 'מתוכנן'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => openDialog('ninety-day', week)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {ninetyDayPlan.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    אין תכנית 90 יום מוגדרת
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Push Notifications Tab */}
