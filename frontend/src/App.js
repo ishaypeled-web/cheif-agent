@@ -470,24 +470,44 @@ function App() {
     if (!isAuthenticated) return;
     
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/export/${tableName}`, {
+      // Map table names to specific endpoints
+      const endpointMap = {
+        'failures': 'failures',
+        'resolved-failures': 'resolved-failures', 
+        'maintenance': 'maintenance',
+        'equipment': 'equipment',
+        'daily-work': 'daily-work',
+        'conversations': 'conversations',
+        'dna-tracker': 'dna-tracker',
+        'ninety-day-plan': 'ninety-day-plan'
+      };
+      
+      const endpoint = endpointMap[tableName];
+      if (!endpoint) {
+        alert('❌ ייצוא לא נתמך עבור טבלה זו');
+        return;
+      }
+      
+      const response = await axios.post(`${BACKEND_URL}/api/export/${endpoint}`, {
         table_name: tableName,
         sheet_title: customTitle || `${tableName} Export - ${new Date().toLocaleString('he-IL')}`
       }, { headers: getAuthHeaders() });
 
       if (response.data.success) {
         alert(`✅ הייצוא הושלם בהצלחה!\n${response.data.message}`);
-        
-        // Open the Google Sheet in a new tab
-        if (response.data.spreadsheet_url) {
-          window.open(response.data.spreadsheet_url, '_blank');
+        if (response.data.sheet_url) {
+          window.open(response.data.sheet_url, '_blank');
         }
       } else {
         alert(`❌ שגיאה בייצוא: ${response.data.message}`);
       }
     } catch (error) {
-      console.error('Error exporting table:', error);
-      alert(`❌ שגיאה בייצוא: ${error.response?.data?.detail || error.message}`);
+      console.error('Export error:', error);
+      if (error.response) {
+        alert(`❌ שגיאה בייצוא: ${error.response.data.detail || error.response.data.message || 'שגיאה לא ידועה'}`);
+      } else {
+        alert('❌ שגיאה בייצוא - בדוק את החיבור');
+      }
     }
   };
 
