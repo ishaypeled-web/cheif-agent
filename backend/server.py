@@ -212,6 +212,7 @@ class ChatMessage(BaseModel):
     user_message: str
     session_id: Optional[str] = None
     chat_history: List[dict] = []
+    user_id: Optional[str] = None  # Will be set by the endpoint
 
 class ChatResponse(BaseModel):
     response: str
