@@ -44,39 +44,65 @@ class AuthenticationTest:
     def test_1_google_oauth_login_endpoint(self):
         """Test 1: Google OAuth login endpoint - should redirect to Google OAuth"""
         try:
-            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS)
+            # Don't follow redirects to check the redirect response
+            response = requests.get(f"{BASE_URL}/auth/google/login", headers=HEADERS, allow_redirects=False)
             
-            if response.status_code == 200:
-                data = response.json()
-                if 'authorization_url' in data and 'state' in data:
-                    # Check if URL contains Google OAuth components
-                    auth_url = data.get('authorization_url', '')
-                    if 'accounts.google.com' in auth_url and 'oauth2' in auth_url:
-                        self.log_result(
-                            "Google OAuth login endpoint", 
-                            True, 
-                            "Successfully returns Google OAuth authorization URL",
-                            f"URL contains Google OAuth components, State: {data.get('state', '')[:20]}..."
-                        )
-                    else:
-                        self.log_result(
-                            "Google OAuth login endpoint", 
-                            False, 
-                            "Authorization URL doesn't contain expected Google OAuth components",
-                            f"URL: {auth_url[:100]}..."
-                        )
+            if response.status_code == 302:
+                # Check if redirect location contains Google OAuth components
+                location = response.headers.get('Location', '')
+                if 'accounts.google.com' in location and 'oauth2' in location:
+                    self.log_result(
+                        "Google OAuth login endpoint", 
+                        True, 
+                        "Successfully redirects to Google OAuth",
+                        f"Redirect location contains Google OAuth components: {location[:100]}..."
+                    )
                 else:
                     self.log_result(
                         "Google OAuth login endpoint", 
                         False, 
-                        "Missing required fields in response",
-                        f"Response keys: {list(data.keys())}"
+                        "Redirect location doesn't contain expected Google OAuth components",
+                        f"Location: {location[:100]}..."
+                    )
+            elif response.status_code == 200:
+                # Maybe it returns JSON instead of redirect
+                try:
+                    data = response.json()
+                    if 'authorization_url' in data and 'state' in data:
+                        auth_url = data.get('authorization_url', '')
+                        if 'accounts.google.com' in auth_url and 'oauth2' in auth_url:
+                            self.log_result(
+                                "Google OAuth login endpoint", 
+                                True, 
+                                "Successfully returns Google OAuth authorization URL",
+                                f"URL contains Google OAuth components, State: {data.get('state', '')[:20]}..."
+                            )
+                        else:
+                            self.log_result(
+                                "Google OAuth login endpoint", 
+                                False, 
+                                "Authorization URL doesn't contain expected Google OAuth components",
+                                f"URL: {auth_url[:100]}..."
+                            )
+                    else:
+                        self.log_result(
+                            "Google OAuth login endpoint", 
+                            False, 
+                            "Missing required fields in JSON response",
+                            f"Response keys: {list(data.keys())}"
+                        )
+                except:
+                    self.log_result(
+                        "Google OAuth login endpoint", 
+                        False, 
+                        "HTTP 200 but response is not JSON",
+                        response.text[:200]
                     )
             else:
                 self.log_result(
                     "Google OAuth login endpoint", 
                     False, 
-                    f"HTTP {response.status_code} - Expected 200",
+                    f"HTTP {response.status_code} - Expected 302 or 200",
                     response.text[:200]
                 )
         except Exception as e:
