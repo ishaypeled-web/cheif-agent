@@ -1729,10 +1729,11 @@ async def get_maintenance(current_user = Depends(get_current_user)):
 @app.put("/api/maintenance/{maintenance_id}")
 async def update_maintenance(maintenance_id: str, maintenance: PendingMaintenance, current_user = Depends(get_current_user)):
     maintenance_dict = maintenance.dict()
+    maintenance_dict['user_id'] = current_user['id']  # Ensure user_id is set
     maintenance_dict = calculate_maintenance_dates(maintenance_dict)
     
     result = pending_maintenance_collection.update_one(
-        {"id": maintenance_id}, 
+        {"id": maintenance_id, "user_id": current_user['id']}, 
         {"$set": maintenance_dict}
     )
     if result.matched_count == 0:
@@ -1740,8 +1741,8 @@ async def update_maintenance(maintenance_id: str, maintenance: PendingMaintenanc
     return {"message": "Maintenance updated successfully"}
 
 @app.delete("/api/maintenance/{maintenance_id}")
-async def delete_maintenance(maintenance_id: str):
-    result = pending_maintenance_collection.delete_one({"id": maintenance_id})
+async def delete_maintenance(maintenance_id: str, current_user = Depends(get_current_user)):
+    result = pending_maintenance_collection.delete_one({"id": maintenance_id, "user_id": current_user['id']})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Maintenance not found")
     return {"message": "Maintenance deleted successfully"}
