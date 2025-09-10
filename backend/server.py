@@ -60,7 +60,7 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 GOOGLE_SHEETS_CREDENTIALS = os.environ.get('GOOGLE_SHEETS_CREDENTIALS', '/app/backend/google_sheets_credentials.json')
 
 # JWT Authentication settings
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-secret-key-change-in-production-' + str(uuid.uuid4()))
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-fallback-secret-key-change-in-production')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
