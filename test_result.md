@@ -105,6 +105,42 @@
 ## user_problem_statement: יישום מערכת אימות משתמשים מלאה עם הפרדת נתונים. הפרונטאנד מוכן, כעת נדרש לעדכן את הבקאנד עם מידלוואר אימות על כל הנקודות קצה (~40 endpoints). המשתמש מדווח על שגיאת 403 בהתחברות דרך גוגל.
 
 ## backend:
+  - task: "Google OAuth Authentication - 403 Error Fix"
+    implemented: true  
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "משתמש מדווח על שגיאת 403 כשמנסה להתחבר דרך גוגל. הנקודה קצה /api/auth/google/login עובדת ומפנה לגוגל נכון, אבל יש בעיה בזרימת ההתחברות או ב-callback endpoint. צריך לבדוק JWT secret key, callback endpoint ואימות tokens."
+
+  - task: "Backend Authentication Middleware Implementation"
+    implemented: false
+    working: false
+    file: "backend/server.py"  
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "נדרש לעדכן ~40 API endpoints להוסיף אימות JWT ולסנן נתונים לפי user_id. כרגע רוב הנקודות קצה לא מוגנות עם אימות."
+
+  - task: "User Data Isolation - Filter by user_id"  
+    implemented: false
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "צריך לוודא שכל משתמש רואה רק את הנתונים שלו. נדרש לעדכן כל queries ב-MongoDB לכלול user_id filter."
+
   - task: "Google Sheets Export Endpoints"
     implemented: true
     working: true
