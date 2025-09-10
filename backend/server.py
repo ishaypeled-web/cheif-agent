@@ -2197,6 +2197,51 @@ async def logout_user(current_user = Depends(get_current_user)):
             "logged_out": True
         }
 
+@app.get("/api/summary")
+async def get_dashboard_summary(current_user = Depends(get_current_user)):
+    """Get dashboard summary data"""
+    try:
+        # Get counts for each table
+        failures_count = active_failures_collection.count_documents({"user_id": current_user['id']})
+        resolved_count = resolved_failures_collection.count_documents({"user_id": current_user['id']})
+        maintenance_count = pending_maintenance_collection.count_documents({"user_id": current_user['id']})
+        equipment_count = equipment_hours_collection.count_documents({"user_id": current_user['id']})
+        
+        # Get urgent items
+        urgent_failures = list(active_failures_collection.find(
+            {"user_id": current_user['id'], "urgency": {"$gte": 4}}, 
+            {"_id": 0}
+        ).limit(5))
+        
+        return {
+            "counts": {
+                "active_failures": failures_count,
+                "resolved_failures": resolved_count,
+                "pending_maintenance": maintenance_count,
+                "equipment_items": equipment_count
+            },
+            "urgent_items": urgent_failures,
+            "user": {
+                "name": current_user.get("name", ""),
+                "email": current_user.get("email", "")
+            }
+        }
+    except Exception as e:
+        print(f"Error getting summary: {e}")
+        return {
+            "counts": {
+                "active_failures": 0,
+                "resolved_failures": 0,
+                "pending_maintenance": 0,
+                "equipment_items": 0
+            },
+            "urgent_items": [],
+            "user": {
+                "name": current_user.get("name", "משתמש"),
+                "email": current_user.get("email", "")
+            }
+        }
+
 @app.get("/api/auth/user/{email}")
 async def get_user_info(email: str):
     """Get user information and Google auth status"""
