@@ -276,11 +276,9 @@ function App() {
   };
 
   const initiateGoogleAuth = () => {
-    // Use window.location.origin as fallback to ensure it always works
-    const backendUrl = BACKEND_URL || window.location.origin;
-    const authUrl = `${backendUrl}/api/auth/google/login`;
-    console.log('Redirecting to Google OAuth:', authUrl);
-    window.location.href = authUrl;
+    // Force redirect to the OAuth endpoint directly 
+    console.log('Google OAuth button clicked');
+    window.location.assign('https://fleet-mentor.preview.emergentagent.com/api/auth/google/login');
   };
 
   // Helper functions
