@@ -453,7 +453,6 @@
 
 ## test_plan:
   current_focus:
-    - "Missing Authentication Middleware on 5 Data Endpoints"
     - "Jessica AI Updated Prompt - Name Asking"
     - "Jessica AI Updated Prompt - No Data Invention"
     - "Jessica AI Updated Prompt - Clarification Requests"
