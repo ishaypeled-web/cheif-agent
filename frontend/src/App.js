@@ -1949,9 +1949,12 @@ function App() {
             <DialogTitle>
               {dialogType === 'failure' && (editingItem ? 'עריכת תקלה' : 'הוסף תקלה חדשה')}
               {dialogType === 'resolved-failure' && 'עריכת פרטי פתרון'}
-              {dialogType === 'maintenance' && (editingItem ? 'עריכת אחזקה' : 'הוסף אחזקה')}
+              {dialogType === 'maintenance' && (editingItem ? 'עריכת תחזוקה' : 'הוסף תחזוקה')}
               {dialogType === 'equipment' && (editingItem ? 'עריכת ציוד' : 'הוסף ציוד')}
-              {dialogType === 'work' && (editingItem ? 'עריכת משימה' : 'הוסף משימה')}
+              {dialogType === 'daily-work' && (editingItem ? 'עריכת משימה' : 'הוסף משימה')}
+              {dialogType === 'conversation' && (editingItem ? 'עריכת שיחה' : 'הוסף שיחה')}
+              {dialogType === 'dna' && (editingItem ? 'עריכת רכיב DNA' : 'הוסף רכיב DNA')}
+              {dialogType === 'ninety-day' && (editingItem ? 'עריכת תכנית שבועית' : 'הוסף תכנית שבועית')}
             </DialogTitle>
           </DialogHeader>
           
