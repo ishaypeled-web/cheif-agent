@@ -322,17 +322,41 @@
           comment: "✅ AUTHENTICATION FIXES SUCCESSFUL! בדקתי מחדש את כל 8 נקודות הקצה הראשיות אחרי התיקונים של Main Agent: ✅ GET /api/equipment (Equipment Hours) - HTTP 401 ללא אימות ✅ GET /api/daily-work (Daily Work Plan) - HTTP 401 ללא אימות ✅ GET /api/conversations (Conversations) - HTTP 401 ללא אימות ✅ GET /api/dna-tracker (DNA Tracker) - HTTP 401 ללא אימות ✅ GET /api/ninety-day-plan (90-Day Plan) - HTTP 401 ללא אימות ✅ GET /api/failures (Active Failures) - HTTP 401 ללא אימות ✅ GET /api/resolved-failures (Resolved Failures) - HTTP 401 ללא אימות ✅ GET /api/maintenance (Pending Maintenances) - HTTP 401 ללא אימות. כל 8 הנקודות קצה כעת דורשות אימות נכון! Authentication coverage: 100% (8/8). הבעיה שהמשתמש דיווח עליها נפתרה - כעת כל הטבלאות ידרשו התחברות דרך Google OAuth."
 
 ## frontend:
-  - task: "Fix white screen error - editingItem initialization"
+  - task: "Table Name Change - תחזוקות to אחזקות"
     implemented: true
     working: true
     file: "frontend/src/App.js"
     stuck_count: 0
-    priority: "critical"
+    priority: "low"
     needs_retesting: false
     status_history:
         - working: true
           agent: "main"
-          comment: "תיקנתי שגיאה קריטית בסדר אתחול המשתנים ב-App.js. הבעיה הייתה ש-useEffect hook ניסה לגשת למשתנה editingItem לפני האתחול שלו עם useState. העברתי את הצהרות ה-state (editingItem, showDialog, dialogType ו-form states) להיות לפני ה-useEffect hooks. האפליקציה כעת נטענת בהצלחה ללא מסך לבן."
+          comment: "✅ שם הטבלה כבר מעודכן ל'אחזקות ממתינות' בשורה 949 ב-App.js. המשימה הושלמה."
+
+  - task: "Sample Data Population"
+    implemented: true
+    working: true
+    file: "populate_sample_data.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "✅ יצרתי והרצתי סקריפט populate_sample_data.py שמוסיף נתוני דוגמה לכל 8 הטבלאות. נוספו: 3 תקלות פעילות, 2 תקלות שטופלו, 3 אחזקות ממתינות, 3 מכלולי ציוד, 3 משימות תכנון יומי, 2 שיחות מעקב, 2 רכיבי DNA מנהיגותי, 3 שבועות תכנית 90 יום."
+
+  - task: "Input Forms Dialog Fix"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "🔍 צריך לבדוק למה טפסי הקלט לא נפתחים כשמנסים להוסיף פריטים חדשים לטבלאות. קיימת פונקציית openDialog אבל יש לבדוק אם יש בעיה באימות או ב-UI."
 
   - task: "Google Calendar tab integration"
     implemented: true
@@ -486,17 +510,41 @@
       message: "🎯 REVIEW REQUEST VALIDATION COMPLETE! בדקתי מחדש את כל 8 נקודות הקצה הראשיות אחרי תיקוני האימות של Main Agent: ✅ FIXED ENDPOINTS NOW REQUIRE AUTH: GET /api/equipment (HTTP 401), GET /api/daily-work (HTTP 401), GET /api/conversations (HTTP 401), GET /api/dna-tracker (HTTP 401), GET /api/ninety-day-plan (HTTP 401) ✅ ALREADY WORKING ENDPOINTS STILL PROTECTED: GET /api/failures (HTTP 401), GET /api/resolved-failures (HTTP 401), GET /api/maintenance (HTTP 401) ✅ AUTHENTICATION COVERAGE: 100% (8/8 endpoints) ✅ Google OAuth system working with correct client_id ✅ JWT validation working correctly. הבעיה שהמשתמש דיווח עליها נפתרה לחלוטין - כעת כל הטבלאות דורשות התחברות דרך Google OAuth ולא מציגות נתונים ללא אימות!"
 
 ## frontend:
-  - task: "Fix white screen error - editingItem initialization"
+  - task: "Table Name Change - תחזוקות to אחזקות"
     implemented: true
     working: true
     file: "frontend/src/App.js"
     stuck_count: 0
-    priority: "critical"
+    priority: "low"
     needs_retesting: false
     status_history:
         - working: true
           agent: "main"
-          comment: "תיקנתי שגיאה קריטית בסדר אתחול המשתנים ב-App.js. הבעיה הייתה ש-useEffect hook ניסה לגשת למשתנה editingItem לפני האתחול שלו עם useState. העברתי את הצהרות ה-state (editingItem, showDialog, dialogType ו-form states) להיות לפני ה-useEffect hooks. האפליקציה כעת נטענת בהצלחה ללא מסך לבן."
+          comment: "✅ שם הטבלה כבר מעודכן ל'אחזקות ממתינות' בשורה 949 ב-App.js. המשימה הושלמה."
+
+  - task: "Sample Data Population"
+    implemented: true
+    working: true
+    file: "populate_sample_data.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "✅ יצרתי והרצתי סקריפט populate_sample_data.py שמוסיף נתוני דוגמה לכל 8 הטבלאות. נוספו: 3 תקלות פעילות, 2 תקלות שטופלו, 3 אחזקות ממתינות, 3 מכלולי ציוד, 3 משימות תכנון יומי, 2 שיחות מעקב, 2 רכיבי DNA מנהיגותי, 3 שבועות תכנית 90 יום."
+
+  - task: "Input Forms Dialog Fix"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "🔍 צריך לבדוק למה טפסי הקלט לא נפתחים כשמנסים להוסיף פריטים חדשים לטבלאות. קיימת פונקציית openDialog אבל יש לבדוק אם יש בעיה באימות או ב-UI."
 
   - task: "Google Calendar tab integration"
     implemented: true
