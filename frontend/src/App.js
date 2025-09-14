@@ -94,17 +94,18 @@ function App() {
       setIsAuthenticated(true);
     }
 
-    // Check for Google OAuth callback
+    // Check for Google OAuth callback OR direct token from test login
     const urlParams = new URLSearchParams(window.location.search);
     const googleAuth = urlParams.get('google_auth');
     const token = urlParams.get('token');
     const email = urlParams.get('email');
     const name = urlParams.get('name');
 
-    if (googleAuth === 'success' && token) {
+    // Handle both Google OAuth success and test login
+    if ((googleAuth === 'success' && token) || (token && email)) {
       // Save authentication info
       localStorage.setItem('auth_token', token);
-      const user = { email, name };
+      const user = { email, name: name || 'משתמש' };
       localStorage.setItem('current_user', JSON.stringify(user));
       
       setAuthToken(token);
@@ -116,7 +117,7 @@ function App() {
       window.history.replaceState({}, document.title, window.location.pathname);
       
       // Show success message
-      alert(`✅ התחברת בהצלחה! שלום ${name}`);
+      alert(`✅ התחברת בהצלחה! שלום ${user.name}`);
     } else if (googleAuth === 'error') {
       const message = urlParams.get('message');
       alert(`❌ שגיאה בהתחברות: ${message}`);
