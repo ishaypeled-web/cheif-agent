@@ -443,10 +443,9 @@ def main():
         client.admin.command('ping')
         print("✅ חיבור למונגו DB תקין")
         
-        # אפשרות לניקוי נתונים קיימים
-        response = input("האם לנקות נתונים קיימים? (y/n): ")
-        if response.lower() == 'y':
-            clear_existing_data()
+        # ניקוי נתונים קיימים אוטומטית
+        print("🧹 מנקה נתונים קיימים...")
+        clear_existing_data()
         
         # הוספת נתוני דוגמה
         populate_active_failures()
