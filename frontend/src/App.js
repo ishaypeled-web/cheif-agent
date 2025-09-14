@@ -72,7 +72,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   // API calls
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://fleet-mentor.preview.emergentagent.com';
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://yahel-leadership.preview.emergentagent.com';
 
   // Authentication helpers
   const getAuthHeaders = () => {
@@ -288,7 +288,7 @@ function App() {
   const initiateGoogleAuth = () => {
     // Force redirect to the OAuth endpoint directly 
     console.log('Google OAuth button clicked');
-    window.location.assign('https://fleet-mentor.preview.emergentagent.com/api/auth/google/login');
+    window.location.assign('https://yahel-leadership.preview.emergentagent.com/api/auth/google/login');
   };
 
   // Helper functions
@@ -816,7 +816,7 @@ function App() {
               
               <div className="space-y-3">
                 <a 
-                  href="https://fleet-mentor.preview.emergentagent.com/api/auth/google/login"
+                  href="https://yahel-leadership.preview.emergentagent.com/api/auth/google/login"
                   className="block w-full"
                 >
                   <Button 
@@ -833,7 +833,7 @@ function App() {
                 </div>
                 
                 <a 
-                  href="https://fleet-mentor.preview.emergentagent.com/api/auth/test-login"
+                  href="https://yahel-leadership.preview.emergentagent.com/api/auth/test-login"
                   className="block w-full"
                 >
                   <Button 
