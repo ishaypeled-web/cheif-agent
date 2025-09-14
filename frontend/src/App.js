@@ -812,25 +812,45 @@ function App() {
               <p className="text-gray-600 text-sm mb-6">
                 התחבר עם חשבון Google שלך כדי לגשת למערכת
               </p>
-              <a 
-                href="https://fleet-mentor.preview.emergentagent.com/api/auth/google/login"
-                className="w-full"
-              >
-                <Button 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-                  size="lg"
+              
+              <div className="space-y-3">
+                <a 
+                  href="https://fleet-mentor.preview.emergentagent.com/api/auth/google/login"
+                  className="block w-full"
                 >
-                  <User className="h-5 w-5 ml-2" />
-                  התחבר עם Google
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                    size="lg"
+                  >
+                    <User className="h-5 w-5 ml-2" />
+                    התחבר עם Google
+                  </Button>
+                </a>
+                
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">או</p>
+                </div>
+                
+                <Button 
+                  onClick={() => {
+                    const token = prompt('הכנס JWT token (לבדיקה):');
+                    if (token) {
+                      localStorage.setItem('auth_token', token);
+                      setAuthToken(token);
+                      setIsAuthenticated(true);
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  הכנס token ידנית (לבדיקה)
                 </Button>
-              </a>
+              </div>
             </div>
             
             <div className="text-center text-sm text-gray-500">
-              <div className="flex items-center justify-center space-x-2">
-                <div className="h-2 w-2 bg-gray-300 rounded-full"></div>
-                <span>מערכת מאובטחת</span>
-              </div>
+              <p>יש בעיה בהתחברות? נסה לרענן את הדף</p>
             </div>
           </CardContent>
         </Card>
