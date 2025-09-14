@@ -2070,25 +2070,19 @@ async def get_chat_history(limit: int = 10):
 # Google Calendar OAuth Routes
 @app.get("/api/auth/google/login")
 async def google_login():
-    """Initiate Google OAuth flow with simpler redirect"""
+    """Initiate Google OAuth flow with simple direct redirect"""
     try:
         client_id = os.environ.get('GOOGLE_CLIENT_ID')
         redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI')
         
-        # Create the Google OAuth URL manually to avoid library issues
-        scope = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/calendar"
-        state = secrets.token_urlsafe(32)
-        
+        # Create OAuth URL with minimal parameters to avoid blocking
         oauth_url = (
-            f"https://accounts.google.com/o/oauth2/auth"
-            f"?response_type=code"
-            f"&client_id={client_id}"
+            f"https://accounts.google.com/o/oauth2/v2/auth"
+            f"?client_id={client_id}"
+            f"&response_type=code"
             f"&redirect_uri={redirect_uri}"
-            f"&scope={scope}"
-            f"&state={state}"
-            f"&access_type=offline"
-            f"&include_granted_scopes=true"
-            f"&prompt=consent"
+            f"&scope=openid email profile"
+            f"&state={secrets.token_urlsafe(32)}"
         )
         
         from fastapi.responses import RedirectResponse
