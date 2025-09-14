@@ -1574,13 +1574,14 @@ class ComprehensiveBackendTest:
             
             successful_exports = sum(1 for r in results.values() if r.get("success", False))
             quota_issues = sum(1 for r in results.values() if r.get("quota_exceeded", False))
+            google_project_issues = sum(1 for r in results.values() if r.get("google_project_deleted", False))
             
-            if successful_exports >= 6:  # At least 6 out of 8 should work
+            if successful_exports >= 6:  # At least 6 out of 8 should work (code-wise)
                 self.log_result(
                     "Google Sheets export endpoints",
                     True,
-                    f"✅ {successful_exports}/8 export endpoints working",
-                    f"Quota exceeded: {quota_issues} (expected limitation)"
+                    f"✅ {successful_exports}/8 export endpoints working (code-wise)",
+                    f"Google project deleted: {google_project_issues}, Quota exceeded: {quota_issues} (expected Google API limitations)"
                 )
             else:
                 self.log_result(
