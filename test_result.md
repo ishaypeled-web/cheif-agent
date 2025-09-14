@@ -653,10 +653,11 @@
 
 ## test_plan:
   current_focus:
-    - "Fix white screen error - editingItem initialization"
+    - "Input Forms Dialog Fix"
+    - "Sample Data Population"
   stuck_tasks: []
   test_all: false
-  test_priority: "critical_first"
+  test_priority: "high_first"
 
 ## agent_communication:
     - agent: "main"
