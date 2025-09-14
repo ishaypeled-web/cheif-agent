@@ -831,6 +831,19 @@ function App() {
                   <p className="text-xs text-gray-500">או</p>
                 </div>
                 
+                <a 
+                  href="https://fleet-mentor.preview.emergentagent.com/api/auth/test-login"
+                  className="block w-full"
+                >
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    size="sm"
+                  >
+                    כניסה מהירה לבדיקה
+                  </Button>
+                </a>
+                
                 <Button 
                   onClick={() => {
                     const token = prompt('הכנס JWT token (לבדיקה):');
@@ -844,7 +857,7 @@ function App() {
                   className="w-full"
                   size="sm"
                 >
-                  הכנס token ידנית (לבדיקה)
+                  הכנס token ידנית (מתקדם)
                 </Button>
               </div>
             </div>
