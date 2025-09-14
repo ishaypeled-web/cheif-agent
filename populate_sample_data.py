@@ -15,7 +15,8 @@ from pymongo import MongoClient
 # הגדרת חיבור למונגו DB
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/')
 client = MongoClient(MONGO_URL)
-db = client.naval_management_db
+DB_NAME = os.environ.get('DB_NAME', 'yahel_department_db')
+db = client[DB_NAME]
 
 # טבלאות
 active_failures_collection = db.active_failures
