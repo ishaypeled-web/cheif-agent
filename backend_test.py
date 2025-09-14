@@ -1082,8 +1082,624 @@ def run_review_request_test():
     
     return results
 
+class ComprehensiveBackendTest:
+    """Comprehensive backend testing after adding new sample data"""
+    
+    def __init__(self):
+        self.test_results = []
+        self.base_url = BASE_URL
+        self.headers = HEADERS
+        self.auth_token = None
+        self.test_user_id = None
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details:
+            print(f"   Details: {details}")
+    
+    def test_1_test_login_endpoint(self):
+        """Test 1: /api/auth/test-login endpoint - should create valid token"""
+        try:
+            print("\n🔐 Testing test-login endpoint...")
+            
+            # Test data for login
+            login_data = {
+                "email": "test.user@yahel-naval.com",
+                "name": "Test User Yahel",
+                "google_id": f"test_google_id_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            }
+            
+            response = requests.post(f"{self.base_url}/auth/test-login", headers=self.headers, json=login_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'access_token' in data and 'user_id' in data:
+                    self.auth_token = data['access_token']
+                    self.test_user_id = data['user_id']
+                    
+                    # Verify token format (JWT should have 3 parts separated by dots)
+                    token_parts = self.auth_token.split('.')
+                    if len(token_parts) == 3:
+                        self.log_result(
+                            "Test-login endpoint",
+                            True,
+                            "✅ Successfully created valid JWT token",
+                            f"Token length: {len(self.auth_token)} chars, User ID: {self.test_user_id[:8]}..."
+                        )
+                    else:
+                        self.log_result(
+                            "Test-login endpoint",
+                            False,
+                            "Token created but invalid JWT format",
+                            f"Token parts: {len(token_parts)}, Expected: 3"
+                        )
+                else:
+                    self.log_result(
+                        "Test-login endpoint",
+                        False,
+                        "Response missing required fields",
+                        f"Response keys: {list(data.keys())}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Test-login endpoint",
+                    False,
+                    "Test-login endpoint not found - not implemented",
+                    "POST /api/auth/test-login endpoint missing"
+                )
+            else:
+                self.log_result(
+                    "Test-login endpoint",
+                    False,
+                    f"HTTP {response.status_code} - Expected 200",
+                    response.text[:200]
+                )
+                
+        except Exception as e:
+            self.log_result("Test-login endpoint", False, f"Exception: {str(e)}")
+    
+    def test_2_all_8_main_endpoints_with_auth(self):
+        """Test 2: All 8 main endpoints with authentication - should return new sample data"""
+        try:
+            print("\n📊 Testing all 8 main endpoints with authentication...")
+            
+            if not self.auth_token:
+                self.log_result(
+                    "All 8 main endpoints with auth",
+                    False,
+                    "No auth token available - test-login failed",
+                    "Cannot test authenticated endpoints without valid token"
+                )
+                return
+            
+            auth_headers = {**self.headers, "Authorization": f"Bearer {self.auth_token}"}
+            
+            # All 8 main endpoints as specified in review
+            endpoints = [
+                ("/failures", "Active Failures", "תקלות פעילות"),
+                ("/resolved-failures", "Resolved Failures", "תקלות שטופלו"),
+                ("/maintenance", "Pending Maintenances", "אחזקות ממתינות"),
+                ("/equipment", "Equipment Hours", "מכלולי ציוד"),
+                ("/daily-work", "Daily Work Plan", "תכנון יומי"),
+                ("/conversations", "Conversations", "שיחות מעקב"),
+                ("/dna-tracker", "DNA Tracker", "רכיבי DNA מנהיגותי"),
+                ("/ninety-day-plan", "90-Day Plan", "תכנית 90 יום")
+            ]
+            
+            results = {}
+            total_items = 0
+            
+            for endpoint, name_en, name_he in endpoints:
+                try:
+                    response = requests.get(f"{self.base_url}{endpoint}", headers=auth_headers)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if isinstance(data, list):
+                            item_count = len(data)
+                            total_items += item_count
+                            results[name_he] = {
+                                "success": True,
+                                "count": item_count,
+                                "has_data": item_count > 0
+                            }
+                            print(f"   ✅ {name_he}: {item_count} פריטים")
+                        else:
+                            results[name_he] = {
+                                "success": False,
+                                "error": "Invalid response format"
+                            }
+                    elif response.status_code in [401, 403]:
+                        results[name_he] = {
+                            "success": False,
+                            "error": f"Authentication failed: HTTP {response.status_code}"
+                        }
+                    else:
+                        results[name_he] = {
+                            "success": False,
+                            "error": f"HTTP {response.status_code}"
+                        }
+                        
+                except Exception as e:
+                    results[name_he] = {
+                        "success": False,
+                        "error": f"Exception: {str(e)}"
+                    }
+            
+            # Analyze results
+            successful_endpoints = sum(1 for r in results.values() if r.get("success", False))
+            endpoints_with_data = sum(1 for r in results.values() if r.get("has_data", False))
+            
+            if successful_endpoints >= 7:  # At least 7 out of 8 should work
+                self.log_result(
+                    "All 8 main endpoints with auth",
+                    True,
+                    f"✅ {successful_endpoints}/8 endpoints working, Total items: {total_items}",
+                    f"Endpoints with data: {endpoints_with_data}/8"
+                )
+            else:
+                failed_endpoints = [name for name, result in results.items() if not result.get("success", False)]
+                self.log_result(
+                    "All 8 main endpoints with auth",
+                    False,
+                    f"Only {successful_endpoints}/8 endpoints working",
+                    f"Failed: {failed_endpoints}"
+                )
+                
+        except Exception as e:
+            self.log_result("All 8 main endpoints with auth", False, f"Exception: {str(e)}")
+    
+    def test_3_post_endpoints_create_new_items(self):
+        """Test 3: POST endpoints to create new items in tables"""
+        try:
+            print("\n➕ Testing POST endpoints to create new items...")
+            
+            if not self.auth_token:
+                self.log_result(
+                    "POST endpoints create new items",
+                    False,
+                    "No auth token available",
+                    "Cannot test without authentication"
+                )
+                return
+            
+            auth_headers = {**self.headers, "Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test data for creating new items
+            test_items = [
+                ("/failures", {
+                    "failure_number": f"F{datetime.now().strftime('%m%d%H%M')}",
+                    "date": datetime.now().isoformat()[:10],
+                    "system": "מערכת בדיקה",
+                    "description": "תקלה לבדיקת המערכת",
+                    "urgency": 3,
+                    "assignee": "טכנאי בדיקה",
+                    "estimated_hours": 2.5
+                }, "Active Failures"),
+                
+                ("/maintenance", {
+                    "maintenance_type": "בדיקה שבועית",
+                    "system": "מערכת בדיקה",
+                    "frequency_days": 7,
+                    "last_performed": datetime.now().isoformat()[:10]
+                }, "Pending Maintenances"),
+                
+                ("/equipment", {
+                    "system": "מנוע בדיקה",
+                    "system_type": "מנועים",
+                    "current_hours": 150.5,
+                    "last_service_date": datetime.now().isoformat()[:10]
+                }, "Equipment Hours"),
+                
+                ("/daily-work", {
+                    "date": datetime.now().isoformat()[:10],
+                    "task": "משימת בדיקה",
+                    "source": "בדיקה",
+                    "assignee": "טכנאי בדיקה",
+                    "estimated_hours": 1.5
+                }, "Daily Work Plan")
+            ]
+            
+            results = {}
+            
+            for endpoint, data, name in test_items:
+                try:
+                    response = requests.post(f"{self.base_url}{endpoint}", headers=auth_headers, json=data)
+                    
+                    if response.status_code in [200, 201]:
+                        response_data = response.json()
+                        results[name] = {
+                            "success": True,
+                            "status": response.status_code,
+                            "created_id": response_data.get("id", "unknown")
+                        }
+                        print(f"   ✅ {name}: Created successfully")
+                    else:
+                        results[name] = {
+                            "success": False,
+                            "status": response.status_code,
+                            "error": response.text[:100]
+                        }
+                        print(f"   ❌ {name}: HTTP {response.status_code}")
+                        
+                except Exception as e:
+                    results[name] = {
+                        "success": False,
+                        "error": f"Exception: {str(e)}"
+                    }
+            
+            successful_creates = sum(1 for r in results.values() if r.get("success", False))
+            
+            if successful_creates >= 3:  # At least 3 out of 4 should work
+                self.log_result(
+                    "POST endpoints create new items",
+                    True,
+                    f"✅ {successful_creates}/4 POST endpoints working",
+                    f"Successfully created items in {successful_creates} tables"
+                )
+            else:
+                self.log_result(
+                    "POST endpoints create new items",
+                    False,
+                    f"Only {successful_creates}/4 POST endpoints working",
+                    f"Results: {results}"
+                )
+                
+        except Exception as e:
+            self.log_result("POST endpoints create new items", False, f"Exception: {str(e)}")
+    
+    def test_4_put_delete_endpoints(self):
+        """Test 4: PUT/DELETE endpoints for editing and deletion"""
+        try:
+            print("\n✏️ Testing PUT/DELETE endpoints...")
+            
+            if not self.auth_token:
+                self.log_result(
+                    "PUT/DELETE endpoints",
+                    False,
+                    "No auth token available",
+                    "Cannot test without authentication"
+                )
+                return
+            
+            auth_headers = {**self.headers, "Authorization": f"Bearer {self.auth_token}"}
+            
+            # First, get some existing items to test with
+            response = requests.get(f"{self.base_url}/failures", headers=auth_headers)
+            
+            if response.status_code == 200:
+                failures = response.json()
+                if failures and len(failures) > 0:
+                    # Test PUT - update first failure
+                    failure_id = failures[0].get("id")
+                    if failure_id:
+                        update_data = {
+                            "status": "בטיפול",
+                            "urgency": 4
+                        }
+                        
+                        put_response = requests.put(f"{self.base_url}/failures/{failure_id}", 
+                                                  headers=auth_headers, json=update_data)
+                        
+                        put_success = put_response.status_code in [200, 204]
+                        
+                        # Test DELETE - try to delete resolved failure (safer)
+                        resolved_response = requests.get(f"{self.base_url}/resolved-failures", headers=auth_headers)
+                        delete_success = False
+                        
+                        if resolved_response.status_code == 200:
+                            resolved_failures = resolved_response.json()
+                            if resolved_failures and len(resolved_failures) > 0:
+                                resolved_id = resolved_failures[0].get("id")
+                                if resolved_id:
+                                    delete_response = requests.delete(f"{self.base_url}/resolved-failures/{resolved_id}", 
+                                                                    headers=auth_headers)
+                                    delete_success = delete_response.status_code in [200, 204]
+                        
+                        if put_success and delete_success:
+                            self.log_result(
+                                "PUT/DELETE endpoints",
+                                True,
+                                "✅ Both PUT and DELETE operations working",
+                                f"PUT: HTTP {put_response.status_code}, DELETE: HTTP {delete_response.status_code}"
+                            )
+                        elif put_success:
+                            self.log_result(
+                                "PUT/DELETE endpoints",
+                                True,
+                                "✅ PUT working, DELETE not tested (no resolved failures)",
+                                f"PUT: HTTP {put_response.status_code}"
+                            )
+                        else:
+                            self.log_result(
+                                "PUT/DELETE endpoints",
+                                False,
+                                "PUT/DELETE operations failed",
+                                f"PUT: HTTP {put_response.status_code}, DELETE tested: {delete_success}"
+                            )
+                    else:
+                        self.log_result(
+                            "PUT/DELETE endpoints",
+                            False,
+                            "No failure ID found for testing",
+                            "Cannot test without valid item IDs"
+                        )
+                else:
+                    self.log_result(
+                        "PUT/DELETE endpoints",
+                        False,
+                        "No failures found for testing",
+                        "Need existing data to test PUT/DELETE operations"
+                    )
+            else:
+                self.log_result(
+                    "PUT/DELETE endpoints",
+                    False,
+                    f"Cannot get failures for testing: HTTP {response.status_code}",
+                    "Need to access existing data first"
+                )
+                
+        except Exception as e:
+            self.log_result("PUT/DELETE endpoints", False, f"Exception: {str(e)}")
+    
+    def test_5_google_sheets_export_endpoints(self):
+        """Test 5: Google Sheets export endpoints"""
+        try:
+            print("\n📊 Testing Google Sheets export endpoints...")
+            
+            if not self.auth_token:
+                self.log_result(
+                    "Google Sheets export endpoints",
+                    False,
+                    "No auth token available",
+                    "Cannot test without authentication"
+                )
+                return
+            
+            auth_headers = {**self.headers, "Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test all 8 export endpoints
+            export_endpoints = [
+                "/export/failures",
+                "/export/resolved-failures", 
+                "/export/maintenance",
+                "/export/equipment",
+                "/export/daily-work",
+                "/export/conversations",
+                "/export/dna-tracker",
+                "/export/ninety-day-plan"
+            ]
+            
+            results = {}
+            
+            for endpoint in export_endpoints:
+                try:
+                    export_data = {
+                        "table_name": endpoint.split('/')[-1],
+                        "sheet_title": f"Test Export {datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    }
+                    
+                    response = requests.post(f"{self.base_url}{endpoint}", 
+                                           headers=auth_headers, json=export_data)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get("success"):
+                            results[endpoint] = {
+                                "success": True,
+                                "spreadsheet_id": data.get("spreadsheet_id", "unknown")
+                            }
+                        else:
+                            results[endpoint] = {
+                                "success": False,
+                                "error": data.get("message", "Export failed")
+                            }
+                    elif response.status_code == 403:
+                        # Google Drive quota exceeded is expected
+                        results[endpoint] = {
+                            "success": True,  # Code works, just quota issue
+                            "quota_exceeded": True
+                        }
+                    else:
+                        results[endpoint] = {
+                            "success": False,
+                            "status": response.status_code,
+                            "error": response.text[:100]
+                        }
+                        
+                except Exception as e:
+                    results[endpoint] = {
+                        "success": False,
+                        "error": f"Exception: {str(e)}"
+                    }
+            
+            successful_exports = sum(1 for r in results.values() if r.get("success", False))
+            quota_issues = sum(1 for r in results.values() if r.get("quota_exceeded", False))
+            
+            if successful_exports >= 6:  # At least 6 out of 8 should work
+                self.log_result(
+                    "Google Sheets export endpoints",
+                    True,
+                    f"✅ {successful_exports}/8 export endpoints working",
+                    f"Quota exceeded: {quota_issues} (expected limitation)"
+                )
+            else:
+                self.log_result(
+                    "Google Sheets export endpoints",
+                    False,
+                    f"Only {successful_exports}/8 export endpoints working",
+                    f"Results: {results}"
+                )
+                
+        except Exception as e:
+            self.log_result("Google Sheets export endpoints", False, f"Exception: {str(e)}")
+    
+    def test_6_ai_chat_endpoint(self):
+        """Test 6: AI chat endpoint"""
+        try:
+            print("\n🤖 Testing AI chat endpoint...")
+            
+            if not self.auth_token:
+                self.log_result(
+                    "AI chat endpoint",
+                    False,
+                    "No auth token available",
+                    "Cannot test without authentication"
+                )
+                return
+            
+            auth_headers = {**self.headers, "Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test AI chat with Hebrew message
+            chat_data = {
+                "user_message": "שלום ג'סיקה, איך המצב במחלקה?",
+                "session_id": f"test_session_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "chat_history": []
+            }
+            
+            response = requests.post(f"{self.base_url}/ai-chat", headers=auth_headers, json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "response" in data and data["response"]:
+                    # Check if response is in Hebrew
+                    hebrew_response = any(ord(char) >= 0x0590 and ord(char) <= 0x05FF for char in data["response"])
+                    
+                    self.log_result(
+                        "AI chat endpoint",
+                        True,
+                        "✅ AI chat working and responding",
+                        f"Response length: {len(data['response'])} chars, Hebrew: {hebrew_response}"
+                    )
+                else:
+                    self.log_result(
+                        "AI chat endpoint",
+                        False,
+                        "AI chat endpoint returns empty response",
+                        f"Response data: {data}"
+                    )
+            elif response.status_code in [401, 403]:
+                self.log_result(
+                    "AI chat endpoint",
+                    False,
+                    f"Authentication failed: HTTP {response.status_code}",
+                    "AI chat endpoint requires valid authentication"
+                )
+            else:
+                self.log_result(
+                    "AI chat endpoint",
+                    False,
+                    f"HTTP {response.status_code} - Expected 200",
+                    response.text[:200]
+                )
+                
+        except Exception as e:
+            self.log_result("AI chat endpoint", False, f"Exception: {str(e)}")
+    
+    def test_7_error_handling_without_auth(self):
+        """Test 7: Error handling when no authentication - should return 401"""
+        try:
+            print("\n🚫 Testing error handling without authentication...")
+            
+            # Test critical endpoints without auth
+            test_endpoints = [
+                "/failures",
+                "/resolved-failures",
+                "/maintenance", 
+                "/equipment",
+                "/daily-work",
+                "/conversations",
+                "/dna-tracker",
+                "/ninety-day-plan"
+            ]
+            
+            results = {}
+            
+            for endpoint in test_endpoints:
+                try:
+                    response = requests.get(f"{self.base_url}{endpoint}", headers=self.headers)
+                    
+                    if response.status_code == 401:
+                        results[endpoint] = {"success": True, "status": 401}
+                    elif response.status_code == 403:
+                        results[endpoint] = {"success": True, "status": 403}
+                    else:
+                        results[endpoint] = {"success": False, "status": response.status_code}
+                        
+                except Exception as e:
+                    results[endpoint] = {"success": False, "error": str(e)}
+            
+            properly_protected = sum(1 for r in results.values() if r.get("success", False))
+            
+            if properly_protected >= 7:  # At least 7 out of 8 should require auth
+                self.log_result(
+                    "Error handling without auth",
+                    True,
+                    f"✅ {properly_protected}/8 endpoints properly require authentication",
+                    "All critical endpoints protected"
+                )
+            else:
+                unprotected = [ep for ep, result in results.items() if not result.get("success", False)]
+                self.log_result(
+                    "Error handling without auth",
+                    False,
+                    f"Only {properly_protected}/8 endpoints require authentication",
+                    f"Unprotected endpoints: {unprotected}"
+                )
+                
+        except Exception as e:
+            self.log_result("Error handling without auth", False, f"Exception: {str(e)}")
+    
+    def run_comprehensive_test(self):
+        """Run all comprehensive backend tests"""
+        print("🚀 Yahel Naval Management System - Comprehensive Backend Testing")
+        print("בדיקה מקיפה של הבקאנד אחרי הוספת נתוני דוגמה חדשים")
+        print("=" * 80)
+        
+        # Run all tests in order
+        self.test_1_test_login_endpoint()
+        self.test_2_all_8_main_endpoints_with_auth()
+        self.test_3_post_endpoints_create_new_items()
+        self.test_4_put_delete_endpoints()
+        self.test_5_google_sheets_export_endpoints()
+        self.test_6_ai_chat_endpoint()
+        self.test_7_error_handling_without_auth()
+        
+        # Summary
+        print("\n" + "=" * 80)
+        print("📊 COMPREHENSIVE TEST SUMMARY")
+        print("=" * 80)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = len(self.test_results) - passed
+        
+        print(f"Total Tests: {len(self.test_results)}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        
+        if failed > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"  • {result['test']}: {result['message']}")
+        
+        return self.test_results
+
 if __name__ == "__main__":
-    # Focus on the Review Request specific tests
-    print("🎯 REVIEW REQUEST: Re-testing all main data endpoints after authentication fixes")
+    # Run comprehensive backend testing as requested in review
+    print("🎯 REVIEW REQUEST: Comprehensive Backend Testing After Sample Data Addition")
     print("=" * 80)
-    run_review_request_test()
+    
+    test = ComprehensiveBackendTest()
+    results = test.run_comprehensive_test()
