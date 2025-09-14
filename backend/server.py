@@ -2204,9 +2204,9 @@ async def logout_user(current_user = Depends(get_current_user)):
 async def test_login():
     """Create a test token for development/testing"""
     try:
-        # Create a simple test user
+        # Create a simple test user (using same ID as sample data)
         test_user_data = {
-            "id": "test-user-123",
+            "id": "sample-user-001",
             "email": "test@example.com",
             "name": "משתמש בדיקה",
             "google_id": "test-google-123",
