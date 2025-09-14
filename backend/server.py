@@ -2205,22 +2205,33 @@ async def test_login():
     """Create a test token for development/testing"""
     try:
         # Create a simple test user
-        test_user = {
+        test_user_data = {
             "id": "test-user-123",
             "email": "test@example.com",
-            "name": "משתמש בדיקה"
+            "name": "משתמש בדיקה",
+            "google_id": "test-google-123",
+            "created_at": datetime.now().isoformat(),
+            "last_login": datetime.now().isoformat(),
+            "is_active": True
         }
+        
+        # Create or update user in database
+        authenticated_users_collection.update_one(
+            {"id": test_user_data["id"]},
+            {"$set": test_user_data},
+            upsert=True
+        )
         
         # Create JWT token
         jwt_token = create_access_token(data={
-            "sub": test_user["email"],
-            "user_id": test_user["id"],
-            "name": test_user["name"]
+            "sub": test_user_data["email"],
+            "user_id": test_user_data["id"],
+            "name": test_user_data["name"]
         })
         
         # Redirect to frontend with token
         frontend_url = "https://yahel-leadership.preview.emergentagent.com"
-        redirect_url = f"{frontend_url}?token={jwt_token}&email={test_user['email']}&name={test_user['name']}"
+        redirect_url = f"{frontend_url}?token={jwt_token}&email={test_user_data['email']}&name={test_user_data['name']}"
         
         from fastapi.responses import RedirectResponse
         return RedirectResponse(url=redirect_url, status_code=302)
