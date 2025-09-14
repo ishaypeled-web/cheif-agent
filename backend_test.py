@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Suite for Yahel Naval Management System
-Testing authentication functionality and data isolation after recent updates
+Comprehensive testing after adding new sample data to all 8 tables
+בדיקה מקיפה של הבקאנד אחרי הוספת נתוני דוגמה חדשים למערכת יהל
 """
 
 import requests
