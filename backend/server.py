@@ -2200,10 +2200,34 @@ async def logout_user(current_user = Depends(get_current_user)):
         }
     except Exception as e:
         print(f"Logout error: {e}")
-        return {
-            "message": "Logout completed", 
-            "logged_out": True
+@app.get("/api/auth/test-login")
+async def test_login():
+    """Create a test token for development/testing"""
+    try:
+        # Create a simple test user
+        test_user = {
+            "id": "test-user-123",
+            "email": "test@example.com",
+            "name": "משתמש בדיקה"
         }
+        
+        # Create JWT token
+        jwt_token = create_access_token(data={
+            "sub": test_user["email"],
+            "user_id": test_user["id"],
+            "name": test_user["name"]
+        })
+        
+        # Redirect to frontend with token
+        frontend_url = "https://fleet-mentor.preview.emergentagent.com"
+        redirect_url = f"{frontend_url}?token={jwt_token}&email={test_user['email']}&name={test_user['name']}"
+        
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=redirect_url, status_code=302)
+        
+    except Exception as e:
+        print(f"Test login error: {e}")
+        raise HTTPException(status_code=500, detail=f"Test login failed: {str(e)}")
 
 @app.get("/api/summary")
 async def get_dashboard_summary(current_user = Depends(get_current_user)):
