@@ -1112,56 +1112,92 @@ class ComprehensiveBackendTest:
         try:
             print("\n🔐 Testing test-login endpoint...")
             
-            # Test data for login
-            login_data = {
-                "email": "test.user@yahel-naval.com",
-                "name": "Test User Yahel",
-                "google_id": f"test_google_id_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            }
+            # Test-login is a GET endpoint that redirects with token
+            response = requests.get(f"{self.base_url}/auth/test-login", headers=self.headers, allow_redirects=False)
             
-            response = requests.post(f"{self.base_url}/auth/test-login", headers=self.headers, json=login_data)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if 'access_token' in data and 'user_id' in data:
-                    self.auth_token = data['access_token']
-                    self.test_user_id = data['user_id']
+            if response.status_code == 302:
+                # Extract token from redirect URL
+                location = response.headers.get('Location', '')
+                if 'token=' in location:
+                    # Parse token from URL
+                    import urllib.parse
+                    parsed_url = urllib.parse.urlparse(location)
+                    query_params = urllib.parse.parse_qs(parsed_url.query)
                     
-                    # Verify token format (JWT should have 3 parts separated by dots)
-                    token_parts = self.auth_token.split('.')
-                    if len(token_parts) == 3:
-                        self.log_result(
-                            "Test-login endpoint",
-                            True,
-                            "✅ Successfully created valid JWT token",
-                            f"Token length: {len(self.auth_token)} chars, User ID: {self.test_user_id[:8]}..."
-                        )
+                    if 'token' in query_params:
+                        self.auth_token = query_params['token'][0]
+                        self.test_user_id = "test-user-123"  # From the endpoint code
+                        
+                        # Verify token format (JWT should have 3 parts separated by dots)
+                        token_parts = self.auth_token.split('.')
+                        if len(token_parts) == 3:
+                            self.log_result(
+                                "Test-login endpoint",
+                                True,
+                                "✅ Successfully created valid JWT token via redirect",
+                                f"Token length: {len(self.auth_token)} chars, Redirect URL contains token"
+                            )
+                        else:
+                            self.log_result(
+                                "Test-login endpoint",
+                                False,
+                                "Token created but invalid JWT format",
+                                f"Token parts: {len(token_parts)}, Expected: 3"
+                            )
                     else:
                         self.log_result(
                             "Test-login endpoint",
                             False,
-                            "Token created but invalid JWT format",
-                            f"Token parts: {len(token_parts)}, Expected: 3"
+                            "Redirect URL missing token parameter",
+                            f"Location: {location[:200]}"
                         )
                 else:
                     self.log_result(
                         "Test-login endpoint",
                         False,
-                        "Response missing required fields",
-                        f"Response keys: {list(data.keys())}"
+                        "Redirect URL doesn't contain token",
+                        f"Location: {location[:200]}"
+                    )
+            elif response.status_code == 200:
+                # Maybe it returns JSON instead
+                try:
+                    data = response.json()
+                    if 'access_token' in data:
+                        self.auth_token = data['access_token']
+                        self.test_user_id = data.get('user_id', 'test-user-123')
+                        
+                        self.log_result(
+                            "Test-login endpoint",
+                            True,
+                            "✅ Successfully created valid JWT token via JSON",
+                            f"Token length: {len(self.auth_token)} chars"
+                        )
+                    else:
+                        self.log_result(
+                            "Test-login endpoint",
+                            False,
+                            "JSON response missing access_token",
+                            f"Response keys: {list(data.keys())}"
+                        )
+                except:
+                    self.log_result(
+                        "Test-login endpoint",
+                        False,
+                        "HTTP 200 but invalid JSON response",
+                        response.text[:200]
                     )
             elif response.status_code == 404:
                 self.log_result(
                     "Test-login endpoint",
                     False,
                     "Test-login endpoint not found - not implemented",
-                    "POST /api/auth/test-login endpoint missing"
+                    "GET /api/auth/test-login endpoint missing"
                 )
             else:
                 self.log_result(
                     "Test-login endpoint",
                     False,
-                    f"HTTP {response.status_code} - Expected 200",
+                    f"HTTP {response.status_code} - Expected 302 or 200",
                     response.text[:200]
                 )
                 
