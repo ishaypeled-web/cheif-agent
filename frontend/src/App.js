@@ -1459,7 +1459,7 @@ function App() {
           {/* Placeholder for remaining tabs... */}
           <TabsContent value="maintenance" className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">תחזוקות ממתינות</h2>
+              <h2 className="text-2xl font-bold text-gray-900">אחזקות ממתינות</h2>
               <div className="flex gap-2">
                 <Button 
                   onClick={() => handleExportTable('maintenance', 'תחזוקות ממתינות - יציאה')}
